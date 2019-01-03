@@ -1,0 +1,5 @@
+consider removing the mid tier sections that are worthless
+
+keep it 3 deep to simplify the latex
+
+does it affect dir structure?

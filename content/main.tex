@@ -1,0 +1,78 @@
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{graphicx}
+% \usepackage{tikz}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  filecolor=magenta,
+  urlcolor=cyan
+}
+
+% Build headers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lhead{}
+\chead{}
+\rhead{}
+\lfoot{By: Nicholas Russo}
+\cfoot{http://njrusmc.net}
+\rfoot{\thepage}
+
+% \graphicspath{{"Vv PBDT vV"}}
+
+% Preamble
+\author{Nicholas Russo}
+\title{Evolving Technology}
+\date{}
+
+\begin{document}
+\maketitle
+
+% Front matter
+\newpage
+\begin{abstract}
+abstract text here
+\end{abstract}
+
+% Reference tables
+\newpage
+\tableofcontents
+\listoffigures
+\listoftables
+
+% Cloud
+\newpage
+\section{Cloud}
+\subsection{Compare and contrast public, private, hybrid, and multi-cloud design considerations}
+\input{cloud/a1a-design/a1a1-xaas.tex}
+\input{cloud/a1a-design/a1a2-perf.tex}
+\input{cloud/a1a-design/a1a3-security.tex}
+\input{cloud/a1a-design/a1a4-workload.tex}
+\subsection{Describe cloud infrastructure and operations}
+\input{cloud/a1b-infra/a1b1-compute.tex}
+\input{cloud/a1b-infra/a1b2-connectivity.tex}
+\input{cloud/a1b-infra/a1b3-nfv.tex}
+\input{cloud/a1b-infra/a1b4-automate.tex}
+
+% Network Programmability
+\newpage
+\section{Network Programmability}
+\subsection{Describe architectural and operational considerations for a programmable network}
+\input{netprog/a2a-archops/a2a1-datamodel.tex}
+\input{netprog/a2a-archops/a2a2-devprog.tex}
+\input{netprog/a2a-archops/a2a3-sdn.tex}
+\input{netprog/a2a-archops/a2a4-cmtools.tex}
+
+% Internet of Things
+\newpage
+\section{Internet of Things}
+\subsection{Describe architectural framework and deployment considerations for Internet of Things (IoT)}
+\input{iot/a3a-archdeploy/a3a1-stack.tex}
+\input{iot/a3a-archdeploy/a3a2-protocols.tex}
+\input{iot/a3a-archdeploy/a3a3-security.tex}
+\input{iot/a3a-archdeploy/a3a4-edgefog.tex}
+
+\end{document}
