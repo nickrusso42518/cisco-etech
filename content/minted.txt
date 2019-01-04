@@ -5,3 +5,13 @@ Nicholass-MBP:content nicholasrusso$ which pygmentize
 
 Nicholass-MBP:content nicholasrusso$ kpsewhich minted.sty
 /usr/local/texlive/2017/texmf-dist/tex/latex/minted/minted.sty
+
+\begin{minted}[linenos]{python}
+import yaml
+
+"""
+ok
+"""
+yaml.safeloud(test=1)
+print('lol')
+\end{minted}

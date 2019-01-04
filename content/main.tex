@@ -13,7 +13,10 @@
 % \usepackage{tikz}
 
 % Gives syntax highlighting using Python "Pygments"
+% Enable smaller font and line numbers
 \usepackage{minted}
+\setminted{fontsize=\small}
+\setminted{linenos}
 
 % Gives \toprule \midrule \bottomrule
 \usepackage{booktabs}
@@ -73,6 +76,8 @@
 \input{cloud/a1a-design/a1a2-perf.tex}
 \input{cloud/a1a-design/a1a3-security.tex}
 \input{cloud/a1a-design/a1a4-workload.tex}
+
+\renewcommand{\imgpath}{cloud/a1b-infra/img/}
 % \subsection{Describe cloud infrastructure and operations}
 \input{cloud/a1b-infra/a1b1-compute.tex}
 \input{cloud/a1b-infra/a1b2-connectivity.tex}

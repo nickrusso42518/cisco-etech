@@ -1,6 +1,630 @@
 \subsection{Compute virtualization}
-compute stuff
-
+Conceptually, containers and virtual machines are similar in that they are a
+way to virtualize services/machines on a single platform, effectively
+achieving multi-tenancy. The subsections of this section will focus on their
+differences and use cases, rather than discuss them at the top-level
+section.
+\\ \\
+A brief discussion on two new design paradigms popular within any data center
+is warranted. \textbf{Hyper-convergence and disaggregation} are polar opposites but are
+both highly effective in solving specific business problems.
+\\ \\
+Hyper-convergence attempts to address issues with data center management and
+resource consumption/provisioning. For example, the traditional DC
+architecture will consist of four main components: network, storage, compute,
+and services (firewalls, load balancers, etc.). These decoupled items could be
+combined into a single and unified management infrastructure. The
+virtualization and management layers are integrated into a single appliance,
+and these appliances can be bolted together to scale-out linearly. Cisco
+sometimes refers to this as the Lego block model. This reduces the capital
+investments a business must make over time since the architecture need not
+change as the business grows. Hyper-converged systems, by virtue of their
+integrated management solution, simplify life cycle management of DC assets as
+the ``single pane of glass'' concept can be used to manage all components.
+Cisco's Hyperflex (also called Flexpod) is an example of a hyper-converged solution.
+\\ \\
+Disaggregation is the opposite of hyper-convergence in that rather than
+combining functions (storage, network, and compute) into a single entity, it
+breaks them apart even further. A network appliance, such as a router or
+switch, can be decoupled from its network operating system (NOS). A white box
+or brite box switch can be purchased at low cost with some other NOS
+installed, such as Cumulus Linux. Cumulus generally does not sell hardware,
+only a NOS, much like VMware. Server/computer disaggregation has been around
+for decades since the introduction of the personal computer (PC) whereby the
+common Microsoft Windows operating system was installed on machines from a
+variety of manufacturers. Disaggregation in the network realm has been adopted
+more slowly but has merit for the same reasons.
 \subsubsection{Virtual Machines}
+Virtual machine systems rely on a hypervisor, which is a software shim that
+sits between the VMs themselves and the underlying hardware. The hardware
+chipset would need to support this virtualization, which is a technique to
+present hardware to VMs through the hypervisor. Each VM has its own OS which
+is independent from the hypervisor. Hypervisors come in two flavors:
+
+\begin{enumerate}
+  \item \textbf{Type 1:} Runs on bare metal and is effectively an OS by
+  itself. VMware ESXi and Linux Kernel-based  Virtual Machine (KVM) and are
+  examples.
+  \item \textbf{Type 2:} Requires an underlying OS and provides virtualization
+  services on top through a hardware abstraction layer (HAL). VMware
+  Workstation and VirtualBox are examples.
+\end{enumerate}
+
+VMs are considered quite heavyweight with respect to the overhead needed to
+run them. This can reduce the efficiency of a hardware platform as the VM
+count grows. It is especially inefficient when all of the VMs run the same OS
+with very few differences other than configuration. A demonstration of
+virtual machines is included in the NFVIS section of this document and is
+focused on virtual network functions (VNF).
+
 \subsubsection{Containers with Docker Demonstration}
+Containers on a given machine all share the same OS, unlike with VMs. This
+reduces the amount of overhead, such as idle memory taxes, storage space for
+VM OS images, and the general maintenance associated with maintaining VMs.
+Multi-tenancy is achieved by memory isolation, effectively segmenting the
+different services deployed in different containers. There is still a thin
+software shim between the underlying OS and the containers known as the
+container manager, which enforces the multi-tenancy via memory isolation and
+other techniques.
+\\ \\
+The main drawback of containers is that all containers must share the same OS.
+For applications or services where such behavior is desired (for example, a
+container per customer consuming a specific service), containers are a good
+choice. As a general-purpose virtualization platform in environments where
+requirements may change often (such as military networks), containers are a
+poor choice.
+\\ \\
+Docker and Linux Containers (LXC) are popular examples of container engines.
+The image that follow is from from www.docker.com that compares VMs to
+containers at a high
+level.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath docker-high-level.jpg}
+      \captionof{figure}{Comparing Virtual Machines and Containers}
+    \end{minipage}
+
+This book does not detail the full Docker installation on CentOS because it is
+already well-documented and not relevant to learning about containers. Once
+Docker has been installed, run the following verification commands to ensure
+it is functioning correctly. Any modern version of Docker is sufficient to
+follow the example that will be discussed.
+
+\begin{minted}{bash}
+[centos@docker build]$ which docker && docker --version
+/usr/bin/docker
+Docker version 17.09.1-ce, build 19e2cf6
+\end{minted}
+
+
+Begin by running a new CentOS7 container. These images are stored on DockerHub
+and are automatically downloaded when they are not locally present. For
+example, this machine has not run any containers yet, and no images have been
+explicitly downloaded. Thus, Docker is smart enough to pull the proper image
+from DockerHub and spin up a new container. This only takes a few seconds on a
+high-speed Internet connection. Once complete, Docker drops the user into a
+new shell as the root user inside the container. The -i and -t options enable
+an interactive TTY session, respectively, which is great for demonstrations.
+Note that running Docker containers in the background is much more common as
+there are typically many containers.
+
+\begin{minted}{bash}
+[centos@docker build]$ docker container run -it centos:7
+Unable to find image 'centos:7' locally
+7: Pulling from library/centos
+469cfcc7a4b3: Pull complete 
+Digest: sha256:989b936d56b1ace20ddf855a301741e52abca38286382cba7f44443210e96d16
+Status: Downloaded newer image for centos:7
+
+[root@088bbd2a7544 /]# 
+\end{minted}
+
+To verify that the correct container was downloaded, run the following
+command. Then, exit from the container, as the only use for CentOS7 in our
+example is to serve as a ``base'' image for the custom Ansible image to be
+created.
+
+\begin{minted}{bash}
+[root@088bbd2a7544 /]# cat /etc/redhat-release 
+CentOS Linux release 7.4.1708 (Core) 
+
+[root@088bbd2a7544 /]# exit
+\end{minted}
+
+Exiting from the container effectively halts it, much like a process exiting
+in Linux. Two interesting things have occurred. First, the image that was
+downloaded is now stored locally in the image list. The image came from the
+``centos'' repository with a tag of 7. Tags typically differentiate between
+variants of a common image, such as version numbers or special features.
+Second, the container list shows a CentOS7 container that recently exited.
+Every container gets a random hexadecimal ID and random text names for
+reference. The output can be very long, and so has been edited to fit the page
+neatly.
+ 
+\begin{minted}{bash}
+[centos@docker build]$ docker image ls
+REPOSITORY          TAG       IMAGE ID            CREATED             SIZE
+centos              7         e934aafc2206        7 weeks ago         199MB
+
+[centos@docker build]$ docker container ls -a
+CONTAINER ID   IMAGE      COMMAND      CREATED         STATUS                 PORTS  NAMES
+088bbd2a7544   centos:7   "/bin/bash"  1 minutes ago   Exited (0) 31 s ago    c      wise_banach
+\end{minted}
+
+To build a custom image, one creates a Dockerfile. It is a plain text file
+that closely resembles a shell script and is designed to procedurally assemble
+the required components of a container image for use later. The author already
+created a Dockerfile using a CentOS7 image as a basic image and added some
+additional features to it. Every step has been commented for clarity.
+
+Dockerfiles are typically written to minimize the both number of ``layers'' and
+amount of build time. Each instruction generally qualifies as a layer. The
+more complex and less variable layers should be placed towards the top of the
+Dockerfile, making them deeper layers. For example, installing key packages
+and cloning the code necessary for the containers primary purpose occurs
+early. Layers that are more likely to change, such as version-specific Ansible
+environment setup parameters, can come later. This way, if the Ansible
+environment changes and the image needs to be rebuilt, only the layers at or
+after the point of modification must be rebuilt. The base CentOS7 image and
+original yum package installations remain unchanged, substantially reducing
+the image build time. Fewer RUN directives also results in fewer layers, which
+explains the extensive use of \&\& and \ in the Dockerfile.
+
+\begin{minted}{bash}
+[centos@docker build]$ cat Dockerfile
+# Start from CentOS 7 base image.
+FROM centos:7
+
+# Perform a number of shell commands to prepare the image:
+#   * Update existing packages and install some new ones (alphabetical order)
+#   * Clear the yum cache to reduce image size
+#   * Minimally clone the specific branch to test
+#   * Set up ansible environment
+#   * Install PIP
+#   * Install remaining ansible requirements through pip
+RUN yum update -y && \
+    yum install -y git \
+                   tree \
+                   which && \
+    yum clean all && \
+    \
+    git clone \
+        --branch command_authorization_failed_ios_regex \
+        --depth 1 \
+        --single-branch \
+        --recursive \
+        https://github.com/rcarrillocruz/ansible.git
+
+# Setup the ansible environment and install dependencies via pip.
+RUN /bin/bash -c "source /ansible/hacking/env-setup" && \
+    echo "source /ansible/hacking/env-setup -q" >> /root/.bashrc && \
+    \
+    curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py" && \
+    python get-pip.py && \
+    rm -f get-pip.py && \
+    \
+    pip install -r /ansible/requirements.txt
+
+# When starting a shell, start here to save a "cd" command.
+# The ansible.cfg file, along with example inventories and playbooks,
+# are located in this directory.
+WORKDIR /ansible/examples
+
+# Verify ansible on this image is functional for a "healthy" status.
+# This only checks that the Ansible binary is in our PATH. A more interesting
+# check could be running a simple Ansible playbook or "ansible -–version",
+# but for this demo, the check is kept very basic.
+HEALTHCHECK --interval=5m CMD which ansible || exit 1
+\end{minted}
+
+The Dockerfile is effectively a set of instructions used to build a custom
+image. To build the image based on the Dockerfile, issue the command below.
+The -t option specifies a tag, and in this case, ``cmd\_authz'' is used since
+this particular Dockerfile is using a specific branch from a specific Ansible
+developer's personal Github page. It would be unwise to call this simple
+``ansible'' or ``ansible:latest'' due to the very specific nature of this
+container and subsequent test. Because the user is in the same directory as
+the Dockerfile, specify the ``.'' to choose the current directory. Each of the 5
+steps in the Dockerfile (FROM, RUN, RUN, WORKDIR, and HEALTHCHECK) are logged
+in the output below. The output looks almost identical to what one would see
+through stdout.
+
+\begin{minted}{bash}
+[centos@docker build]$ docker image build -t ansible:cmd_authz .
+Sending build context to Docker daemon  7.168kB
+Step 1/5 : FROM centos:7
+ ---> e934aafc2206
+Step 2/5 : RUN yum update -y &&     yum install -y git                    tree                    which &&     yum clean all &&         git clone         --branch command_authorization_failed_ios_regex         --depth 1         --single-branch         --recursive         https://github.com/rcarrillocruz/ansible.git
+ ---> Running in 84f969f5ee06
+Loaded plugins: fastestmirror, ovl
+Determining fastest mirrors
+ * base: mirrors.lga7.us.voxel.net
+ * extras: repo1.ash.innoscale.net
+ * updates: repos-va.psychz.net
+Resolving Dependencies
+--> Running transaction check
+---> Package acl.x86_64 0:2.2.51-12.el7 will be updated
+[snip, many more packages]
+
+Complete!
+Loaded plugins: fastestmirror, ovl
+Cleaning repos: base extras updates
+Cleaning up everything
+Cleaning up list of fastest mirrors
+
+Cloning into 'ansible'...
+ ---> b6b3ec4a0efb
+Removing intermediate container 84f969f5ee06
+Step 3/5 : RUN /bin/bash -c "source /ansible/hacking/env-setup" &&     echo "source /ansible/hacking/env-setup -q" >> /root/.bashrc &&         curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py" &&     python get-pip.py &&     rm -f get-pip.py &&         pip install -r /ansible/requirements.txt
+ ---> Running in f8344dfe7384
+[snip, progress messages]
+
+Done!
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 1603k  100 1603k    0     0  6836k      0 --:--:-- --:--:-- --:--:-- 6854k
+Collecting pip
+  Downloading https://files.pythonhosted.org/packages/0f/74/ecd13431bcc456ed390b44c8a6e917c1820365cbebcb6a8974d1cd045ab4/pip-10.0.1-py2.py3-none-any.whl (1.3MB)
+Collecting setuptools
+[snip, pip installations]
+Successfully installed MarkupSafe-1.0 PyYAML-3.12 asn1crypto-0.24.0 bcrypt-3.1.4 cffi-1.11.5 cryptography-2.2.2 enum34-1.1.6 idna-2.6 ipaddress-1.0.22 jinja2-2.10 paramiko-2.4.1 pyasn1-0.4.3 pycparser-2.18 pynacl-1.2.1 six-1.11.0
+ ---> 0cab65a61ee3
+Removing intermediate container f8344dfe7384
+Step 4/5 : WORKDIR /ansible/examples
+ ---> 62ef1320c8da
+Removing intermediate container f6b0e7ba51e1
+Step 5/5 : HEALTHCHECK --interval=5m CMD which ansible || exit 1
+ ---> Running in d17db16564d2
+ ---> a8a6ac1b44e2
+Removing intermediate container d17db16564d2
+Successfully built a8a6ac1b44e2
+Successfully tagged ansible:cmd_authz
+\end{minted}
+
+Once complete, there will be a new image in the image list. Note that there
+are not any new containers, since this image has not been run yet. It is ready
+to be instantiated as a container, or even pushed up to DockerHub for others
+to use. Last, note that the container more than doubled in size. Because many
+new packages were added for specific purposes, this makes the container less
+portable. Smaller is always better, especially for generic images.
+
+\begin{minted}{bash}
+[centos@docker build]$ docker image ls
+REPOSITORY   TAG           IMAGE ID            CREATED             SIZE
+ansible      cmd_authz     a8a6ac1b44e2        2 minutes ago       524MB
+centos       7             e934aafc2206        7 weeks ago         199MB
+\end{minted}
+
+For additional detail about this image, the following command returns
+extensive data in JSON format. Docker uses a technique called layering whereby
+each command in a Dockerfile is a layer, and making changes later in the
+Dockerfile won't affect the lower layers. This is why the things least likely
+to change should be placed towards the top, such as the base image, common
+package installs, etc. This reduces image building time when Dockerfiles are
+changed.
+
+\begin{minted}{bash}
+[centos@docker build]$ docker image inspect a8a6ac1b44e2 | head -5
+[
+    {
+        "Id": "sha256:a8a6ac1b44e28f654572bfc57761aabb5a92019c[snip]",
+        "RepoTags": [
+            "ansible:cmd_authz"
+[snip]
+\end{minted}
+
+To run a container, use the same command shown earlier to start the CentOS7
+container. Specify the image name and in less than second, the new container
+is 100\% operational. Ansible should be installed on this container as part of
+the image creation process, so be sure to test this. Running the ``setup''
+module on the control machine (the container itself) should yield several
+lines of JSON output about the device itself. Note that, towards the bottom of
+this output dump, ansible is aware that it is inside a Docker container.
+
+\begin{minted}{bash}
+[centos@docker build]$ docker container run -it ansible:cmd_authz
+[root@04eb3ee71a52 examples]# which ansible && ansible -m setup localhost 
+/ansible/bin/ansible
+localhost | SUCCESS => {
+    "ansible_facts": {
+        [snip, lots of information]
+        "ansible_virtualization_type": "docker", 
+        "gather_subset": [
+            "all"
+        ], 
+        "module_setup": true
+    }, 
+    "changed": false
+}
+\end{minted}
+
+Next, create the playbook used to test the specific issue. The full playbook
+is shown below. For those not familiar with Ansible at all, please see the
+Ansible demonstration in this book, or go to the author's Github page for many
+production-quality examples. This 3 step playbook is simple:
+
+\begin{enumerate}
+  \item Define the login credentials so Ansible can log into the router.
+  \item Log into the router, enter configuration mode, and run ``do show
+  clock''. Store the output.
+  \item	Print out the value of the output variable and look for the date/time
+  in the JSON structure.
+\end{enumerate}
+
+\begin{minted}{yaml}
+[root@04eb3ee71a52 examples]# cat issue31575.yml
+---
+- hosts: csr1.njrusmc.net
+  gather_facts: false
+  connection: network_cli
+  tasks:
+    - name: "SYS >> Define router credentials"
+      set_fact:
+        provider:
+          host: "{{ inventory_hostname }}" 
+          username: "ansible"
+          password: "ansible"
+
+    - name: "IOS >> Run show command from config mode" 
+      ios_config:
+        provider: "{{ provider }}"
+        commands: "do show clock"
+        match: none
+      register: output
+
+    - name: "DEBUG >> Print output"
+      debug:
+        var: output
+...
+\end{minted}
+
+Before running this playbook, a few Ansible adjustments are needed. First,
+adjust the ansible.cfg file to use the hosts.yml inventory file and disable
+host key checking. Ansible needs to know which network devices are in its
+inventory and how to handle unknown SSH keys.
+
+\begin{minted}{bash}
+[root@04eb3ee71a52 examples]# head -20 ansible.cfg 
+[snip, comments]
+[defaults]
+
+# some basic default values...
+
+inventory         = hosts.yml
+host_key_checking = False
+\end{minted}
+
+Next, ensure the inventory contains the specific router in question. In this
+case, it is a Cisco CSR1000v running in AWS. Note that we would have used
+``echo'' commands in our Dockerfile to address these issues in advance, but this
+specific information makes the docker image less useful and less portable.
+
+\begin{minted}{yaml}
+[root@04eb3ee71a52 examples]# head -20 hosts.yml
+---
+# This is the default ansible 'hosts' file.
+#
+# It should live in /etc/ansible/hosts
+all:
+  hosts:
+    csr1.njrusmc.net
+\end{minted}
+
+Before connecting, ensure your container can use DNS to resolve the IP address
+for the router's hostname (assuming you are using DNS), and ensure the
+container can ping the router. This rules out any networking problems. The
+author does not show the initial setup of the CSR1000v, which includes adding
+a username/password of ansible/ansible, and nothing else.
+
+\begin{minted}{bash}
+[root@04eb3ee71a52 examples]# ping –c 3 csr1.njrusmc.net
+PING csr1.njrusmc.net (18.x.x.x) 56(84) bytes of data.
+64 bytes from ec2-18-x-x-x.x.com (18.x.x.x): icmp_seq=1 ttl=253 time=0.884 ms
+64 bytes from ec2-18-x-x-x.x.com (18.x.x.x): icmp_seq=2 ttl=253 time=1.03 ms
+64 bytes from ec2-18-x-x-x.x.com (18.x.x.x): icmp_seq=3 ttl=253 time=0.971 ms
+
+--- csr1.njrusmc.net ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2002ms
+\end{minted}
+
+The last step executes the playbook from inside the container. This
+illustrates the original issue that the ios\_config module, at the time of this
+writing, does not return device output. The author's personal preference is to
+always print the Ansible version number before running playbooks designed to
+test issues. This reduces the likelihood of invalid test results due to
+version confusion. In the DEBUG step below, there is no date/time output,
+which helps illustrate the Ansible issue that is being investigated.
+
+\begin{minted}{bash}
+[root@9bc07956b416 examples]# ansible --version | head -1
+ansible 2.6.0dev0 (command_authorization_failed_ios_regex 5a1568c753) last updated 2018/05/28 17:19:42 (GMT +000)
+
+[root@04eb3ee71a52 examples]# ansible-playbook issue31575.yml 
+
+PLAY [csr1.njrusmc.net] **************************************
+
+TASK [SYS >> Define router credentials] **********************
+ok: [csr1.njrusmc.net]
+
+TASK [IOS >> Run show command from config mode] **************
+changed: [csr1.njrusmc.net]
+
+TASK [DEBUG >> Print output] *********************************
+ok: [csr1.njrusmc.net] => {
+    "output": {
+        "banners": {}, 
+        "changed": true, 
+        "commands": [
+            "do show clock"
+        ], 
+        "failed": false, 
+        "updates": [
+            "do show clock"
+        ]
+    }
+}
+
+PLAY RECAP ****************************************************
+csr1.njrusmc.net           : ok=3    changed=1    unreachable=0    failed=0   
+\end{minted}
+
+After exiting this container, check the list of containers again. Now, there
+were 2 containers in the past, the newest one at the top. This was the Ansible
+container we just exited after completing our test. Again, some output has
+been truncated to make the table fit neatly.
+
+\begin{minted}{bash}
+[centos@docker build]$ docker container ls -a
+CONTAINER ID    IMAGE           COMMAND      CREATED    STATUS                 PORTS           NAMES
+04eb3ee71a52    ans:cmd_authz   "/bin/bash"  33 m ago   Exited (127) 7 s ago   adoring_mestorf
+088bbd2a7544    centos:7        "/bin/bash"  43 m ago   Exited (0) 42 m ago    wise_banach
+\end{minted}
+
+This manual ``start and stop'' approach to containerization has several
+drawbacks. Two are listed below:
+\begin{enumerate}
+  \item	To retest this solution, the playbook would have to be created again,
+  and the Ansible environment files (ansible.cfg, hosts.yml) would need to be
+  updated again. Because containers are ephemeral, this information is not
+  stored automatically.
+  \item	The commands are difficult to remember and it can be a lot to type,
+  especially when starting many containers. Since containers were designed for
+  microservices and expected to be deployed in dependent groups, this
+  management strategy scales poorly.
+\end{enumerate}
+  
+Docker includes a feature called docker-compose. Using YAML syntax, developers
+can specify all the containers they want to start, along with any minor
+options for those containers, then execute the compose file like a script. It
+is better than a shell script since it is more portable and easier to read. It
+is also an easy way to add volumes to Docker. There are different kinds of
+volumes, but in short, volumes allow persistent data to be passed into and
+retrieved from containers. In this example, a simple directory mapping (known
+as a ``bind mount'' in Docker) is built from the local mnt\_files/ folder to the
+container's file system. In this folder, one can copy the Ansible files
+(issue31575.yml, ansible.cfg, and hosts.yml) so the container has immediate
+access. While it is possible to handle volume mounting from the commands
+viewed previously, it is tedious and complex.
+
+\begin{minted}{yaml}
+[centos@docker compose]$ cat docker-compose.yml 
+version: '3.2'
+services:
+  ansible:
+    image: ansible:cmd_authz
+    hostname: cmd_authz
+    # Next two lines are equivalent of -i and -t, respectively
+    stdin_open: true
+    tty: true
+    volumes:
+      - type: bind
+        source: ./mnt_files
+        target: /ansible/examples/mnt_files
+\end{minted}
+
+The contents of these files was shown earlier, but ensure they are all placed
+in the mnt\_files/ directory with relation to where the docker-compose.yml file
+is located.
+
+\begin{minted}{bash}
+[centos@docker compose]$ tree
+.
+├── docker-compose.yml
+└── mnt_files
+    ├── ansible.cfg
+    ├── hosts.yml
+    └── issue31575.yml
+\end{minted}
+
+To run the docker-compose file, use the command below. It will build
+containers for all keys specified under the ``services'' dictionary. In this
+case, there is only one container called ``ansible'' which is based on the
+``ansible:cmd\_authz'' image created earlier from the custom Dockerfile. The -i
+and -t options are enabled to allow for interactive shell access. The -d
+option with the docker-compose command specifies the ``detach'' operation, which
+runs the containers in the background. View the list of containers to see the
+new Ansible container running successfully.
+
+\begin{minted}{bash}
+[centos@docker compose]$ docker-compose up -d
+Starting compose_ansible_1 ... done
+
+[centos@docker compose]$ docker container ls
+CONTAINER ID   IMAGE           COMMAND       CREATED    STATUS            PORTS NAMES
+d3f1365f3145   ans:cmd_authz   "/bin/bash"    1 m ago   Up 32 s (health: ...)   compose_ansible_1
+\end{minted}
+
+The command below says ``execute, on the ansible container, the bash command''
+which grants shell access. Ensure that the mnt\_files/ directory exists and
+contains all the necessary files. Copy the contents to the current directly,
+which will overwrite the basic ansible.cfg and hosts.yml files provided by
+Ansible.
+
+\begin{minted}{bash}
+[centos@docker compose]$ docker-compose exec ansible bash
+[root@cmd_authz examples]# tree mnt_files/
+mnt_files/
+|-- ansible.cfg
+|-- hosts.yml
+`-- issue31575.yml
+
+[root@cmd_authz examples]# cp mnt_files/* .
+cp: overwrite './ansible.cfg'? y
+cp: overwrite './hosts.yml'? y
+\end{minted}
+
+Run the playbook again, and observe the same results as before. Now, assuming
+that this issue remains open for a long period of time, docker-compose helps
+reduce the test setup time.
+
+\begin{minted}{bash}
+[root@cmd_authz examples]# ansible-playbook issue31575.yml 
+
+PLAY [csr1.njrusmc.net] ****************************************
+
+TASK [SYS >> Define router credentials] ************************
+[snip]
+\end{minted}
+
+Exit from the container and check the container list again. Notice that,
+despite exiting, the container continues to run. This is because
+docker-compose created the container in a detached state, meaning the absence
+of the shell does not cause the container to stop. Manually stop the container
+using the commands below. Note that only the first few characters of the
+container ID can be used for these operations.
+
+\begin{minted}{bash}
+[centos@docker compose]$ docker container ls -a
+CONTAINER ID  IMAGE              COMMAND     CREATED    STATUS          PORTS NAMES
+c16452e2a6b4  ansible:cmd_authz  "/bin/bash" 12 m ago  Up 10 m (health: ...)  compose_ansible_1
+04eb3ee71a52  ansible:cmd_authz  "/bin/bash" 2 h ago   Exited (127) 2 h ago   adoring_mestorf
+088bbd2a7544  centos:7           "/bin/bash" 2 h ago   Exited (0) 2 h ago     wise_banach
+
+[centos@docker compose]$ docker container stop c16
+c16
+
+[centos@docker compose]$ docker container ls -a
+CONTAINER ID  IMAGE              COMMAND     CREATED   STATUS          PORTS NAMES
+c16452e2a6b4  ansible:cmd_authz  "/bin/bash" 12 m ago  Exited (137) 1 m ago  compose_ansible_1
+04eb3ee71a52  ansible:cmd_authz  "/bin/bash" 2 h ago   Exited (127) 2 h ago  adoring_mestorf
+088bbd2a7544  centos:7           "/bin/bash" 2 h ago   Exited (0) 2 h ago    wise_banach
+\end{minted}
+
+For total cleanup, delete these stale containers from the demonstration so
+that they are not accidentally used for future use. Remember, containers are
+ephemeral, and should be built and discarded regularly.
+
+
+\begin{minted}{bash}
+[centos@docker compose]$ docker container rm c16 04e 088
+c16
+04e
+088
+[centos@docker compose]$ docker container ls -a
+CONTAINER ID  IMAGE   COMMAND   CREATED   STATUS     PORTS     NAMES
+[no further output]
+\end{minted}
+
 \subsubsection{Python Virtual Environments (venv) for Refactoring}

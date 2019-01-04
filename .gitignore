@@ -1,3 +1,4 @@
 *.log
 etech.*
 _minted-etech/**
+.DS_Store

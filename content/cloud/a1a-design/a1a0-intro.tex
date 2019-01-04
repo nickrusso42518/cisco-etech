@@ -14,16 +14,16 @@ cloud deployments from ordinary data center (DC) outsourcing strategies:
   availability in order to meet whatever demands are made of it.
   \item ``Multitenant environment'' means that the resources are provided to many
   consumers from a single implementation, saving the provider significant costs.
-\end{enumerate} }
+\end{enumerate}
+}
 
 These distinctions are important for a few reasons. Some organizations joke that
 migrating to cloud is simple; all they have to do is update their on-premises
 DC diagram with the words ``Private Cloud'' and upper management will be
 satisfied. While it is true that the term ``cloud'' is often abused, it is
 important to differentiate it from a traditional private DC.
-
+\\ \\
 Cloud architectures generally come in four variants:
-
 \begin{enumerate}
   \item \textbf{Public:} Public clouds are generally the type of cloud most people think
   about when the word ``cloud'' is spoken. They rely on a third party organization
@@ -141,3 +141,91 @@ decisions and constraints relating to cloud deployments.
   using the public cloud to augment the private cloud (like a virtual private
   cloud), the organization could migrate to a fully public cloud solution.
 \end{enumerate}
+
+Cloud implementation can be broken into 2 main categories: how the cloud
+provider works, and how customers connect to the cloud. The second question is
+more straightforward to answer and is discussed first. There are three main
+options for connecting to a cloud provider, but this list is by no means
+exhaustive:
+
+\begin{enumerate}
+  \item \textbf{Private WAN (like MPLS L3VPN):} Using the existing private WAN, the
+  cloud provider is connected as an extranet. To use MPLS L3VPN as an example,
+  the cloud-facing PE exports a central service route-target (RT) and imports
+  corporate VPN RT. This approach could give direct cloud access to all sites
+  in a highly scalable, highly performing fashion. Traffic performance would
+  (should) be protected under the ISP’s SLA to cover both site-to-site
+  customer traffic and site-to-cloud/cloud-to-site customer traffic. The ISP
+  may even offer this cloud service natively as part of the service contract.
+  Certain services could be collocated in an SP POP as part of that SP's cloud
+  offering. The private WAN approach is likely to be expensive and as
+  companies try to drive OPEX down, a private WAN may not even exist. Private
+  WAN is also good for virtual private (hybrid) cloud assuming the ISP’s SLA
+  is honored and is routinely measuring better performance than alternative
+  connectivity options. Virtual private cloud makes sense over private WAN
+  because the SLA is assumed to be better, therefore the intra-DC traffic
+  (despite being inter-site) will not suffer performance degradation. Services
+  could be spread between the private and public clouds assuming the private
+  WAN bandwidth is very high and latency is very low, both of which would be
+  required in a cloud environment. It is not recommended to do this as the
+  amount of intra-workflow bandwidth (database server on-premises and
+  application/web server in the cloud, for example) is expected to be very
+  high. The diagram on the following page depicts private WAN connectivity
+  assuming MPLS L3VPN. In this design, branches could directly access cloud
+  resources without transiting the main site.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath cloud-private-wan.jpg}
+      \captionof{figure}{Connecting Cloud via Private WAN}
+    \end{minipage}
+
+  \item \textbf{Internet Exchange Point (IXP):} A customer’s network is
+  connected via the IXP LAN (might be a LAN/VLAN segment or a layer-2 overlay)
+  into the cloud provider’s network. The IXP network is generally access-like
+  and connects different organizations together so that they can peer with
+  Border Gateway Protocol (BGP) directly, but typically does not provide
+  transit services between sites like a private WAN. Some describe an IXP as a
+  ``bandwidth bazaar'' or ``bandwidth marketplace'' where such exchanges can
+  happen in a local area. A strict SLA may not be guaranteed but performance
+  would be expected to be better than the Internet VPN. This is likewise an
+  acceptable choice for virtual private (hybrid) cloud but lacks the tight SLA
+  typically offered in private WAN deployments. A company could, for example,
+  use internet VPNs for inter-site traffic and an IXP for public cloud access.
+  A private WAN for inter-site access is also acceptable.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath cloud-ixp.jpg}
+      \captionof{figure}{Connecting Cloud via IXP}
+    \end{minipage}
+
+  \item \textbf{Internet VPN:} By far the most common deployment, a customer
+  creates a secure VPN over the Internet (could be multipoint if outstations
+  require direct access as well) to the cloud provider. It is simple and cost
+  effective, both from a WAN perspective and DC perspective, but offers no SLA
+  whatsoever. Although suitable for most customers, it is likely to be the
+  most inconsistently performing option. While broadband Internet connectivity
+  is much cheaper than private WAN bandwidth (in terms of price per Mbps), the
+  quality is often lower. Whether this is ``better'' is debatable and depends on
+  the business drivers. Also note that Internet VPNs, even high bandwidth
+  ones, offer no latency guarantees at all. This option is best for fully
+  public cloud solutions since the majority of traffic transiting this VPN
+  tunnel should be user service flows. The solution is likely to be a poor
+  choice for virtual private clouds, especially if workloads are distributed
+  between the private and public clouds. The biggest drawback of the Internet
+  VPN access design is that slow cloud performance as a result of the
+  ``Internet'' is something a company cannot influence; buying more bandwidth is
+  the only feasible solution. In this example, the branches don’t have direct
+  Internet access (but they could), so they rely on an existing private WAN to
+  reach the cloud service provider.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath cloud-internet-vpn.jpg}
+      \captionof{figure}{Connecting Cloud via Internet VPN}
+    \end{minipage}
+\end{enumerate}
+
+The answer to the first question detailing how a cloud provider network is
+built, operated, and maintained is discussed in the remaining sections.
