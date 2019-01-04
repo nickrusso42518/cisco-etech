@@ -1,5 +1,345 @@
 \subsection{Virtualization functions}
-nfv stuff
+Virtualization, speaking generally, has already been discussed in great detail
+thus far. This section focuses primarily on network functions virtualization
+(NFV), virtual network functions (VNF), and the components that tie everything
+together. The section includes some Cisco product demonstrations as well to
+provide some real-life context around modern NFV solutions.
 
 \subsubsection{Network Functions Virtualization infrastructure (NFVi)}
+Before discussing NFV infrastructure, the concepts surrounding NFV must be
+fully understood. NFV takes specific network functions, virtualizes them, and
+assembles them in a sequence to meet specific business needs. NFV is generally
+synonymous with creating virtual instances of things which were once physical.
+Many vendors offer virtual routers (Cisco CSR1000v, Cisco IOS-XR9000v, etc),
+security appliances (Cisco ASAv, Cisco NGIPSv, etc), telephony and
+collaboration components (Cisco UCM, CUC, IMP, UCCX, etc) and many other
+virtual products that were once physical appliances. Separating these products
+into virtual functions allows a wide variety of organizations, from cloud
+providers to small enterprises, to realize several advantages:
+
+\begin{enumerate}
+  \item Can be run on any hardware, not vendor-specific platforms or solutions
+  \item Can be run on-premises or in the cloud (or both), which can reduce cost
+  \item Easy and fast scale up, down, in, or out to meet customer demand
+\end{enumerate}
+
+Traditionally, value-added services required specialized hardware appliances,
+such as carrier-grade NAT (CGN), encryption, broadband aggregation, deep
+packet inspection, and more. In addition to being large capital investments,
+their installation and maintenance required truck rolls (i.e., a trip to the
+POP) by qualified engineers. Note that some of these appliances, such as
+firewalls, could have been on the customer premises but managed by the
+carrier. The NFV concept, and subsequent NFV infrastructure, can therefore be
+extended all the way to the customer edge. In summary, NFV can provide
+elasticity for businesses to decouple network functions from their hardware
+appliances. The European Telecommunications Standards Institute (ETSI) has
+released a pair of documents that help describe the NFV architectural
+framework and its use cases, challenges, and value propositions. These
+documents are linked in the references, and the author discusses it briefly
+here. At a high level, hardware resources such as compute, storage, and
+networking are encompassed in the infrastructure layer, which rests beneath
+the hypervisor and its associated operating system (the ``virtualization layer''
+in ETSI terms). ETSI also defines a level of hardware abstraction in what is
+called the NFV Infrastructure (NFVI) layer where virtual compute, virtual
+storage, and virtual networking can be exposed to VNFs. These VNFs are VMs or
+containers that sit at the apex of the framework and perform some kind of
+network function, such as firewall, load balancer, WAN accelerator, etc. The
+ETSI whitepaper is protected by copyright and the author has not yet received
+written permission to use the graphic detailing this architecture. Readers are
+encouraged to reference page 10 of the ETSI NFV Architectural document.
+\\ \\
+Note that the description of a VNF in the previous paragraph may suggest that
+a VNF must be a virtual machine. That is, a server with its own operating
+system, virtual hardware, and networking support. VNFs can also be containers
+which, as discussed earlier in the document, inherit these properties from the
+base OS running the container management software. The ``use case'' whitepaper
+(not protected by any copyrights) is written by a diverse group of network
+operators and uses a more conversational tone. This document discusses some of
+the advantages and challenges of NFV which are pertinent to understanding the
+value proposition of NFV in general. Examples from that document are listed
+in the table that follows.
+
+\begin{longtable}{ll}
+\toprule
+\textbf{Advantage/Benefit}
+&
+\textbf{Disadvantage/Challenge}
+\\ \midrule
+Faster rollout of value added services
+&
+Likely to observe decreased performance
+\\ \midrule
+Reduced CAPEX and OPEX
+&
+Scalability exists only in purely NFV environment
+\\ \midrule
+Less reliance on vendor hardware refresh cycle
+&
+Interoperability between different VNFs
+\\ \midrule
+Mutually beneficial to SDN; complementary
+&
+Mgmt and orchestration alongside legacy systems
+\\
+\bottomrule
+\end{longtable}
+
+NFV infrastructure (NFVi) encompasses all of the NFV related components, such
+as virtualized network functions (VNF), management, orchestration, and the
+underlying hardware devices (compute, network, and storage). That is, the
+totality of all components within an NFV system can be considered an NFVI
+instance. Suppose a large service provider is interested in NFVI in order to
+reduce time to market for new services while concurrently reducing operating
+costs. Each regional POP could be outfitted with a ``mini data center''
+consisting of NFIV components. Some call this an NFVI POP, which would house
+VNFs for customers within the region it serves. It would typically be
+centrally managed by the service provider's NOC, along with all of the other
+NFVI POPs deployed within the network. The amalgamation of these NFVI POPs are
+parts of an organization's overall NFVI.
+
 \subsubsection{Virtual Network Functions with NFVIS Demonstration}
+NFV exists to abstract the network functions from their underlying hardware.
+More generically, the word ``hardware'' can be expanded to include all lower
+level connectivity within the Open System Interconnection (OSI) model. This
+7-layer model is a common thought process for vertically segmenting components
+in the network stack, and is a model in which all network engineers are
+familiar. NFV provides abstraction at the first four layers of the OSI model,
+starting from the bottom:
+
+\begin{enumerate}
+  \item \textbf{Physical layer (L1):} The layer in which physical transmission of
+  data is conducted. Media types such as copper/fiber cabling and wireless radio
+  communications are examples. More in the context of NFV would be the
+  underlying NFV abstracts this transport
+  \item \textbf{Data Link (L2):} The layer in which the consolidation of data
+  into batches (frames, cells, etc) is defined according to some specification for
+  transmission across the physical network. Ethernet, frame-relay, ATM, and PPP
+  are examples. With NFV, this refers to the abstraction of the internal virtual
+  switching between VNFs in a given service chain. These individual virtual
+  networks are automatically created and configured by the underlying NFV
+  management/orchestration system, and removed when no longer needed.
+  \item \textbf{Network (L3):} This layer provides end-to-end delivery of data
+  packets across many independent data link layer technologies. Traditional IP
+  routing through a service chain may not be easy to implement or intuitive, so
+  new technologies exist to solve this problem at layer-3. Service chaining
+  technologies are discussed in greater detail shortly
+  \item \textbf{Transport (L4):} This layer provides additional delivery features
+  such as flow/congestion control, explicit acknowledges, and more. NFV helps
+  abstract some of these technologies in that administrators and developers no
+  longer need to determine which layer-04 protocol to choose (TCP, UDP, etc) as
+  the construction of the VNF service chain will be done according to the
+  operator's intent. Put another way, the VNF service chain seeks to optimize
+  application performance while abstracting all of the transport-like layers of
+  the OSI model through the NFVI management and orchestration software.
+\end{enumerate}
+
+Service chaining, especially in cloud/NFV environments, can be achieved in a
+variety of technical ways. For example, one organization may require routing
+and firewall, while another may require routing and intrusion prevention. The
+per-customer granularity is a powerful offering of service chaining in
+general. The main takeaway is that all of these solutions are network
+virtualization solutions of sorts, even if their use cases extend beyond
+service function chaining.
+
+\begin{enumerate}
+  \item \textbf{MPLS and Segment Routing:} Some headend LSR needs to impose different
+  MPLS labels for each service in the chain that must be visited to provide a
+  given service. MPLS is a natural choice here given the label stacking
+  capabilities and theoretically-unlimited label stack depth.
+  \item \textbf{Networking Services Header (NSH):} Similar to the MPLS option except
+  is purpose-built for service chaining. Being purpose-built, NSH can be extended
+  or modified in the future to better support new service chaining requirements,
+  where doing so with MPLS shim header formats is less likely. MPLS would need
+  additional headers or other ways to carry ``more'' information.
+  \item \textbf{Out of band centralized forwarding:} Although it seems unmanageable,
+  a centralized controller could simply instruct the data-plane devices to forward
+  certain traffic through the proper services without any in-band encapsulation
+  being added to the flow. This would result in an explosion of core state which
+  could limit scalability, similar to policy-based routing at each hop.
+  \item \textbf{Cisco vPath:} This is a Cisco innovation that is included with the
+  Cisco Nexus 1000v series switch for use as a distributed virtual switch (DVS)
+  in virtualized server environments. Each service is known as a virtual service
+  node (VSN) and the administrator can select the sequence in which each node
+  should be transited in the forwarding path. Traffic transiting the Nexus 1000v
+  switch is subject to redirection using some kind of overlay/encapsulation
+  technology. Specifically, MAC-in-MAC encapsulation is used for layer-2 tunnels
+  while MAC-in-UDP is used for layer-4 tunnels.
+\end{enumerate}
+
+Cisco has at least two specific NFV infrastructure solutions, NFVI and NFVIS,
+which are described in detail next. The former is a larger, collaborative
+effort with Red Hat known simply as NFV Infrastructure and is targeted for
+service providers. The hardware complement includes Cisco UCS servers for
+compute and Cisco Nexus switches for networking. Cisco's Virtual
+Infrastructure Manager (VIM) is a fully automated cloud lifecycle management
+system and is designed for private cloud. At a high level, VIM is a wrapper
+for Red Hat OpenStack and Docker containers behind the scenes, since managing
+these technologies independently is technically challenging. In summary, VIM
+is the NFVI software platform. The solution has many subcomponents. Two
+particularly interesting ones are discussed below.
+
+\begin{enumerate}
+  \item \textbf{Cisco Virtual Topology System (VTS):} A standards-based, open,
+  overlay management and provisioning system for data center networks. It automates DC
+  overlay fabric provisioning for physical and virtual workloads. This is an
+  optional service that is available through Cisco VIM. In summary, VTS provides
+  policy-based (declarative) configuration to create secure, multi-tenant
+  overlays. Its control plane uses Cisco IOS-XRv software for BGP EVPN
+  route-reflection and VXLAN for data plane encapsulation between the Nexus
+  switches in the NFVI fabric. VTS is an optional enhancement to VIM and NFVI.
+  \item \textbf{Cisco Virtual Topology Forwarder (VTF):} Included with VTS, VTF
+  leverages Vector Packet Processing (VPP) to provide high performance Layer 2
+  and Layer 3 VXLAN packet forwarding. VTF is effectively a VXLAN-capable
+  software switch. Being able to host VTEPs inside the server itself, rather
+  than on the top of rack (TOR) Nexus switch, simplifies the Nexus fabric
+  configuration and management. VTS and VTF together appear comparable, at least
+  in concept, to VMware's NSX solution.
+\end{enumerate}
+
+Cisco also has a solution called NFV Infrastructure Software (NFVIS). This
+solution is a self-contained KVM-based hypervisor (running on CentOS 7.3)
+which can be installed on a bare metal server to provide a virtualized
+environment. It comes with specialized drivers for a variety of underlying
+physical components, such as NICs. NFVIS can run on many third-party hardware
+platforms as well as Cisco's Enterprise Network Computing System (ENCS)
+solution. This platform was designed specifically for NFV-enabled branch sites
+for customers desiring a complete Cisco solution.
+
+\begin{enumerate}
+  \item \textbf{Hardware platform:} the hypervisor is installed on a hardware
+  platform. There are a variety of supported hardware platforms. This gives customers
+  freedom of choice. NFVIS provides hardware-specific drivers for these
+  platforms, and the official hardware compatibility list is included on the
+  NFVIS data sheet here.
+  \item \textbf{Virtualization layer:} Decouples underlying hardware and
+  software on top, achieving hardware/software independence.
+  \item \textbf{Virtual Network Functions (VNFs):} The virtual machines themselves
+  that are managed through the hypervisor. They deliver consistent, trusted network
+  services across all platforms. NFVIS supports many common image types,
+  including ISO, OVA, QCOW, QCOW2, and RAW. Images can be certified by Cisco
+  after extensively testing and integration which is a desirable accomplishment
+  for production operations. The current list of certified third-party VNFs can
+  be found here.
+  \item \textbf{SDN applications:} These applications can integrate with NFVIS to
+  provide centralized orchestration and management. This is effectively a
+  northbound interface, providing hooks for business applications to influence
+  how NFVIS operates.
+\end{enumerate}
+
+The author has personally run NFVIS on both ENCS and third party x86-based
+servers. In this way, NFVIS is comparable to VIM within the aforementioned
+NFVI solution, except is lighter weight and only a standalone operating
+system. NFVIS brings the following capabilities:
+
+\begin{enumerate}
+  \item \textbf{Local management options:} NFVIS supports an intuitive web interface
+  that does not require any Cisco-specific clients to be installed on the
+  management stations. The device has a lightweight CLI, accessible both through
+  SSH via out of band management and via serial console.
+  \item \textbf{VNF repository:} The NFVIS platform can store VNF images on its
+  local disks for deployment. For example, a branch site might require router,
+  firewall, and WAN acceleration VNFs. Each of these devices can come with a
+  ``day zero'' configuration for rapid deployment. Cisco officially supports
+  many third-party VNFs (Palo Alto virtual firewalls are one notable example)
+  within NFVIS.
+  \item \textbf{Drag-and-drop networking:} VNFs can be clicked and dragged from
+  inventory onto a blank canvas and connected, at a high level, with different
+  virtual network. VNFs can be chained together in the proper sequence. The
+  network administrator does not have to manually create virtual switches,
+  port-groups, VLANs, or any other internal plumbing between the VNFs.
+  \item \textbf{Performance reporting and lifecycle management:} The dashboards
+  of NFVIS are effective monitoring points for the NFVIS system as a whole. This
+  allows administrators to quickly diagnose problems and spot anomalies in their
+  environment.
+\end{enumerate}
+
+NFVIS has many open source components. A few common ones are listed below:
+
+\begin{enumerate}
+  \item \textbf{Open vSwitch (OVS)} An open-source virtual switching solution that
+  has both a rich feature set and can be easily automated. This is used for the
+  internal networking of NFVIS as well as the user-facing switch ports.
+  \item \textbf{Quick Emulator (QEMU):} Open source machine emulator which can run
+  code written for one CPU architecture on a different one. For example, running x86
+  code on an ARM CPU.
+  \item \textbf{Linux daemons:} A collection of well-known Linux daemons, such as
+  snmpd, syslogd, and collectd run in the background to handle basic system
+  management using common methods.
+\end{enumerate}
+
+Because NFVIS is designed for branch sites, zero-touch provisioning is useful
+for the platform itself (not counting VNFs). Cisco's plug-n-play (PnP) network
+service is used for this. Similar to the way in which wireless access points
+discover their wireless LAN controller (WLC), NFVIS can discover a DNA-C using
+manually configured IP address, DHCP option 43, DNS lookup, or Cisco Cloud
+redirection, in that order. The PnP agent on NFVIS reaches out to the PnP
+server on DNA-C to be added to the DNA-C managed device inventory.
+\\ \\
+Cisco NFVIS dashboard provides a performance summary of how many virtual machines
+(typically VNFs to be more specific) are running on the device. It also
+provides a quick status of resource allocation, and point-and-click hyperlinks
+to perform routine management activities, such as adding a new VNF or
+troubleshooting an existing one.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath nfvis-home.png}
+      \captionof{figure}{Cisco NFVIS Home Dashboard}
+    \end{minipage}
+
+The VNF repository can store VNF images for rapid deployment. Each image can
+also be instantiated many times with different settings, know as profiles. For
+example, the system depicted in the screenshots below has two images: Cisco
+ASAv firewall and the Viptela vEdge SD-WAN router.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath nfvis-images.png}
+      \captionof{figure}{Cisco NFVIS Image Repository}
+    \end{minipage}
+
+The Cisco ASAv, for example, has multiple performance tiers based on scale.
+The ASAv5 is better suited to small branch sites with the larger files being
+able to process more concurrent flows, remote-access VPN clients, and other
+processing/memory intensive activities. The NFVIS hypervisor can store many
+different ``flavors'' of a single VNF to allow for rapidly upgrading a VNF's
+performance capabilities as the organization's IT needs grow.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath nfvis-profiles.png}
+      \captionof{figure}{Cisco NFVIS Image Profiles}
+    \end{minipage}
+
+Once the images with their corresponding profiles have been created, each item
+can be dragged-and-dropped onto a topology canvas to create a virtual network
+or service chain. Each LAN network icon is effectively a virtual switch (a
+VLAN), connecting virtual NICs on different VNFs together to form the correct
+flow path. On many other hypervisors, the administrator needs to manually
+build this connectivity as VMs come and go, or possibly script it. With NFVIS,
+the intuitive GUI makes it easier for network operators to adjust the switched
+topology of the intra-NFVIS network.
+\\
+Note that the bottom of the screen has some ports identified as single root
+input/output virtualization (SR-IOV). These are high-performance connection
+points for specific VNFs to bypass the hypervisor-managed internal switching
+infrastructure and connect directly to Peripheral Component Interconnect
+express (PCIe) resources. This improves performance and is especially useful
+for high bandwidth use cases.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath nfvis-topo.png}
+      \captionof{figure}{Cisco NFVIS Topology Builder}
+    \end{minipage}
+
+Last, NFVIS provides local logging management for all events on the
+hypervisor. This is particularly useful for remote sites where WAN outages
+separate the NFVIS from the headend logging servers. The on-box logging and
+its ease of navigation can simplify troubleshooting during or after an outage.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath nfvis-logging.png}
+      \captionof{figure}{Cisco NFVIS Topology Builder}
+    \end{minipage}

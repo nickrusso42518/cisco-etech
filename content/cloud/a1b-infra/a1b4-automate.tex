@@ -1,8 +1,640 @@
 \subsection{Automation and orchestration tools}
-automation stuff
+Automation and orchestration are two different things although are sometimes
+used interchangeably (and incorrectly so). Automation refers to completing a
+single task, such as deploying a virtual machine, shutting down an interface,
+or generating a report. Orchestration refers to assembling/coordinating a
+process/workflow, which is effectively an ordered set of tasks glued together
+with conditions. For example, deploy this virtual machine, and if it fails,
+shutdown this interface and generate a report. Automation is to task as
+orchestration is to process/workflow.
+\\ \\
+Often times the task to automate is what an engineer would configure using
+some programming/scripting language such as Java, C, Python, Perl, Ruby, etc.
+The variance in tasks can be very large since an engineer could be presented
+with a totally different task every hour. Creating 500 VLANs on 500 switches
+isnt difficult, but is monotonous, so writing a short script to complete this
+task is ideal. Adding this script as an input for an orchestration engine
+could properly insert this task into a workflow. For example, run the
+VLAN-creation script after the nightly backups but before 6:00 AM the
+following day. If it fails, the orchestrator can revert all configurations so
+that the developer can troubleshoot any script errors.
+\\ \\
+With all the advances in network automation, it is important to understand the
+role of configuration management (CM) and how new technologies may change the
+logic. Depending on the industry, the term CM may be synonymous with source
+code management (SCM) or version control (VC). Traditional networking CM
+typically consisted of a configuration control board (CCB) along with an
+organization that maintained device configurations. While the corporate
+governance gained by the CCB has value, the maintenance of device
+configurations may not. Using the ``infrastructure as code'' concept,
+organizations can template/script their device configurations and apply CM
+practices only to the scripts. One example is using Ansible with the Jinja2
+template language. Simply maintaining these scripts, along with their
+associated playbooks and variable files, has many benefits:
+
+\begin{enumerate}
+  \item \textbf{Less to manage:} A network with many nodes is likely to have many
+  device configurations that are almost identical. One such example would be
+  restaurant/retail chains as it relates to WAN sites. By creating a template
+  for a common architecture, then maintaining site-specific variable files,
+  updating configurations becomes simpler.
+  \item \textbf{Enforcement:} Simply running the script will baseline the entire
+  network based on the CCBs policy. This can be done on a regular basis to wipe
+  away and vestigial (or malicious/damaging) configurations from devices quickly.
+  \item \textbf{Easy to test:} Running the scripts in a development environment, such
+  as on some VMs in a private data center or compute instances in public cloud,
+  can simplify the testing of your code before applying it to the production network.
+\end{enumerate}
 
 \subsubsection{Cloud Center}
+Cisco Cloud Center (formerly CliQr) is a software solution design for
+application deployment in multi-cloud environments. Large organizations often
+use a variety of cloud providers for different purposes. For example, a
+company may use Amazon AWS for code development and integration testing using
+the CodeCommit and CodeBuild SaaS offerings, respectively. The same
+organization could be using Microsoft Azure for its Active Directory (AD)
+services as Azure offers AD as a service. Last, the organization may use a
+private cloud (e.g. OpenStack or VMware) to host sensitive applications which
+are Government-regulated and have strict data protection requirements.
+\\ \\
+Managing each of these clouds independently, using their respective dashboards
+and APIs, can become cumbersome. Cisco Cloud Center is designed to be another
+level of abstraction in an organization's cloud management strategy by
+providing a single point for applications to be deployed based on user policy.
+Using the example above, there are certain applications that are best operated
+on a specific cloud provider. Other applications may not have strict
+requirements, but Cloud Center can deploy and migrate applications between
+clouds based on user policy. For example, one application may require very
+high disk read/write capabilities, and perhaps this is less expensive in
+Azure. Another application may require very high availability, and perhaps
+this is best achieved in AWS. Note that these are examples only and not
+indicative of any cloud provider in particular.
+\\ \\
+Applications can be abstracted into individual components, usually virtual
+machines or containers, and Cloud Center can deploy those applications where
+they best serve the organization's needs. The administrator can ``just say go''
+and Cloud Center interacts with the different cloud providers through their
+various APIs, reducing development costs for large organizations that would
+need to develop their own. Cloud Center also has southbound APIs to other
+Cisco Data Center products, such as UCS Director, to help manage application
+deployment in private cloud environments.
+
 \subsubsection{Digital Network Architecture Center (DNA-C) Demonstration}
+DNA-C is Cisco's enterprise \textit{management and control solution for the Digital
+Network Architecture (DNA).} DNA is Cisco's intent-based networking solution
+which means that the desired state is configured within DNA-C, and the system
+makes this desired state a reality in the network without the administrator
+needing to know or care about the current state. The solution is like a
+``manager of managers'' and can tie into other Cisco management products, such
+as Identity Services Engine (ISE) and Viptela vManage, using REST APIs. These
+integrations allow DNA-C to seamlessly support SDA and SD-WAN within an
+enterprise LAN/WAN environment. DNA-C is broken down into three sequential
+workflow types:
+
+\begin{enumerate}
+  \item \textbf{Design:} This is where the administrators define the ``intent'' for the
+  network. For example, an administrator may region a geographical region
+  everywhere the company operates, and add sites into each region. There can be
+  regionally-significant variables and design criteria which are supplemented by
+  site-specified design criteria. One example could be IP pools, whereby the
+  entire region fits into a large /14 and each individual site gets a /24,
+  allowing up to 1024 sites per region and keeping the IP numbering scheme
+  predictable. There are many more options here; some are covered briefly in the
+  upcoming demonstration.
+  \item \textbf{Policy:} Generally relates to SDA security policies and gives granular
+  control to the administrator. Access and LAN security technologies are
+  configured here, such as 802.1x, Trustsec using security group tags (SGT),
+  virtual networking and segmentation, and traffic copying via encapsulated
+  remote switch port analyzer (ERSPAN). Some of these features require ISE
+  integration, such as Trustsec, but not all do. As such, DNA-C can provide
+  improved security for the LAN environment even without ISE.
+  \item \textbf{Provision:} After the network has been designed with its appropriate
+  policies attached, DNA-C can provision these new sites. This workflow usually
+  includes pushing VNF images and their corresponding day 0 configurations onto
+  hypervisors, such as NFVIS. This is detailed in the upcoming demonstration as
+  describing it in the abstract is difficult.
+\end{enumerate}
+
+The demonstration in this session ties in with the previous NFVIS
+demonstration which discussed the hypervisor and its local management
+capabilities. Specifically, DNA-C provides improved orchestration over the
+NFVIS nodes. DNA-C can provide day 0 configurations and setup for a variety of
+VNFs on NFVIS. It can also provide the NFVIS hypervisor software itself,
+allowing for scaled software updates. Upon logging into DNAC, the screenshot
+below is displayed. The three main workflows (design, policy, and provision)
+are navigable hyperlinks, making it easy to get started. \textbf{DNA-C version 1.2
+is used in this demonstration.} Today, Cisco provides DNA-C as a physical UCS
+server.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath dnac-main.png}
+      \captionof{figure}{DNA-C Home Dashboard}
+    \end{minipage}
+
+After clicking on the \textbf{Design} option, the main design screen displays
+a geographic map of the network in the \textbf{Network Hierarchy} view. In
+this small network, the region of \textbf{Aberdeen} has two sites within it,
+\textbf{Site200} and \textbf{Site300}. Each of these sites has a Cisco ENCS
+5412 platform running NFVIS 3.8.1-FC3; they represent large branch sites.
+Additional sites can be added manually or imported from a comma-separated
+values (CSV) file. Each of the other subsections is worth a brief discussion:
+
+\begin{enumerate}
+  \item Network Settings: This is where the administrator defines basic
+  network options such as IP address pools, QoS settings, and integration with
+  wireless technologies.
+  \item Image Repository: The inventory of all images, virtual and physical,
+  that are used in the network. Multiple flavors of an image can be stored, with
+  one marked as the ``golden image'' that DNA-C will ensure is running on the
+  corresponding network devices.
+  \item Network Profiles: These network profiles bind the specific VNF
+  instances to a network hierarchy, serving as network-based intent instructions
+  for DNA-C. A profile can be applied globally, regionally, or to a site. In
+  this demonstration, the ``Routing \& NFV'' profile is used, but DNA-C also
+  supports a ``Switching'' profile and a ``Wireless'' profile, both of which
+  simplify SDA operations.
+  \item Auth Template: These templates enable faster IEEE 802.1x
+  configuration. The 3 main options include closed authentication (strict mode),
+  easy connect (low impact mode), and open authentication (anyone can connect).
+  Administrators can add their own port-based authentication profiles here for
+  more granularity. Since 802.1x is not used in this demonstration, this
+  particular option is not discussed further.
+\end{enumerate}
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath dnac-geoview.png}
+      \captionof{figure}{DNA-C Geographic View}
+    \end{minipage}
+
+The Network Settings tab warrants some additional discussion. In this tab,
+there are additional options to further customize your network. Brief
+descriptions and provided below. Recall that these settings can be configured
+at the global, regional, or site level.
+
+\begin{enumerate}
+  \item \textbf{Network:} Basic network settings such as DHCP/DNS server
+  addresses and domain name. It might be sensible to define the domain name at
+  the global level and DHCP/DNS servers at the regional or site level, for example.
+  \item \textbf{Device Credentials:} Because DNA-C can directly manage network
+  devices, it must know the credentials to access them. Options including SSH,
+  SNMP, and HTTP.
+  \item \textbf{IP Address Pools:} Discussed briefly earlier, this is where
+  administrators defined the IP ranges used at the global, regional, and site
+  levels. DNA-C helps manage these IP pools to reduce that manual burden from
+  network operators.
+  \item \textbf{SP Profiles:} Many carriers use different QoS models. For
+  example, some use a 3-class model (gold, silver, bronze) while others use
+  granular 8-class or 12-class models. By assigned specific SP profiles to
+  regions or sites, DNA-C helps keep QoS configuration consistent to improve
+  the user experience.
+  \item \textbf{Wireless:} DNA-C can tie into Cisco Mobile eXperiences (CMX)
+  family of products to manage large wireless networks. It is particularly
+  useful for those with extensive mobility/roaming. The administrator can set
+  up both enterprise and guest wireless LANs, RF profiles, and more. DNA-C
+  also supports integration with Meraki products without an additional license requirement.
+\end{enumerate}
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath dnac-netsettings.png}
+      \captionof{figure}{DNA-C Network Settings}
+    \end{minipage}
+
+Additionally, the Network Profiles tab is particularly interesting for this
+demonstration as VNFs are being provisioned on remote ENCS platforms running
+NFVIS. On a global, regional, or per site basis, the administrator can
+identify which VNFs should run on which NFVIS-enabled sites. For example,
+sites in one region may only have access to high-latency WAN transport, and
+thus could benefit from WAN optimization VNFs. Such an expense may not be
+required in other regions where all transports are relatively low-latency. The
+screenshot below shows an example. Note the similarities with the NFVIS
+drag-and-drop GUI; in this solution, the administrator checks boxes on the
+left hand side of the screen to add or remove VNFs. The virtual networking
+between VNFs is defined elsewhere in the profile and is not discussed in
+detail here.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath dnac-netprofile-vnf.png}
+      \captionof{figure}{DNA-C Network Profile for VNFs}
+    \end{minipage}
+
+After configuring all of the network settings, administrators can populate
+their \textbf{Image Repository.} This contains a list of all virtual and physical
+images currently loaded onto DNA-C. There are two screenshots below. The first
+shows the physical platform images, in this case, the NFVIS hypervisor.
+Appliance software, such as a router IOS image, could also appear here. The
+second screenshot shows the virtual network functions (VNFs) that are present
+in DNA-C. In this example, there is a Viptela vEdge SD-WAN router and ASAv image.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath dnac-imagerepop.png}
+      \captionof{figure}{DNA-C Images for Physical Devices}
+    \end{minipage}
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath dnac-imagerepov.png}
+      \captionof{figure}{DNA-C Images for Virtual Devices}
+    \end{minipage}
+
+After completing all of the design steps (for brevity, several were not
+discussed in detail here), navigate back to the main screen and explore the
+\textbf{Policy} section. The policy section is SDA-focused and provides
+security enhancements through traffic filtering and network segmentation
+techniques. The dashboard provides a summary of the current policy
+configuration. In this example, SDA was not configured, since the ENCS/NFVIS
+provisioning demonstration does not include a campus environment. The policy
+options are summarized below:
+
+\begin{enumerate}
+  \item \textbf{Group-Based Access Control:} This performs ACL style filtering based
+  on group tags or SGTs defined earlier. This is the core element of Cisco's
+  Trustsec model, which is a technique for deployment stateless traffic filters
+  throughout the network without the operational burden that normally follows
+  it. This option requires Cisco ISE integration.
+  \item \textbf{IP Based Access Control:} When Cisco ISE is absent or the switches
+  in the network do not support Trustsec, DNA-C can still help manage traditional
+  IP access list support on network devices. This can improve security without
+  needing cutting-edge Cisco hardware and software products.
+  \item \textbf{Traffic Copy:} This feature uses ERSPAN to capture network traffic
+  and tunnel it inside GRE to a collector. This can be useful for troubleshooting
+  large networks and provide improved visibility to network operators.
+  \item \textbf{Virtual Networks:} This feature provides logical separation between
+  and users at layer-2 or layer-3. This requires ISE integration and, upon
+  authenticating to the network, ISE and DNA-C team up to assign users to a
+  particular virtual network. This logical separation is another method of
+  increasing security through segmentation. By default, all end users in a
+  virtual network can communicate with one another unless explicitly blocked by
+  a blacklist policy.
+\end{enumerate}
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath dnac-policymain.png}
+      \captionof{figure}{DNA-C Policy Main Page}
+    \end{minipage}
+
+After applying any SDA-related security policies into the network, it's time
+to provision the VNFs on the remote ENCS platforms running NFVIS. The
+screenshot below targets site 200. For the initial day 0 configuration
+bootstrapping, the administrator must tell DNA-C what the publicly-accessible
+IP address of the remote NFVIS is. This management IP could change as the ENCS
+is placed behind NAT devices or in different SP-provided DHCP pools. In this
+example, bogus IPs are used as an illustration.
+\\
+Note that the screenshot is on the second step of the provisioning process.
+The first step just confirms the network profile created earlier, which
+identifies the VNFs to be deployed at a specific level in the network
+hierarchy (global, regional, or site). The third step allows the user to
+specific access port configuration, such as VLAN membership and interface
+descriptions. The summary tab gives the administrator a review of the
+provisioning process before deployment.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath dnac-provsite.png}
+      \captionof{figure}{DNA-C Site Topology Viewer}
+    \end{minipage}
+
+The screenshot that follows shows a log of the provisioning process. This
+gives the administrator confidence that all the necessary steps were
+completed, and also provides a mechanism for troubleshooting any issues that
+arise. Serial numbers and public IP addresses are masked for security.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath dnac-provlog.png}
+      \captionof{figure}{DNA-C Site Event Logging}
+    \end{minipage}
+
+In summary, DNA-C is a powerful tool that unifies network design, SDA policy
+application, and VNF provisioning across an enterprise environment.
+
 \subsubsection{Kubernetes Orchestration with minikube Demonstration}
+Kubernetes is an open-source container orchestration platform. It is commonly
+used to abstract resources like compute, network, and storage away from the
+containerized applications that run on top. Kubernetes is to VMware vCenter as
+Docker is to VMware virtual machines; Docker abstracts individual application
+components and Kubernetes allows the application to scale, be made highly
+available, and be centrally managed/monitored. Kubernetes is not a CI/CD
+system for deploying code, but managing the containers in which the code has
+already been deployed.
+\\ \\
+Kubernetes introduces many new terms which are critical to understand its
+operation. The most important terms, at least for the demonstration in this
+section, are discussed on the following page.
+\\ \\
+\textbf{A pod} is the smallest building block of a Kubernetes deployment. Pods
+contain application containers and are managed a single entity. It is common
+to place exactly one container in each pod, giving the administrator granular
+control over each container. However, it is possible to place multiple
+containers in a pod, and makes sense when multiple containers are needed to
+provide a single service. A pod cannot be split, which implies that all
+containers within a pod ``move together'' between resources in a Kubernetes
+cluster. Like Docker containers, pods get one IP address and can have volumes
+for data storage. Scaling pods is of particular interest, and using replica
+sets is a common way to do this. This creates more copies of a pod within a
+deployment.
+\\ \\
+\textbf{A deployment} is an overarching term to define the entire application
+in its totality. This typically includes multiple pods communicating between
+one another to make the application functional. Newly created deployments are
+placed into servers in the cluster to be executed. High availability is built
+into Kubernetes as any failure of the server running the application would
+prompt Kubernetes to move the application elsewhere. A deployment can define a
+desired state of an application and all of its components (pods, replica sets, etc.)
+\\ \\
+\textbf{A node} is a worker machine in Kubernetes, which can be physical or
+virtual. Where the pods are components of a deployment/application, nodes are
+components of a cluster. Although an administrator and just ``create'' nodes in
+Kubernetes, this creation is just a representation of a node. The
+usability/health of a node depends on whether the Kubernetes master can
+communicate with the node. Because nodes can be virtual platforms and
+hostnames can be DNS-resolvable, the definition of these nodes can be portable
+between physical infrastructures.
+\\ \\
+\textbf{A cluster} is a collection of nodes that are capable of running pods,
+deployments, replica sets, etc. The Kubernetes master is a special type of
+node which facilitates communications within the cluster. It is responsible
+for scheduling pods onto nodes and responding to events within the cluster. A
+node-down event, for example, would require the master to reschedule pods
+running on that node elsewhere.
+\\ \\
+\textbf{A service} is concept used to group pods of similar functionality
+together. For example, many database containers contain content for a web
+application. The database group could be scaled up or down (i.e. they change
+often), and the application servers must target the correct database
+containers to read/write data. The service often has a label, such as
+``database'', which would also exist on pods. Whenever the web application
+communicates to the service over TCP/IP, the service communicates to any pod
+with the "database" tag. Services could include node-specific ports, which is
+a simple port forwarding mechanism to access pods on a node. Advanced load
+balancing services are also available but are not discussed in detail in this book.
+\\ \\
+\textbf{Labels} are an important Kubernetes concept and warrant further
+discussion. Almost any resource in Kubernetes can carry a collection of
+labels, which is a key/value pair. For example, consider the blue/green
+deployment model for an organization. This architecture has two identical
+production-capable software instances (blue and green), and one is in
+production while the other is upgraded/changed. Using JSON syntax, one set of
+pods (or perhaps an entire deployment) might be labeled as \verb|{"color": "blue"}|
+while the other is \verb|{"color": "green"}|. The key of ``color' is the same so
+the administrator can query for "color" label to get the value, and then make
+a decision based on that. One engineer described labels as "flexible and
+extensible source of metadata. They can reference releases of code, locations,
+or any sort of logical groupings. There is no limitation of how many labels
+can be applied." In this way, labels are similar to tags in Ansible which can
+be used to pick-and-choose certain tasks to execute or skip, depending.
+\\ \\
+The \verb|minikube| solution provides a relatively easy way to get started
+with Kubernetes. It is a VM that can run on Linux, Windows, or Mac OS using a
+variety of underlying hypervisors. It represents a tiny Kubernetes cluster for
+learning the basics. The command line utility used to interact with Kubernetes
+is known as \verb|kubectl| and is installed independently of \verb|minikube|.
+\\ \\
+The installation of \verb|kubectl| and \verb|minikube| on Mac OS is
+well-documented. The author recommends using VirtualBox, not xhyve or VMware
+Fusion. Despite being technically supported, the author was not able to get
+the latter options working. After installation, ensure both binaries exist and
+are in the shell PATH.
+
+\begin{minted}{bash}
+Nicholass-MBP:localkube nicholasrusso$ which minikube kubectl
+/usr/local/bin/minikube
+/usr/local/bin/kubectl
+\end{minted}
+
+Starting minikube is as easy as the command below. Check the status of the
+Kubernetes cluster to ensure there are no errors. Note that a local IP address
+is allocated to minikube to support outside-in access to pods and the cluster
+dashboard.
+
+\begin{minted}{bash}
+Nicholass-MBP:localkube nicholasrusso$ minikube start
+Starting local Kubernetes v1.10.0 cluster...
+Starting VM...
+Getting VM IP address...
+Moving files into cluster...
+Setting up certs...
+Connecting to cluster...
+Setting up kubeconfig...
+Starting cluster components...
+Kubectl is now configured to use the cluster.
+Loading cached images from config file.
+
+Nicholass-MBP:localkube nicholasrusso$ minikube status
+minikube: Running
+cluster: Running
+kubectl: Correctly Configured: pointing to minikube-vm at 192.168.99.100
+\end{minted}
+
+Next, check on the cluster to ensure it resolves to the minikube IP address.
+
+\begin{minted}{bash}
+Nicholass-MBP:localkube nicholasrusso$ kubectl cluster-info
+Kubernetes master is running at https://192.168.99.100:8443
+KubeDNS is running at https://192.168.99.100:8443/api/v1/
+  namespaces/kube-system/services/kube-dns:dns/proxy
+\end{minted}
+
+We are ready to start deploying applications. The \verb|hello-minikube| application
+is the equivalent of ``hello world'' and is a good way to get started. Using the
+command below, the Docker container with this application is downloaded from
+Google's container repository and is accessible on TCP port 8080. The name of
+the deployment is \verb|hello-minikube| and, at this point, contains one pod.
+
+\begin{minted}{bash}
+Nicholass-MBP:localkube nicholasrusso$ kubectl run hello-minikube \
+>  --image=gcr.io/google_containers/echoserver:1.4 --port=8080
+deployment.apps "hello-minikube" created
+\end{minted}
+
+As discussed earlier, there is a variety of port exposing techniques. The
+``NodePort'' option allows outside access into the deployment using TCP port
+8080 which was defined when the deployment was created.
+
+\begin{minted}{bash}
+Nicholass-MBP:localkube nicholasrusso$ kubectl expose deployment \
+>  hello-minikube --type=NodePort
+service "hello-minikube" exposed
+\end{minted}
+
+Check the pod status quickly to see that the pod is still in a state of creating the
+container. A few seconds later, the pod is operational.
+
+\begin{minted}{bash}
+Nicholass-MBP:localkube nicholasrusso$ kubectl get pod
+NAME                             READY     STATUS              RESTARTS   AGE
+hello-minikube-c8b6b4fdc-nz5nc   0/1       ContainerCreating   0          17s
+
+Nicholass-MBP:localkube nicholasrusso$ kubectl get pod
+NAME                             READY     STATUS    RESTARTS   AGE
+hello-minikube-c8b6b4fdc-nz5nc   1/1       Running   0          51s
+\end{minted}
+
+Viewing the network services, Kubernetes reports which resources are reachable
+using which IP/port combinations. Actually reaching these IP addresses may be
+impossible depending on how the VM is set up on your local machine, and
+considering \verb|minikube| is not meant for production, it isn't a big deal.
+
+\begin{minted}{bash}
+Nicholass-MBP:localkube nicholasrusso$ kubectl get service
+NAME             TYPE       CLUSTER-IP      XTERNAL-IP   PORT(S)          AGE
+hello-minikube   NodePort   10.98.210.206  <none>        8080:31980/TCP   15s
+kubernetes       ClusterIP  10.96.0.1      <none>        443/TCP          7h
+\end{minted}
+
+Next, we will scale the application by increasing the replica sets (rs) from 1
+to 2. Replica sets, as discussed earlier, are copies of pods typically used to
+add capacity to an application in an automated and easy way. Kubernetes has
+built-in support for load balancing to replica sets as well.
+
+\begin{minted}{bash}
+Nicholass-MBP:localkube nicholasrusso$ kubectl get rs
+NAME                       DESIRED   CURRENT   READY     AGE
+hello-minikube-c8b6b4fdc   1         1         1         1m
+\end{minted}
+
+The command below creates a replica of the original pod, resulting in two total pods.
+
+\begin{minted}{bash}
+Nicholass-MBP:localkube nicholasrusso$ kubectl scale \
+>  deployments/hello-minikube --replicas=2
+deployment.extensions "hello-minikube" scaled
+\end{minted}
+
+Get the pod information to see the new replica up and running. Theoretically,
+the capacity of this application has been doubled and can now handle twice the
+workload (again, assuming load balancing has been set up and the application
+operates in such a way where this is useful).
+
+\begin{minted}{bash}
+Nicholass-MBP:localkube nicholasrusso$ kubectl get pod
+NAME                             READY     STATUS    RESTARTS   AGE
+hello-minikube-c8b6b4fdc-l5jgn   1/1       Running   0          6s
+hello-minikube-c8b6b4fdc-nz5nc   1/1       Running   0          1m
+\end{minted}
+
+The minikube cluster comes with a GUI interface accessible via HTTP. The
+Kubernetes web dashboard can be quickly verified from the shell. First, you
+can see the URL using the command below, then feed the output from this
+command into curl to issue an HTTP GET request.
+
+\begin{minted}{bash}
+Nicholass-MBP:localkube nicholasrusso$ minikube service hello-minikube --url
+http://192.168.99.100:31980
+
+Nicholass-MBP:localkube nicholasrusso$ curl \
+>  $(minikube service hello-minikube --url)/health
+CLIENT VALUES:
+client_address=172.17.0.1
+command=GET
+real path=/health
+query=nil
+request_version=1.1
+request_uri=http://192.168.99.100:8080/health
+
+SERVER VALUES:
+server_version=nginx: 1.10.0 - lua: 10001
+
+HEADERS RECEIVED:
+accept=*/*
+host=192.168.99.100:31980
+user-agent=curl/7.43.0
+BODY:
+-no body in request-
+\end{minted}
+
+The command below opens up a web browser to the Kubernetes dashboard.
+
+\begin{minted}{bash}
+Nicholass-MBP:localkube nicholasrusso$ minikube dashboard
+Opening kubernetes dashboard in default browser...
+\end{minted}
+
+The screenshot below shows the overview dashboard of Kubernetes, focusing on
+the number of pods that are deployed. At present, there is 1 deployment called
+\verb|hello-minikube| which has 2 total pods.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath k8s-dashboard.png}
+      \captionof{figure}{Kubernetes Main Dashboard}
+    \end{minipage}
+
+We can scale the application further from the GUI by increasing the replicas
+from 2 to 3. On the far right of the \textbf{deployments} window, click the
+three vertical dots, then \textbf{scale}. Enter the number of replicas
+desired. The screenshot below shows the prompt window. The screen reminds the
+user that there are currently 2 pods, but we desire 3 now.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath k8s-scale.png}
+      \captionof{figure}{Kubernetes Application Scaling}
+    \end{minipage}
+
+After scaling this application, the dashboard changes to show new pods being
+added on the following page. After a few seconds, the dashboard reflects 3
+healthy pods (not shown for brevity). During this state, the third replica set
+is still being initialized and is not available for workload processing yet.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath k8s-workload-status.png}
+      \captionof{figure}{Kubernetes Workload Status}
+    \end{minipage}
+
+Scrolling down further in the dashboard, the individual pods and replica sets
+are listed. This is similar to the output displayed earlier from the
+\verb|kubectl get pods| command.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath k8s-pods.png}
+      \captionof{figure}{Kubernetes Pods Summary}
+    \end{minipage}
+
+Checking the CLI again, the new replica set (ending in \verb|cxxlg|) created
+from the dashboard appears here.
+
+\begin{minted}{bash}
+Nicholass-MBP:localkube nicholasrusso$ kubectl get pods
+NAME                             READY     STATUS    RESTARTS   AGE
+hello-minikube-c8b6b4fdc-cxxlg   1/1       Running   0          21s
+hello-minikube-c8b6b4fdc-l5jgn   1/1       Running   0          8m
+hello-minikube-c8b6b4fdc-nz5nc   1/1       Running   0          10m
+\end{minted}
+
+To delete the deployment when testing is complete, use the command below. The
+entire deployment (application) and all associated pods are removed.
+
+\begin{minted}{bash}
+Nicholass-MBP:localkube nicholasrusso$ kubectl delete deployment hello-minikube
+deployment.extensions "hello-minikube" deleted
+
+Nicholass-MBP:localkube nicholasrusso$ kubectl get pods
+No resources found.
+\end{minted}
+
+Kubernetes can also run as-a-service in many public cloud providers. For
+example, Google Kubernetes Engine (GKE), AWS Elastic Container Service for
+Kubernetes (EKS), and Microsoft Azure Kubernetes Service (AKS). The author has
+done a brief investigation into EKS in particular, but all of these SaaS
+services are similar in their core concept. The main driver for Kubernetes
+as-a-service was to avoid building clusters manually using IaaS building
+blocks, such as AWS EC2, S3, VPC, etc. Achieving high availability is
+difficult due to coordination between multiple masters in a common cluster.
+With the SaaS offerings, the cloud providers offer a fully managed service
+with which users interface directly. Specifically for EKS, the hostname
+provided to a customer would look something like
+``mycluster.eks.amazonaws.com''. Administrators can SSH to this hostname and
+issue \verb|kubectl| commands as usual, along with all dashboard functionality
+one would expect.
+
 \subsubsection{Amazon Web Services (AWS) CLI Demonstration}
 \subsubsection{Infrastructure as Code using Terraform}

@@ -1,0 +1,595 @@
+% nfvi
+\begin{longtable}{ll}
+\centering
+\toprule
+\textbf{Advantage/Benefit}
+&
+\textbf{Disadvantage/Challenge}
+\\ \midrule
+Faster rollout of value added services
+&
+Likely to observe decreased performance
+\\ \midrule
+Reduced CAPEX and OPEX
+&
+Scalability exists only in purely NFV environment
+\\ \midrule
+Less reliance on vendor hardware refresh cycle
+&
+Interoperability between different VNFs
+\\ \midrule
+Mutually beneficial to SDN; complementary
+&
+Mgmt and orchestration alongside legacy systems
+\\
+\bottomrule
+\end{longtable}
+
+
+
+% cmtools
+\begin{longtable}{lll}
+\centering
+\toprule
+% top left cell is blank
+&
+\textbf{Git}
+&
+\textbf{Subversion (SVN)}
+\\ \midrule
+\textbf{General design}
+&
+Distributed; local and remote repo
+&
+Centralized; central repo only
+\\ \midrule
+\textbf{Staging area?}
+&
+Yes; can split work across commits
+&
+No, commit means push
+\\ \midrule
+\textbf{Learning curve}
+&
+Hard; many commands to learn
+&
+Easy; fewer moving pieces
+\\ \midrule
+\textbf{Branching and merging}
+&
+Easy, simple, and fast
+&
+Complex and laborious
+\\ \midrule
+\textbf{Revisions}
+&
+None; SHA1 commit IDs instead
+&
+Simple numbers; easy for non-techs
+\\ \midrule
+\textbf{Directory support}
+&
+Tracks only files, not directories
+&
+Tracks directories (empty ones too)
+\\ \midrule
+\textbf{Data tracked}
+&
+Content of the files
+&
+Files themselves
+\\ \midrule
+\textbf{Windows support}
+&
+Generally poor
+&
+Tortoise SVN plugin is a good option
+\\
+\bottomrule
+\end{longtable}
+
+
+% iot standards and protocols
+\begin{longtable}{llll}
+\centering
+\toprule
+% top left cell is blank
+&
+\textbf{CoAP}
+&
+\textbf{MQTT}
+&
+\textbf{HTTP}
+\\ \midrule
+\textbf{Transport and ports}
+&
+UDP 5683/5684
+&
+TCP 1883/1889
+&
+TCP 80/443
+\\ \midrule
+\textbf{Security support}
+&
+DTLS via PSK/PKI
+&
+TLS via PSK/PKI
+&
+TLS via PSK/PKI
+\\ \midrule
+\tetxbf{Multicast support}
+&
+Yes, but no encryption support yet
+&
+No
+&
+No
+\\ \midrule
+\textbf{Lightweight}
+&
+Yes
+&
+Yes
+&
+No
+\\ \midrule
+\textbf{Standardized}
+&
+Yes
+&
+No; in progress
+&
+Yes
+\\ \midrule
+\textbf{Rich feature set}
+&
+No
+&
+No
+&
+Yes
+\\
+\bottomrule
+\end{longtable}
+
+
+% controller based network design
+\begin{longtable}{LLLLL}
+\centering
+\toprule
+% top left cell is blank
+&
+\textbf{Distributed}
+&
+\textbf{Augmented}
+&
+\textbf{Hybrid}
+&
+\textbf{Centralized}
+\\ \midrule
+\textbf{Availability}
+&
+Dependent on the protocol convergence times and redundancy in the network
+&
+Dependent on the protocol convergence times and redundancy in the network.
+Doesnt matter how bad the SDN controller is its failure is tolerable
+&
+Dependent on the protocol convergence times and redundancy in the network.
+Doesnt matter how bad the SDN controller is  its failure is tolerable
+&
+Heavily reliant on a single SDN controller, unless one adds controllers to
+split failure domains or to create resilience within a single failure domain
+(which introduces a distributed control-plane in both cases)
+\\ \midrule
+\textbf{Granularity / control}
+&
+Generally low for IGPs but better for BGP. All devices generally need a common
+view of the network to prevent loops independently. MPLS TE helps somewhat.
+&
+Better than distributed since policy injection can happen at the network edge,
+or a small set of nodes. Can be combined with MPLS TE for more granular selection.
+&
+Moderately granular since SDN policy decisions are extended to all nodes. Can
+influence decisions based on any arbitrary information within a datagram
+&
+Very highly granular; complete control over all routing decisions based on any
+arbitrary information within a datagram
+\\ \midrule
+\textbf{Scalability}
+&
+Very high in a properly designed network (failure domain isolation, topology
+summarization, reachability aggregation, etc)
+&
+High, but gets worse with more policy injection. Policies are generally
+limited to key nodes (such as border routers)
+&
+Moderate, but gets worse with more policy injection. Policy is proliferated
+across the network to all nodes (though the exact quantity may vary per node)
+&
+Depends; all devices retain state for all transiting flows. Hardware-dependent
+on TCAM and whether SDN can use other tables such as L4 information, IPv6 flow
+labels, etc
+\\
+\bottomrule
+\end{longtable}
+
+
+
+
+% controller based network design
+\begin{longtable}{LLLLLL}
+\centering
+\toprule
+\textbf{Method}
+&
+\textbf{Tx Target}
+&
+\textbf{Design}
+&
+\textbf{Operation}
+&
+\textbf{Used in}
+&
+\textbf{Network life}
+\\ \midrule
+\textbf{Direct Transmission}
+&
+BS
+&
+Point-to-point links back to BS
+&
+Send to BS independently
+&
+Homogenous
+&
+Poor
+\\ \midrule
+\textbf{LEACH}
+&
+CH
+&
+Proactive/ Cluster
+&
+Distributed (random)
+&
+Homogenous
+&
+Good (in general)
+\\ \midrule
+\textbf{LEACH-C}
+&
+CH
+&
+Proactive/ Cluster
+&
+Centralized assignment
+&
+Homogenous
+&
+Good (in general)
+\\ \midrule
+\textbf{TEEN}
+&
+CH
+&
+Reactive/ Cluster
+&
+Threshold-based alerts
+&
+Homogenous
+&
+Great (few comms)
+\\ \midrule
+\textbf{PEGASIS}
+&
+Neighbor
+&
+Greedy chain
+&
+Find closest node
+&
+Homogenous
+&
+Great (dense nodes)
+\\ \midrule
+\textbf{MTE}
+&
+Neighbor
+&
+Optimal chain
+&
+Find closest node
+&
+Homogenous
+&
+Great (sparse nodes)
+\\ \midrule
+\textbf{Static clustering}
+&
+CH
+&
+Cluster
+&
+Manual CH configuration
+&
+Heterogenous
+&
+Variable, but usually poor
+\\ \midrule
+\textbf{DEEC}
+&
+CH
+&
+Cluster
+&
+Distributed using initial energy only
+&
+Heterogenous
+&
+Good
+\\ \midrule
+\textbf{DDEEC/EDEEC}
+&
+CH
+&
+Cluster
+&
+Distributed using initial/residual energy
+&
+Heterogenous
+&
+Great
+\\
+\bottomrule
+\end{longtable}
+
+% legacy cloud comparison chart
+
+
+\begin{longtable}{LLLLL}
+\centering
+\toprule
+\textbf{Component/Utility}
+\textbf{OpenStack}
+\textbf{AWS}
+\textbf{Microsoft Azure}
+\textbf{GCP}
+\textbf{Compute}
+&
+Nova
+&
+EC2
+&
+VMs
+&
+Compute Engine
+\\ \midrule
+\textbf{Network}
+&
+Neutron
+&
+VPC
+&
+Virtual Network
+&
+VPC
+\\ \midrule
+\textbf{Block Storage}
+&
+Cinder
+&
+EBS
+&
+Storage Disk
+&
+Persistent Disk
+\\ \midrule
+\textbf{Identity}
+&
+Keystone
+&
+IAM
+&
+Active Directory
+&
+Cloud IAM
+\\ \midrule
+\textbf{Image}
+&
+Glance
+&
+Lightsail
+&
+VMs and Images
+&
+Cloud Vision API
+\\ \midrule
+\textbf{Object Storage}
+&
+Swift
+&
+S3
+&
+Storage
+&
+Cloud Storage
+\\ \midrule
+\textbf{Dashboard}
+&
+Horizon
+&
+Console
+&
+Portal
+&
+Console
+\\ \midrule
+\textbf{Orchestration}
+&
+Heat
+&
+Batch
+&
+Batch
+&
+Cloud Dataflow
+\\ \midrule
+\textbf{Workflow}
+&
+Mistral
+&
+SWF
+&
+Logic Apps
+&
+Cloud Dataflow
+\\ \midrule
+\textbf{Telemetry}
+&
+Ceilometer
+&
+CloudWatch
+&
+VS App Insights
+&
+Cloud Pub/Sub
+\\ \midrule
+\textbf{Database}
+&
+Trove
+&
+RDS
+&
+SQL Database
+&
+Cloud Spanner
+\\ \midrule
+\textbf{Elastic Map Reduce}
+&
+Sahara
+&
+EMR
+&
+HDInsight
+&
+BigQuery and more
+\\ \midrule
+\textbf{Bare Metal}
+&
+Iconic
+&
+Dedicated instance
+&
+Bare Metal Recovery
+&
+Actual Cloud Platform
+\\ \midrule
+\textbf{Messaging}
+&
+Zaqar
+&
+SQS
+&
+Queue Storage
+&
+Cloud Pub/Sub
+\\ \midrule
+\textbf{Shared File System}
+&
+Manila
+&
+EFS
+&
+File Storage
+&
+FUSE
+\\ \midrule
+\textbf{DNS}
+&
+Designate
+&
+Route 53
+&
+DNS
+&
+Cloud DNS
+\\ \midrule
+\textbf{Search}
+&
+Searchlight
+&
+Elastic Search
+&
+Elastic Search
+&
+SearchService
+\\ \midrule
+\textbf{Key Manager}
+&
+Barbican
+&
+KMS
+&
+Key Vault
+&
+Cloud KMS
+\bottomrule
+\end{longtable}
+
+
+
+
+
+% legacy devops methodologies
+\begin{longtable}{LLLL}
+\centering
+\toprule
+% top left cell is blank
+&
+\textbf{Waterfall}
+&
+\textbf{Iterative}
+&
+\textbf{Agile}
+\\ \midrule
+\textbf{Basic Description}
+&
+Five serial phases, no feedback
+\begin{enumerate}
+  \item Requirements
+  \item Design
+  \item Implementation
+  \item Verification
+  \item Maintenance
+\end{enumerate}
+&
+Like the waterfall model, but operates in loops. This creates a feedback
+mechanism at each cycle to promote a faster and more flexible process.
+&
+Advances when the current step/function/feature is complete; cyclical model.
+\\ \midrule
+\textbf{Pros}
+&
+Simple, well understood, long history, requires minimal resources / management
+oversight
+&
+Simple, well understood, opportunity to adjust, requires slightly more
+resources than waterfall (but still reasonable)
+&
+Customer is engaged (better feedback), early detection of issues during rapid
+code development periods (sprints)
+\\ \midrule
+\tetxbf{Cons}
+&
+Difficult to revert, customer is not engaged until the end, higher risk, slow
+to deliver
+&
+Can be inefficient, customer feedback comes at the end of an iteration (not within)
+&
+High quantity of resources required, more focused management/customer
+interaction needed
+\\
+\bottomrule
+\end{longtable}
+
+
