@@ -1,2 +1,179 @@
 \subsection{Performance, scalability, and high availability}
-perf stuff
+% \begin{minted}[linenos]{python}
+% import yaml
+% 
+% """
+% ok
+% """
+% yaml.safeloud(test=1)
+% print('lol')
+% \end{minted}
+Assessing the performance and reliability of cloud networks presents an
+interesting set of trade-offs. For years, network designers have considered
+creating ``failure domains'' in the network so as to isolate faults. With
+routing protocols, this is conceptually easy to understand, but often times
+difficult to design and implement, especially when considering
+business/technical constraints. Designing a DC comes with its own set of
+trade-offs when identifying the ``failure domains'' (which are sometimes called
+``availability zones'' within a fabric), but that is outside the scope of this
+document. The real trade-offs with a cloud environment revolve around the
+introduction of automation. Automation is discussed in detail elsewhere,
+but the trade-offs are discussed here as they directly influence the
+performance and reliability of a system. Note that this discussion is
+typically relevant for private and virtual private clouds, as a public cloud
+provider will always be large enough to warrant several automation tools.
+\\ \\
+Automation usually reduces the total cost of ownership (TCO), which is
+desirable for any business. This is the result of reducing the time (and labor
+wages) it takes for individuals to ``do things'': provision a new service,
+create a backup, add VLANs to switches, test MPLS traffic-engineering tunnel
+computations, etc. The trade-off is that all software (including the
+automation system being discussed) requires maintenance, whether that is in
+the form of in-house development or a subscription fee from a third-party. If
+in the form of in-house development, software engineers are paid to maintain
+and troubleshoot the software which could potentially be more expensive than
+just doing things manually, depending on how much maintenance and unit testing
+the software requires. Most individuals who have worked as software developers
+(including the author) know that bugs or feature requests always seem to pop
+up, and maintenance is continuous for any non-trivial piece of code.
+Businesses must also consider the cost of the subscription for the automation
+software against the cost of not having it (in labor wages). Typically this
+becomes a simple choice as the network grows; automation often shines here.
+Automation is such a key component of cloud environments because the cost of
+dealing with software maintenance is almost always less than the cost of a
+large IT staff.
+\\ \\
+Automation can also be used for root cause analysis (RCA) whereby the tool can
+examine all the components of a system to test for faults. For example,
+suppose an eBGP session fails between two organizations. The script might test
+for IP reachability between the eBGP routers first, followed by verifying no
+changes to the infrastructure access lists applied on the interface. It might
+also collect performance characteristics of the inter-AS link to check for
+packet loss. Last, it might check for fragmentation on the link by sending
+large pings with ``don’t fragment'' set. This information can feed into the RCA
+which is reviewed by the network staff and presented to management after an
+outage.
+\\ \\
+The main takeaway is that automation should be deployed where it makes sense
+(TCO reduction) and where it can be maintained with a reasonable amount of
+effort. Failing to provide the maintenance resources needed to sustain an
+automation infrastructure can lead to disastrous results. With automation, the
+``blast radius'', or potential scope of damage, can be very large. A real-life
+story from the author: when updating SNMPv3 credentials, the wrong privacy
+algorithm was configured, causing 100% of devices to be unmanageable via
+SNMPv3 for a short time. Correcting the change was easily done using
+automation, and the business impact was minimal, but it negatively affected
+every router, switch, and firewall in the
+network.
+\\ \\
+Automation helps maximize the performance and reliability of a cloud
+environment. Another key aspect of cloud design is accessibility, which
+assumes sufficient network bandwidth to reach the cloud environment. A DC that
+was once located at a corporate site with 2,000 employees was accessible to
+those employees over a company’s campus LAN architecture. Often times this
+included high-speed core and DC edge layers whereby accessing DC resources was
+fast and highly available. With public cloud, the Internet/private WAN becomes
+involved, so cloud access becomes an important consideration.
+\\ \\
+Achieving cloud scalability is often reliant on many components supporting the
+cloud architecture. These components include the network fabric, the
+application design, the virtualization/segmentation design, and others. The
+ability of cloud networks to provide seamless and simple interoperability
+between applications can be difficult to assess. Applications that are written
+in-house will probably interoperate better in the private cloud since the
+third-party provider may not have a simple mechanism to integrate with these
+custom applications. This is very common in the military space as in-house
+applications are highly customized and often lack standards-based APIs. Some
+cloud providers may not have this problem, but this depends entirely on their
+network/application hosting software (OpenStack is one example discussed later
+in this document). If the application is coded ``correctly'', APIs would be
+exposed so that additional provider-hosted applications can integrate with the
+in-house application. Too often, custom applications are written in a silo
+where no such APIs are presented.
+\\ \\
+The table that follows compares access methods, reliability, and other
+characteristics of the different cloud solutions.
+% \begin{longtable}{p{2cm}p{3cm}p{3cm}p{3cm}p{3cm}}
+\begin{longtable}{LLLLL}
+  \toprule
+  % top left square is blank
+  &
+  \textbf{Public Cloud}
+  &
+  \textbf{Private Cloud}
+  &
+  \textbf{Virtual Private Cloud}
+  &
+  \textbf{Inter-Cloud}
+  \\ \midrule
+  \textbf{Network Access}
+  &
+  Often times relies on Internet VPN, but could also use an Internet Exchange
+  (IX) or private WAN
+  &
+  Corporate LAN or WAN, which is often private. Could be Internet-based if
+  SD-WAN deployments (e.g. Viptela) are considered
+  &
+  Combination of corporate WAN for the private cloud components and whatever
+  the public cloud access method is
+  &
+  Same as public cloud, except relies on the Internet as transport between
+  clouds/cloud deployments
+  \\ \midrule
+  \textbf{Reliability and Accessibility}
+  &
+  Heavily dependent on highly-available and high-bandwidth links to the cloud
+  provider
+  &
+  Often times high given the common usage of private WANs (backed by carrier SLAs)
+  &
+  Typically higher reliability to access the private WAN components, but
+  depends entirely on the public cloud access method
+  &
+  Assuming applications are distributed, reliability can be quite high if at
+  least one ``cloud'' is accessible (anycast)
+  \\ \midrule
+  \textbf{Fault Tolerance}
+  &
+  Typically high as the cloud provider is expected to have a highly redundant
+  architecture based on cost
+  &
+  Often constrained by corporate CAPEX; tends to be a bit lower than a managed
+  cloud service given the smaller DCs
+  &
+  Unlike public or private, the networking link between clouds is an important
+  consideration for fault tolerance
+  &
+  Assuming applications are distributed, fault-tolerance can be quite high if
+  at least one "cloud" is accessible (anycast)
+  \\ \midrule
+  \textbf{Performance}
+  &
+  Typically high as the cloud provider is expected to have a very dense
+  compute/storage architecture
+  &
+  Often constrained by corporate CAPEX; tends to be a bit lower than a managed
+  cloud service given the smaller DCs
+  &
+  Unlike public or private, the networking link between clouds is an important
+  consideration, especially when applications are distributed across the two
+  clouds
+  &
+  Unlike public or private, the networking link between clouds is an important
+  consideration, especially when applications are distributed across the two
+  clouds
+  \\ \midrule
+  \textbf{Scalability}
+  &
+  Appears to be ``infinite'' which allows the customer to provision new
+  services quickly
+  &
+  High CAPEX and OPEX to expand it, which limits scale within a business
+  &
+  Scales well given public cloud resources
+  &
+  Highest; massively distributed architecture
+  \\
+  \bottomrule
+  \caption{Cloud Design Comparison} \\
+\end{longtable}

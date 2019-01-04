@@ -1,2 +1,94 @@
 \subsection{Security implications, compliance, and policy}
-security stuff
+From a purely network-focused perspective, many would argue that public cloud
+security is superior to private cloud security. This is the result of hiring
+an organization whose entire business revolves around providing a secure,
+high-performing, and highly-available network. A business where ``the network
+is not the business'' may be less inclined or less interested in increasing
+OPEX within the IT department, the dreaded cost center. The counter-argument
+is that public cloud physical security is always questionable, even if the
+digital security is strong. Should a natural disaster strike a public cloud
+facility where disk drives are scattered across a large geographic region
+(tornado comes to mind), what is the cloud provider’s plan to protect customer
+data? What if the data is being stored in a region of the world known to have
+unfriendly relations towards the home country of the supported business? These
+are important questions to ask because when data is in the public cloud, the
+customer never really knows exactly ``where'' the data is physically stored.
+This uncertainty can be offset by using ``availability zones'' where some cloud
+providers will ensure the data is confined to a given geographic region. In
+many cases, this sufficiently addresses the concern for most customers, but
+not always. As a customer, it is also hard to enforce and prove this. This
+sometimes comes with an additional cost, too. Note that disaster recovery (DR)
+is also a component of business continuity (BC) but like most things, it has
+security considerations as well.
+\\ \\
+Privacy in the cloud is achieved mostly by introducing multi-tenancy
+separation. Compartmentalization at the host, network, and application layers
+ensure that the entire cloud architecture keeps data private; that is to say,
+customers can never access data from other customers. Sometimes this
+multi-tenancy can be done as crudely as separating different customers onto
+different hosts, which use different VLANs and are protected behind different
+virtual firewall contexts. Sometimes the security is integrated with an
+application shared by many customers using some kind of public key
+infrastructure (PKI). Often times maintaining this security and privacy is a
+combination of many techniques. Like all things, the security posture is a
+continuum which could be relaxed between tenants if, for example, the two of
+them were partners and wanted to share information within the same public
+cloud provider (like a cloud extranet).
+\\ \\
+The table that follows compares the security and privacy characteristics
+between the different cloud deployment options.
+\\ \\
+\begin{longtable}{LLLLL}
+  \toprule
+  % top left square is blank
+  &
+  \textbf{Public Cloud}
+  &
+  \textbf{Private Cloud}
+  &
+  \textbf{Virtual Private Cloud}
+  &
+  \textbf{Inter-Cloud}
+  \\ \midrule
+  \textbf{Digital security}
+  &
+  Typically has best trained staff, focused on the network and not much else
+  (network is the business)
+  &
+  Focused IT staff but likely not IT-focused upper management (network is
+  likely not the business)
+  &
+  Coordination between clouds could provide attack surfaces, but isn’t
+  wide-spread
+  &
+  Coordination between clouds could provide attack surfaces (like what BGPsec
+  is designed to solve)
+  \\ \midrule
+  \textbf{Physical security}
+  &
+  One cannot pinpoint their data within the cloud provider’s network
+  &
+  Generally high as a business knows where the data is stored, breaches
+  notwithstanding
+  &
+  Combination of public and private; depends on application component
+  distribution
+  &
+  One cannot pinpoint their data anywhere in the world
+  \\ \midrule
+  \textbf{Privacy}
+  &
+  Transport from premises to cloud should be secured (Internet VPN, secure
+  private WAN, etc.)
+  &
+  Generally secure assuming corporate WAN is secure
+  &
+  Need to ensure any replicated traffic between public/private clouds is
+  protected; generally this is true with site to site VPNs
+  &
+  Need to ensure any replicated traffic between distributed public clouds is
+  protected; customers can't perform it, but cloud providers should provide it
+  \\
+  \bottomrule
+  \caption{Cloud Security Comparison} \\
+\end{longtable}

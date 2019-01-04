@@ -1,0 +1,7 @@
+Nicholass-MBP:content nicholasrusso$ python3 -m pip install Pygments
+
+Nicholass-MBP:content nicholasrusso$ which pygmentize
+/Library/Frameworks/Python.framework/Versions/3.6/bin/pygmentize
+
+Nicholass-MBP:content nicholasrusso$ kpsewhich minted.sty
+/usr/local/texlive/2017/texmf-dist/tex/latex/minted/minted.sty

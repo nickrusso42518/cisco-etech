@@ -1,0 +1,143 @@
+\subsection{Introduction}
+Cisco has defined cloud as follows:
+\\ \\
+\textit{IT resources and services that are abstracted from the underlying infrastructure
+and provided on-demand and at scale in a multitenant environment.}
+\\ \\
+Cisco identifies three key components from this definition that differentiate
+cloud deployments from ordinary data center (DC) outsourcing strategies:
+\textit{
+\begin{enumerate}
+  \item ``On-demand'' means that resources can be provisioned immediately when needed,
+  released when no longer required, and billed only when used.
+  \item ``At-scale'' means the service provides the illusion of infinite resource
+  availability in order to meet whatever demands are made of it.
+  \item ``Multitenant environment'' means that the resources are provided to many
+  consumers from a single implementation, saving the provider significant costs.
+\end{enumerate} }
+
+These distinctions are important for a few reasons. Some organizations joke that
+migrating to cloud is simple; all they have to do is update their on-premises
+DC diagram with the words ``Private Cloud'' and upper management will be
+satisfied. While it is true that the term ``cloud'' is often abused, it is
+important to differentiate it from a traditional private DC.
+
+Cloud architectures generally come in four variants:
+
+\begin{enumerate}
+  \item \textbf{Public:} Public clouds are generally the type of cloud most people think
+  about when the word ``cloud'' is spoken. They rely on a third party organization
+  (off-premise) to provide infrastructure where a customer pays a subscription
+  fee for a given amount of compute/storage, time, data transferred, or any
+  other metric that meaningfully represents the customer’s ``use'' of the cloud
+  provider’s shared infrastructure. Naturally, the supported organizations do
+  not need to maintain the cloud’s physical equipment. This is viewed by many
+  businesses as a way to reduce capital expenses (CAPEX) since purchasing new
+  DC equipment is unnecessary. It can also reduce operating expenses (OPEX)
+  since the cost of maintaining an on-premise DC, along with trained staff,
+  could be more expensive than a public cloud solution. A basic public cloud
+  design is shown on the following page; the enterprise/campus edge uses some
+  kind of transport to reach the Cloud Service Provider (CSP) network. The
+  transport could be the public Internet, an Internet Exchange Point (IXP),
+  a private Wide Area Network (WAN), or something else.
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath cloud-basic-public.jpg}
+      \captionof{figure}{Public Cloud High Level}
+    \end{minipage}
+% 
+  % \begin{figure}[htbp!]
+  % \centering
+  % \includegraphics[width=0.3\textwidth]{\imgpath cloud-basic-public.jpg}
+  % \caption{Public Cloud High Level}
+  % \label{fig:public-cloud-high-level}
+  % \end{figure}
+% 
+  \item \textbf{Private:} Like the joke above, this model is like an on-premises
+  DC except it must supply the three key ingredients identified by Cisco to be
+  considered a ``private cloud''. Specifically, this implies
+  automation/orchestration, workload mobility, and compartmentalization must
+  all be supported in an on-premises DC to qualify. The organization is
+  responsible for maintaining the cloud’s physical equipment, which is
+  extended to include the automation and provisioning systems. This can
+  increase OPEX as it requires trained staff. Like the on-premises DC, private
+  clouds provide application services to a given organization and
+  multi-tenancy is generally limited to business units or projects/programs
+  within that organization (as opposed to external customers). The diagram on
+  the following page illustrates a high-level example of a private cloud.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath cloud-basic-private.jpg}
+      \captionof{figure}{Private Cloud High Level}
+    \end{minipage}
+
+  \item \textbf{Virtual Private:} A virtual private cloud is a combination of
+  public and private clouds. An organization may decide to use this to offload
+  some (but not all) of its DC resources into the public cloud, while
+  retaining some things in-house. This can be seen as a phased migration to
+  public cloud, or by some skeptics, as a non-committal trial. This allows a
+  business to objectively assess whether the cloud is the ``right business
+  decision''. This option is a bit complex as it may require moving workloads
+  between public/private clouds on a regular basis. At the very minimum, there
+  is the initial private-to-public migration; this could be time consuming,
+  challenging, and expensive. This design is sometimes called a ``hybrid cloud''
+  and could, in fact, represent a business’ IT end-state. The diagram on the
+  following page illustrates a high-level example of a virtual-private
+  (hybrid) cloud.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath cloud-basic-vprivate.jpg}
+      \captionof{figure}{Virtual Private Cloud High Level}
+    \end{minipage}
+
+  \item \textbf{Inter-cloud:} Like the Internet (an interconnection of various
+  autonomous systems provide reachability between all attached networks),
+  Cisco suggests that, in the future, the contiguity of cloud computing may
+  extend between many third-party organizations. This is effectively how the
+  Internet works; a customer signs a contract with a given service provider
+  (SP) yet has access to resources from several thousand other service
+  providers on the Internet. The same concept could be applied to cloud and
+  this is an active area of research for Cisco.
+\end{enumerate}
+
+Below is a based-on-a-true-story discussion that highlights some of the
+decisions and constraints relating to cloud deployments.
+
+\begin{enumerate}
+  \item An organization decides to retain their existing on-premises DC for
+  legal/compliance reasons. By adding automation/orchestration and
+  multi-tenancy components, they are able to quickly increase and decrease
+  virtual capacity. Multiple business units or supported organizations are
+  free to adjust their security policy requirements within the shared DC in a
+  manner that is secure and invisible to other tenants; this is the result of
+  compartmentalization within the cloud architecture. This deployment would
+  qualify as a ``private cloud''.
+
+  \item Years later, the same organization decides to keep their most
+  important data on-premises to meet seemingly-inflexible Government
+  regulatory requirements, yet feels that migrating a portion of their private
+  cloud to the public cloud is a solution to reduce OPEX long term. This increases
+  the scalability of the systems for which the Government does not regulate,
+  such as virtualized network components or identity services, as the
+  on-premises DC is bound by CAPEX reductions. The private cloud footprint can
+  now be reduced as it is used only for a subset of tightly controlled
+  systems, while the more generic platforms can be hosted from a cloud
+  provider at lower cost. Note that actually exchanging/migrating workloads
+  between the two clouds at will is not appropriate for this organization as
+  they are simply trying to outsource capacity to reduce cost. As discussed
+  earlier, this deployment could be considered a ``virtual private cloud'' by
+  Cisco, but is also commonly referred to as a ``hybrid cloud''.
+
+  \item Years later still, this organization considers a full migration to the
+  public cloud. Perhaps this is made possible by the relaxation of the
+  existing Government regulations or by the new security enhancements offered
+  by cloud providers. In either case, the organization can migrate its
+  customized systems to the public cloud and consider a complete decommission
+  of their existing private cloud. Such decommissioning could be done
+  gracefully, perhaps by first shutting down the entire private cloud and
+  leaving it in ``cold standby'' before removing the physical racks. Rather than
+  using the public cloud to augment the private cloud (like a virtual private
+  cloud), the organization could migrate to a fully public cloud solution.
+\end{enumerate}

@@ -1,17 +1,133 @@
-% Local variable declarations
-% Only this one uses newcommand since imgpath isn't defined yet within
-% main body. newcommand is also used in the abstract but those commands
-% do not carry over outside the abstract, hence the redefinition.
-\newcommand{\imgpath}{cloud/a1a-design/img/}
-
 \subsection{Infrastructure, platform, and software as a service (XaaS)}
-xaas stuff
-\\
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.4\textwidth]{\imgpath cloud-basic-public.jpg}
-\caption{Public Cloud High Level}
-\label{fig:public-cloud-high-level}
-\end{figure}
-\\
-more stuff here
+
+Cisco defines four critical service layers of cloud computing:
+
+\begin{enumerate}
+  \item \textit{Software as a Service (SaaS) is where application services are
+  delivered over the network on a subscription and on-demand basis.} A simple
+  example would be to create a document but not installing the appropriate
+  text editor on a user’s personal computer. Instead, the application is
+  hosted ``as a service'' that a user can access anywhere, anytime, from any
+  machine. SaaS is an interface between users and a hosted application, often
+  times a hosted web application. Examples of SaaS include Cisco WebEx,
+  Microsoft Office 365, github.com, blogger.com, and even Amazon Web Services
+  (AWS) Lambda functions. This last example is particularly interesting since,
+  according to Amazon, the \textit{``more granular model provides us with a
+  much richer set of opportunities to align tenant activity with resource
+  consumption''}. Being ``serverless'', lambda functions execute a specific task
+  based on what the customer needs, and only the resources consumed during
+  that task's execution (compute, storage, and network) are billed.
+
+  \item \textit{Platform as a Service (PaaS) consists of run-time environments and
+  software development frameworks and components delivered over the network on
+  a pay-as-you-go basis. PaaS offerings are typically presented as API to
+  consumers.} Similar to SaaS, PaaS is focused on providing a complete
+  development environment for computer programmers to test new applications,
+  typically in the development (dev) phase. Although less commonly used by
+  organizations using mostly commercial-off-the-shelf (COTS) applications, it
+  is a valuable offering for organizations developing and maintaining
+  specific, in-house applications. PaaS is an interface between a hosted
+  application and a development/scripting environment that supports it. Cisco
+  provides WebEx Connect as a PaaS offering. Other examples of PaaS include
+  the specific-purpose AWS services like Route 53 for Domain Name Service
+  (DNS) support, CloudFront/CloudWatch for collecting performance metrics, and
+  a wide variety of Relational Database Service (RDS) offerings for storing
+  data. The customer consumes these services but does not have to maintain
+  them (patching, updates, etc.) as part of their network operations.
+
+  \item \textit{Infrastructure as a Service (IaaS) is where compute, network, and
+  storage are delivered over the network on a pay-as-you-go basis. The
+  approach that Cisco is taking is to enable service providers to move into
+  this area.} This is likely the first thing that comes to mind when
+  individuals think of ``cloud''. It represents the classic ``outsourced DC''
+  mentality that has existed for years and gives the customer flexibility to
+  deploy any applications they wish. Compared to SaaS, IaaS just provides the
+  ``hardware'', roughly speaking, while SaaS provides both the underlying
+  hardware and software application running on it. IaaS may also provide a
+  virtualization layer by means of a hypervisor. A good example of an IaaS
+  deployment could be a miniature public cloud environment within an SP point
+  of presence (POP) which provides additional services for each customer:
+  firewall, intrusion prevention, WAN acceleration, etc. IaaS is effectively
+  an interface between an operating system and the underlying hardware
+  resources. More general-purpose EC2 services such as Elastic Compute Cloud
+  (EC2) and Simple Storage Service (S3) qualify as IaaS since the AWS'
+  management is limited to the underlying infrastructure, not the objects
+  within each service. The customer is responsible for basic maintenance
+  (patching, hardening, etc.) of these virtual instances and data products.
+
+  \item \textit{IT foundation is the basis of the above value chain layers. It
+  provides basic building blocks to architect and enable the above layers.}
+  While more abstract than the XaaS layers already discussed, the IT
+  foundation is generally a collection of core technologies that evolve over
+  time. For example, DC virtualization became very popular about 15 years ago
+  and many organizations spent most of the last decade virtualizing ``as much
+  as possible''. DC fabrics have also changed in recent years; the original
+  designs represented a traditional core/distribution/access layer design yet
+  the newer designs represent leaf/spine architectures. These are ``IT
+  foundation'' changes that occur over time which help shape the XaaS
+  offerings, which are always served using the architecture defined at this
+  layer. Cisco views DC evolution in five phases:
+
+  \begin{enumerate}
+    \item \textbf{Consolidation:} Driven mostly by business needs to reduce costs,
+	this phase focused on reducing edge computing and reducing the number of
+	total DCs within an enterprise. DCs started to take form with two major
+	components:
+
+	\begin{enumerate}
+      \item Data Center Network (DCN): Provides the underlying reachability
+	  between attached devices in the DC, such as compute, storage, and
+	  management tools.
+      \item Storage Area Network (SAN): While this may be integrated or
+	  entirely separate from the DCN, it is a core component in the DC. Storage
+	  devices are interconnected over a SAN which typically extends to servers
+	  needing to access the storage.
+	\end{enumerate}
+
+    \item \textbf{Abstraction:} To further reduce costs and maximize return on
+	investment (ROI), this phase introduces pervasive virtualization. This
+	provides virtual machine/workload mobility and availability to DC operators.
+
+    \item \textbf{Automation:} To improve business agility, automation can
+	rapidly and consistently ``do things'' within a DC. These things include
+	routine system management, service provisioning, or business-specific tasks
+	like processing credit card information.
+    \item \textbf{Cloud:} With the previous phases complete, the cloud model of IT
+	services delivered as a utility becomes possible for many enterprises. Such
+	designs may include a mix of public and private cloud solutions.
+    \item \textbf{Intercloud:} Discussed earlier, this is Cisco's vision of
+	cloud interconnection to generally mirror the Internet concept. At this
+	phase, internal and external clouds will coexist, federate, and share
+	resources dynamically.
+  \end{enumerate}
+\end{enumerate}
+
+Although not defined in formal Cisco documentation, there are many more
+flavors of XaaS. Below are some additional examples of storage related
+services commonly offered by large cloud providers:
+
+\begin{enumerate}
+  \item \textbf{Database-as-a-Service:} Some applications require databases,
+  especially relational databases like the SQL family. This service would
+  provide the database itself and the ability for the database to connect to
+  the application so it can be utilized. AWS RDS services qualify as offerings
+  in this category.
+  \item \textbf{Object-Storage-as-a-Service:} Sometimes cloud users only need
+  access to files independent from a specific application. Object storage is
+  effectively a remote file share for this purpose, which in many cases can
+  also be utilized by an application internally. This service provides the
+  object storage service as well as the interfaces necessary for users
+  and applications to access it. AWS S3 is an example of this service, which
+  in some cases is a subnet of IaaS/PaaS.
+  \item \textbf{Block-Storage-as-a-Service:} These services are commonly tied to
+  applications that require access to the disks themselves. Applications can
+  format the disks and add whatever file system is necessary, or perhaps use
+  the disk for some other purpose. This service provides the block storage
+  assets (disks, logical unit number or LUNs, etc.) and the interfaces to
+  connect the storage assets to the applications themselves. AWS Elastic Block
+  Storage (EBS) is an example of this service.
+\end{enumerate}
+
+This book provides a more complete look into popular cloud service offerings
+in the OpenStack section. Note OpenStack was removed from the new v1.1
+blueprint but was retained at the end of this book.

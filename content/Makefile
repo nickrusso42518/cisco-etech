@@ -13,10 +13,11 @@ lint:
 
 .PHONY: pdf
 pdf:
-	@pdflatex -jobname etech --interaction=batchmode --halt-on-error main.tex
-	@pdflatex -jobname etech --interaction=batchmode --halt-on-error main.tex
+	@pdflatex -shell-escape -jobname etech --interaction=batchmode --halt-on-error main.tex
+	@pdflatex -shell-escape -jobname etech --interaction=batchmode --halt-on-error main.tex
 	@open etech.pdf
 
 .PHONY: clean
 clean:
 	@rm -f lint.log etech.*
+	@rm -rf _minted-etech/
