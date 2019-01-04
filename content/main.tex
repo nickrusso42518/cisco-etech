@@ -8,7 +8,7 @@
 % Caption support
 \usepackage{caption}
 
-% Gives graphi processing
+% Gives graphic processing
 \usepackage{graphicx}
 % \usepackage{tikz}
 
@@ -16,7 +16,7 @@
 % Enable smaller font and line numbers
 \usepackage{minted}
 \setminted{fontsize=\small}
-\setminted{linenos}
+% \setminted{linenos}
 
 % Gives \toprule \midrule \bottomrule
 \usepackage{booktabs}
@@ -27,8 +27,10 @@
   colorlinks=true,
   linkcolor=blue,
   filecolor=magenta,
-  urlcolor=cyan
+  urlcolor=blue
 }
+
+% Allows for customizing long table entries with custom column type "L"
 \usepackage{array}
 \newcolumntype{L}{>{\raggedright\arraybackslash}p{2.8cm}}
 
@@ -39,8 +41,10 @@
 \chead{}
 \rhead{}
 \lfoot{By: Nicholas Russo}
-\cfoot{http://njrusmc.net}
+\cfoot{\url{http://njrusmc.net}}
 \rfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
 
 % \graphicspath{{"Vv PBDT vV"}}
 

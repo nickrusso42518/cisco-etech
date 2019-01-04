@@ -75,7 +75,7 @@ requirements may change often (such as military networks), containers are a
 poor choice.
 \\ \\
 Docker and Linux Containers (LXC) are popular examples of container engines.
-The image that follow is from from www.docker.com that compares VMs to
+The image that follow is from from \url{www.docker.com} that compares VMs to
 containers at a high
 level.
 
@@ -235,8 +235,7 @@ through stdout.
 Sending build context to Docker daemon  7.168kB
 Step 1/5 : FROM centos:7
  ---> e934aafc2206
-Step 2/5 : RUN yum update -y &&     yum install -y git                    tree                    which &&     yum clean all &&         git clone         --branch command_authorization_failed_ios_regex         --depth 1         --single-branch         --recursive         https://github.com/rcarrillocruz/ansible.git
- ---> Running in 84f969f5ee06
+Step 2/5 : RUN yum update -y &&     yum install -y git  [snip]
 Loaded plugins: fastestmirror, ovl
 Determining fastest mirrors
  * base: mirrors.lga7.us.voxel.net
@@ -256,8 +255,7 @@ Cleaning up list of fastest mirrors
 Cloning into 'ansible'...
  ---> b6b3ec4a0efb
 Removing intermediate container 84f969f5ee06
-Step 3/5 : RUN /bin/bash -c "source /ansible/hacking/env-setup" &&     echo "source /ansible/hacking/env-setup -q" >> /root/.bashrc &&         curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py" &&     python get-pip.py &&     rm -f get-pip.py &&         pip install -r /ansible/requirements.txt
- ---> Running in f8344dfe7384
+Step 3/5 : RUN /bin/bash -c "source /ansible/hacking/env-setup" &&   [snip]
 [snip, progress messages]
 
 Done!
@@ -266,11 +264,10 @@ Done!
                                  Dload  Upload   Total   Spent    Left  Speed
 100 1603k  100 1603k    0     0  6836k      0 --:--:-- --:--:-- --:--:-- 6854k
 Collecting pip
-  Downloading https://files.pythonhosted.org/packages/0f/74/ecd13431bcc456ed390b44c8a6e917c1820365cbebcb6a8974d1cd045ab4/pip-10.0.1-py2.py3-none-any.whl (1.3MB)
+  Downloading https://files.pythonhosted.org/packages/0f/74/ecd13431bcc [snip]
 Collecting setuptools
 [snip, pip installations]
-Successfully installed MarkupSafe-1.0 PyYAML-3.12 asn1crypto-0.24.0 bcrypt-3.1.4 cffi-1.11.5 cryptography-2.2.2 enum34-1.1.6 idna-2.6 ipaddress-1.0.22 jinja2-2.10 paramiko-2.4.1 pyasn1-0.4.3 pycparser-2.18 pynacl-1.2.1 six-1.11.0
- ---> 0cab65a61ee3
+Successfully installed MarkupSafe-1.0 [snip]
 Removing intermediate container f8344dfe7384
 Step 4/5 : WORKDIR /ansible/examples
  ---> 62ef1320c8da
@@ -439,7 +436,7 @@ which helps illustrate the Ansible issue that is being investigated.
 
 \begin{minted}{bash}
 [root@9bc07956b416 examples]# ansible --version | head -1
-ansible 2.6.0dev0 (command_authorization_failed_ios_regex 5a1568c753) last updated 2018/05/28 17:19:42 (GMT +000)
+ansible 2.6.0dev0 (command_authorization_failed_ios_regex 5a1568c753) [snip]
 
 [root@04eb3ee71a52 examples]# ansible-playbook issue31575.yml 
 
@@ -477,9 +474,9 @@ been truncated to make the table fit neatly.
 
 \begin{minted}{bash}
 [centos@docker build]$ docker container ls -a
-CONTAINER ID    IMAGE           COMMAND      CREATED    STATUS                 PORTS           NAMES
-04eb3ee71a52    ans:cmd_authz   "/bin/bash"  33 m ago   Exited (127) 7 s ago   adoring_mestorf
-088bbd2a7544    centos:7        "/bin/bash"  43 m ago   Exited (0) 42 m ago    wise_banach
+CONTAINER ID   IMAGE          COMMAND      CREATED   STATUS         PORTS   NAMES
+04eb3ee71a52   ans:cmd_authz  "/bin/bash"  33 m ago  Exited (127) 7 s ago   adoring_mestorf
+088bbd2a7544   centos:7       "/bin/bash"  43 m ago  Exited (0)   42 m ago  wise_banach
 \end{minted}
 
 This manual ``start and stop'' approach to containerization has several
@@ -628,3 +625,290 @@ CONTAINER ID  IMAGE   COMMAND   CREATED   STATUS     PORTS     NAMES
 \end{minted}
 
 \subsubsection{Python Virtual Environments (venv) for Refactoring}
+Just as containers are lighter than virtual machines in terms of their
+computing and storage requirements, virtual environments are lighter than
+containers. Python virtual environments, or ``venv'' for short, are effectively
+separate directory structures that contain separate storage areas for
+libraries, binaries, and other information specific to a development effort.
+The demonstration in this section is based on a real-life Ansible refactoring
+effort of the author's
+\href{https://github.com/nickrusso42518/}{free open-source Ansible projects.}
+\\ \\
+When Ansible network modules such as \verb|ios_command| and \verb|ios_config| were
+introduced, they required \verb|provider| dictionaries to log into network devices.
+This dictionary wrapped basic login information such as hostname/IP address,
+username, password, and timeouts into a single dictionary object. While this
+technique was brilliant for its day, the Ansible team acknowledged that this
+made network devices ``different'' and having a unified SSH access method would
+be a better long-term solution. These features were introduced in Ansible 2.5,
+but suppose you wrote all your playbooks in Ansible 2.4. How could you safely
+run two versions of Ansible on a single machine to perform the necessary
+refactoring? Python virtual environments (venv for short) are a good solution
+to this problem.
+\\ \\
+First, create a new venv for Ansible 2.4.2 to demonstrate the now-deprecated
+provider dictionary method. The command below creates a new directory called
+ansible242 and populates it with many files needed to create a separate
+development environment. This book does not explore the inner workings of
+venv, but does include a link in the references section.
+
+\begin{minted}{bash}
+[ec2-user@devbox venv]$ virtualenv ansible242
+New python executable in /home/ec2-user/venv/ansible242/bin/python2
+Also creating executable in /home/ec2-user/venv/ansible242/bin/python
+Installing setuptools, pip, wheel...done.
+
+[ec2-user@devbox venv]$ ls -l
+total 0
+drwxrwxr-x. 5 ec2-user ec2-user 82 Aug 22 07:06 ansible242
+
+[ec2-user@devbox venv]$ ls -l ansible242/
+total 4
+drwxrwxr-x. 2 ec2-user ec2-user 248 Aug 22 07:06 bin
+drwxrwxr-x. 2 ec2-user ec2-user  23 Aug 22 07:06 include
+drwxrwxr-x. 3 ec2-user ec2-user  23 Aug 22 07:06 lib
+lrwxrwxrwx. 1 ec2-user ec2-user   3 Aug 22 07:06 lib64 -> lib
+-rw-rw-r--. 1 ec2-user ec2-user  59 Aug 22 07:06 pip-selfcheck.json
+\end{minted}
+
+The purpose of venv is to create a virtual Python workspace, so any Python
+utilities and libraries should be used within the venv. To activate the venv,
+use the source command to update your current shell. The prompt changes to
+show the venv name at the far left. Use which to reveal that the pip binary
+has been selected from within the venv.
+
+\begin{minted}{bash}
+[ec2-user@devbox venv]$ which pip
+/usr/bin/pip
+
+[ec2-user@devbox venv]$ cd ansible242/
+[ec2-user@devbox ansible242]$ source bin/activate
+
+(ansible242) [ec2-user@devbox ansible242]$ which pip
+~/venv/ansible242/bin/pip
+\end{minted}
+
+At this point, custom packages can be installed within the venv without
+interfering with the platform-level Python packages, if any exist.
+
+\begin{minted}{bash}
+(ansible242) [ec2-user@devbox ansible242]$ ls -l lib/python2.7/site-packages/
+total 16
+-rw-rw-r--. 1 ec2-user ec2-user  126 Aug 22 07:06 easy_install.py
+-rw-rw-r--. 1 ec2-user ec2-user  317 Aug 22 07:06 easy_install.pyc
+drwxrwxr-x. 4 ec2-user ec2-user  116 Aug 22 07:06 pip
+drwxrwxr-x. 2 ec2-user ec2-user  130 Aug 22 07:06 pip-18.0.dist-info
+drwxrwxr-x. 4 ec2-user ec2-user  117 Aug 22 07:06 pkg_resources
+drwxrwxr-x. 5 ec2-user ec2-user 4096 Aug 22 07:06 setuptools
+drwxrwxr-x. 2 ec2-user ec2-user  174 Aug 22 07:06 setuptools-40.2.0.dist-info
+drwxrwxr-x. 4 ec2-user ec2-user 4096 Aug 22 07:06 wheel
+drwxrwxr-x. 2 ec2-user ec2-user  130 Aug 22 07:06 wheel-0.31.1.dist-info
+\end{minted}
+
+Install the correct version of Ansible using pip, and then check the
+site-packages within the venv to see that Ansible 2.4.2 has been installed.
+
+\begin{minted}{bash}
+(ansible242) [ec2-user@devbox ansible242]$ pip install ansible==2.4.2.0
+Collecting ansible==2.4.2.0
+Collecting cryptography (from ansible==2.4.2.0)
+[snip, many packages]
+Successfully installed MarkupSafe-1.0 PyYAML-3.13 ansible-2.4.2.0 [snip]
+
+(ansible242) [ec2-user@devbox ansible242]$ ls -l lib/python2.7/site-packages/
+total 1040
+drwxrwxr-x. 17 ec2-user ec2-user  4096 Aug 22 07:09 ansible
+drwxrwxr-x.  2 ec2-user ec2-user    87 Aug 22 07:09 ansible-2.4.2.0.dist-info
+[snip, many packages]
+drwxrwxr-x.  2 ec2-user ec2-user  4096 Aug 22 07:09 yaml
+
+(ansible242) [ec2-user@devbox ansible242]$ ansible --version
+ansible 2.4.2.0
+\end{minted}
+
+The venv now has a functional Ansible 2.4.2 environment where playbook
+development can begin. This demonstration shows a simple login playbook that
+the author has used in production just to SSH into all devices. It's the Cisco
+IOS equivalent of the Ansible ping module which is used primarily for testing
+SSH reachability to Linux hosts. The source code is shown below. Note that
+there are only two variables defined. The first tells Ansible which Python
+binary to use to ensure the proper libraries are used. A fully qualified file
+name must be used as shortcuts like ``~'' are not allowed. The second variable
+is a nested login credentials dictionary.
+
+\begin{minted}{bash}
+(ansible242) [ec2-user@devbox login]$ tree
+.
+├── group_vars
+│   └── routers.yml
+├── inv.yml
+└── login.yml
+\end{minted}
+
+\begin{minted}{yaml}
+(ansible242) [ec2-user@devbox login]$ cat group_vars/routers.yml
+---
+ansible_python_interpreter: "/home/ec2-user/venv/ansible242/bin/python"
+login_creds:
+  host: "{{ inventory_hostname }}"
+  username: "ansible"
+  password: "ansible"
+...
+
+(ansible242) [ec2-user@devbox login]$ cat inv.yml
+---
+all:
+  children:
+    routers:
+      hosts:
+        csr1:
+...
+
+(ansible242) [ec2-user@devbox login]$ cat login.yml
+---
+- name: "Login to all routers"
+  hosts: routers
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: "Run 'show clock' command"
+      ios_command:
+        provider: "{{ login_creds }}"
+        commands: "show clock"
+...
+\end{minted}
+
+Running the playbook with the custom inventory (containing one router called
+``csr1'') and verbosity enabled so the CLI output is printed to standard
+output.
+
+\begin{minted}{bash}
+(ansible242)[ec2-user@devbox login]$ ansible-playbook login.yml -i inv.yml -v
+Using /etc/ansible/ansible.cfg as config file
+
+PLAY [Login to all routers] ***********************************************
+
+TASK [Run 'show clock' command] *******************************************
+ok: [csr1] => {
+    "changed": false
+}
+
+STDOUT:
+
+[u'*11:26:15.420 UTC Wed Aug 22 2018']
+
+PLAY RECAP ****************************************************************
+csr1                       : ok=1    changed=0    unreachable=0    failed=0
+\end{minted}
+
+With the first test complete, exit the venv using the deactivate command,
+which is a custom binary specific to venv that effectively reverses what the
+source bin/activate command did. The shell returns to normal. Note that the
+deactivate command only exists inside of the venv.
+
+\begin{minted}{bash}
+(ansible242) [ec2-user@devbox login]$ deactivate
+[ec2-user@devbox login]$
+
+[ec2-user@devbox login]$ which deactivate
+/usr/bin/which: no deactivate in (/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin)
+\end{minted}
+
+To refactor this playbook from the old provider-style login to the new
+\verb|network_cli| login, create a second venv alongside the existing one. It is
+is named ansible263 which is the current version of Ansible at the time of
+this writing. The steps are shown below but are not explained in detail as
+they were in the first example.
+
+\begin{minted}{bash}
+[ec2-user@devbox venv]$ virtualenv ansible263
+New python executable in /home/ec2-user/venv/ansible263/bin/python2
+Also creating executable in /home/ec2-user/venv/ansible263/bin/python
+Installing setuptools, pip, wheel...done.
+
+[ec2-user@devbox venv]$ cd ansible263/
+[ec2-user@devbox ansible263]$ source bin/activate
+
+(ansible263) [ec2-user@devbox ansible263]$ pip install ansible==2.6.3
+Collecting ansible==2.6.3
+Collecting PyYAML (from ansible==2.6.3)
+[snip, many packages]
+Successfully installed MarkupSafe-1.0 PyYAML-3.13 ansible-2.6.3 [snip]
+
+\begin{minted}{bash}
+(ansible263) [ec2-user@devbox login]$ ansible --version
+ansible 2.6.3
+\end{minted}
+
+Ansible playbook development can begin now, and to save some time, recursively
+copy the login playbook from the old venv into the new one. Because Python
+virtual environments are really just separate directory structures, moving
+source code between them is easy. It is worth noting that source code does not
+have to exist inside a venv. It may exist in one specific location and the
+refactoring effort could be doen on a version control feature branch. In this
+way, multiple venvs could access a common code base. In this simple example,
+code is copied between venvs.
+
+\begin{minted}{bash}
+(ansible263) [ec2-user@devbox ansible263]$ cp -R ../ansible242/login/ .
+(ansible263) [ec2-user@devbox ansible263]$ tree login/
+login/
+├── group_vars
+│   └── routers.yml
+├── inv.yml
+└── login.yml
+\end{minted}
+
+Modify the group variables and playbook files according to the code shown
+below. Rather than define a custom dictionary with login credentials, one can
+specify some values for the well-known Ansible login parameters. At the
+playbook, the connection changes from local to \verb|network_cli| and the inclusion
+of the provider key under \verb|ios_command| is no longer needed. Last, note that the
+Python interpreter path is updated for this specific venv using the directory
+ansible263.
+
+\begin{minted}{yaml}
+(ansible263) [ec2-user@devbox login]$ cat group_vars/routers.yml
+---
+ansible_python_interpreter: "/home/ec2-user/venv/ansible263/bin/python"
+ansible_network_os: "ios"
+ansible_user: "ansible"
+ansible_ssh_pass: "ansible"
+...
+
+(ansible263) [ec2-user@devbox login]$ cat login.yml
+---
+- name: "Login to all routers"
+  hosts: routers
+  connection: network_cli
+  gather_facts: false
+  tasks:
+    - name: "Run 'show clock' command"
+      ios_command:
+        commands: "show clock"
+...
+\end{minted}
+
+Running this playbook should yield the exact same behavior as the original
+playbook except modernized for the new version of Ansible. Using virtual
+environments to accomplish this simplifies library and binary executable
+management when testing multiple versions.
+
+\begin{minted}{bash}
+(ansible263)[ec2-user@devbox login]$ ansible-playbook login.yml -i inv.yml -v
+Using /etc/ansible/ansible.cfg as config file
+
+PLAY [Login to all routers] ***********************************************
+
+TASK [Run 'show clock' command] *******************************************
+ok: [csr1] => {
+    "changed": false
+}
+
+STDOUT:
+
+[u'*11:39:28.966 UTC Wed Aug 22 2018']
+
+PLAY RECAP ****************************************************************
+csr1                       : ok=1    changed=0    unreachable=0    failed=0
+\end{minted}

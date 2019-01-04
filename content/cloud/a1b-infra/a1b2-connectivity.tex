@@ -1,7 +1,437 @@
 \subsection{Connectivity}
-connectivity stuff
+etwork virtualization is often misunderstood as being something as simple as
+``virtualize this device using a hypervisor and extend some VLANs to the host''.
+Network virtualization is really referring to the creation of virtual
+topologies using a variety of technologies to achieve a given business goal.
+Sometimes these virtual topologies are overlays, sometimes they are forms of
+multiplexing, and sometimes they are a combination of the two. Here are some
+common examples (not a complete list) of network virtualization using
+well-known technologies. Before discussing specific technical topics like
+virtual switches and SDN, it is worth discussing basic virtualization
+techniques upon which all of these solutions rely.
+
+\begin{enumerate}
+  \item \textbf{Ethernet VLANs using 802.1q encapsulation.} Often used to create
+  virtual networks at layer 2 for security segmentation, traffic hair pinning
+  through a service chain, etc. This is a form of data multiplexing over
+  Ethernet links. It isn’t a tunnel/overlay since the layer 2 reachability
+  information (MAC address) remains exposed and used for forwarding decisions.
+  \item \textbf{VPN Routing and Forwarding (VRF) tables or other layer-3
+  virtualization techniques.} Similar uses as VLANs except virtualizes an
+  entire routing instance, and is often used to solve a similar set of
+  problems. Can be combined with VLANs to provide a complete virtual network
+  between layers 2 and 3. Can be coupled with GRE for longer-range
+  virtualization solutions over a core network that may or may not have any
+  kind of virtualization. This is a multiplexing technique as well but is
+  control-plane only since there is no change to the packets on the wire, nor
+  is there any inherent encapsulation (not an overlay).
+  \item \textbf{Frame Relay DLCI encapsulation.} Like a VLAN, creates segmentation
+  at layer 2 which might be useful for last-mile access circuits between PE and
+  CE for service multiplexing. The same is true for Ethernet VLANs when using
+  EV services such as EV-LINE, EV-LAN, and EV-TREE. This is a data-plane
+  multiplexing technique specific to Frame Relay.
+  \item \textbf{MPLS VPNs.} Different VPN customers, whether at layer 2 or layer 3,
+  are kept completely isolated by being placed in a separate virtual overlay
+  across a common core that has no/little native virtualization. This is an
+  example of an overlay type of virtual network.
+  \item \textbf{Virtual eXtensible Area Network (VXLAN).} Just like MPLS VPNs;
+  creates virtual overlays atop a potentially non-virtualized core. VXLAN is a
+  MAC-in-IP/UDP tunneling encapsulation designed to provide layer-2 mobility
+  across a data center fabric with an IP-based underlay network. The advantage
+  is that the large layer-2 domain, while it still exists, is limited to the
+  edges of the network, not the core. VXLAN by itself uses a ``flood and learn''
+  strategy so that the layer-2 edge devices can learn the MAC addresses from
+  remote edge devices, much like classic Ethernet switching. This is not a
+  good solution for large fabrics where layer-2 mobility is required, so VXLAN
+  can be paired with BGP’s Ethernet VPN (EVPN) address family to provide MAC
+  routing between endpoints. Being UDP-based, the VXLAN source ports can be
+  varied per flow to provide better underlay (core IP transport) load
+  sharing/multipath routing, if required.
+  \item \textbf{Network Virtualization using Generic Routing Encapsulation
+  (NVGRE).} This technology extends classic GRE tunneling to include a subnet
+  identifier within the GRE header, allowing GRE to tunnel layer-2 Ethernet
+  frames over IP/GRE. The use cases for NVGRE are also identical to VXLAN
+  except that, being a GRE packet, layer-4 port-based load sharing is not
+  supported. Some devices can support GRE key-based hashing, but this does not
+  have flow-level visibility.
+  \item \textbf{OTV.} Just like MPLS VPNs; creates virtual overlays atop a
+  potentially non-virtualized core, except provides a control-plane for MAC
+  routing. IP multicast traffic is also routed intelligently using GRE
+  encapsulation with multicast destination addresses. This is another example
+  of an overlay type of virtual network.
+\end{enumerate}
 
 \subsubsection{Virtual Switches}
+The term ``virtual switch'' has multiple meanings. As discussed in the previous
+section, the most generic interpretation of the term would be ``VLAN''. A VLAN
+is, quite literally, a virtual switch, which shares the same hardware as all
+the other VLANs next to it, but remains logically isolated. Along these lines,
+a VRF is a virtual router and a Cisco ASA context is a virtual firewall.
+\\ \\
+However, it is likely that this section of the Evolving Technologies blueprint
+is more interested in discussing virtual switches in the context of
+hypervisors. Simply put, a virtual switch serves as a bridge between the
+applications and the physical network. Virtual machines map their virtual NICs
+to the virtual switch ports, much like a physical server connects into a data
+center access switch. The virtual switches are also connected to the physical
+server NICs, often times with 802.1q VLAN trunking enabled, just like a real
+switch. Each port (or group of ports) can map to a single VLAN, providing
+VLAN-tagged transport to the physical network and untagged transport to the
+applications, as expected. Some engineers prefer to think about virtual
+switches as the true access switch in the network, with the top of rack (TOR)
+switch being an aggregation device of sorts.
+\\ \\
+There are many types of virtual switches:
+\begin{enumerate}
+  \item \textbf{Standalone/basic:} As described above, these switches support
+  basic features such as access ports, trunk ports, and some basic security
+  settings such as policing, and MAC spoof protection. They are independently
+  managed on each server, and while simple to build, they become difficult to
+  maintain as the data center computing environment scales.
+  \item \textbf{Distributed:} A distributed virtual switch is managed as a
+  single entity despite being spread across many servers. Loosely analogous to
+  Cisco StackWise or Virtual Switching System (VSS) technologies, this reduces
+  the management burden. The individual servers still have local switches that
+  can tolerate a management outage, but are centrally managed. Distributed
+  virtual switches tend to have more features than standalone ones, such as
+  LACP, QoS, private VLANs, Netflow, and more. VMware's distribution virtual
+  switch (DVS) is available in vCenter-enabled deployments and is one such example.
+  \item \textbf{ Vendor-specific software:} Several vendors offer
+  software-based virtual switches with comprehensive feature sets. Cisco's
+  Nexus 1000v, for example, is one such product. These solutions typically
+  offer strong CLI/API support for better integration into a uniform
+  management strategy. Other solutions may even be integrated with the
+  hypervisor's management system despite being add-on products. Many modern
+  virtual switches can, for example, terminate VXLAN tunnels. This brings
+  multi-tenancy all the way to the server without introducing the complexity
+  into the data center physical switches.
+\end{enumerate}
+
 \subsubsection{Software-Defined Wide Area Network (SD-WAN Viptela Demonstration)}
+The Viptela SD-WAN solution provides a highly capable and adaptive WAN
+solution to help customers reduce WAN costs (OPEX and CAPEX), gain additional
+performance/monitoring insight, and optimize performance. It has four main
+components:
+
+\begin{enumerate}
+  \item \textbf{vSmart Controller:} The centralized control-plane and policy
+  injection service for the network.
+  \item \textbf{vEdge:} The branch device that registers to the vSmart
+  controllers to receive policy updates. Each vEdge router requires about 100
+  kbpsof bandwidth back to the vSmart controller.
+  \item \textbf{vManage:} The single-pane-of-glass management front-end that
+  provides visibility, analytics, and easy policy adjustment.
+  \item \textbf{vBond:} Technology used for Zero Touch Provisioning (ZTP),
+  enabling the vEdge devices to discover available vSmart controllers. This
+  component is effectively a communications broker between SD-WAN endpoints
+  (vEdge) and their controllers (vSmart).
+\end{enumerate}
+
+The control-plane is TLS-based and is formed between vEdge devices and vSmart
+controllers. The digital certificates for Viptela’s PKI solution are internal
+and easily managed within vManage; a complex, preexisting PKI is not
+necessary. The routing design is similar in logic to BGP route-reflectors
+whereby individual vEdge devices can send traffic directly between one another
+without directly exchanging any reachability/policy information. To provide
+high-scale network services, the Overlay Management Protocol (OMP) is a
+BGP-like protocol that carries a variety of attributes. These attributes
+include application/QoS specific routing policy, multicast routing
+information, IPsec keys, and more.
+\\ \\
+The solution supports both IPsec ESP and GRE data-plane encapsulations for its
+overlay networks. Because OMP carries IPsec keys within the system’s
+control-plane, Internet Key Exchange (IKE) between vEdge endpoints is
+unnecessary. This optimization obviates the need for IKE, reducing both vEdge
+device state and spoke-to-spoke tunnel setup
+time.
+\\ \\
+Like many SD-WAN solutions, Viptela can classify traffic based on traditional
+mechanisms such as ports, protocols, IP addresses, and DSCP values. It can
+also perform application-specific classification with policies tuned for each
+specific application. All policies are configured through the vManage
+interface which are then communicated to the controller. The controller then
+communicates this to the vEdge devices.
+\\ \\
+Although the definitions are imperfect, it is mostly correct to say that the
+vManage-to-vSmart controller interface is a northbound interface (except that
+vManage is a management console, not a business application). Likewise, the
+vSmart-to-vEdge interface is like a southbound interface. Also note that,
+unlike truly centralized control planes, the failure of a vSmart controller or
+the path by which a vEdge uses to reach a vSmart controller results in the
+vEdge reverting back to the last applied policy. This means that the WAN can
+function like a distributed control-plane provided changes are not needed. As
+such, the Viptela solution can be generally classified as a hybrid SDN solution.
+\\ \\
+ZTP relies on vBond, which is an orchestration process that allows vEdge
+devices to join the SD-WAN instance without any pre-configuration on the
+remote devices. Each device comes with an embedded SSL certificate stored
+within a Trusted Platform Module (TPM). Via vManage, the network administrator
+can trust or not trust this particular client device. Revoking trust for a
+device is useful for cases where the vEdge is lost or stolen, much like
+issuing a Certificate Revocation List (CRL). Once the trust settings are
+updated, vManage notifies the vSmart controllers so they can accept or reject
+the SSL sessions from vEdge devices.
+\\ \\
+The Viptela SD-WAN solution also supports network-based multi-tenancy. A
+4-byte shim header called a label (not to be confused with MPLS labels) is
+added to each packet within a specific tenant’s overlay as a membership
+identifier. As such, Viptela can tie into existing networks using technologies
+like VRF + VLAN in a back-to-back fashion, much like Inter-AS MPLS Option A
+(RFC 4364 Section 10a). The diagram that follows summarizes Viptela at a high level.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath viptela-hl.png}
+      \captionof{figure}{Viptela SD-WAN High Level}
+    \end{minipage}
+
+The remainder of this section walks through a high-level demonstration of the
+Viptela SD-WAN solution's various interfaces. Upon login to vManage, the
+centralized and multi-tenant management system, the user is presented with a
+comprehensive dashboard. At its most basic, the dashboard alerts the
+administrator to any obvious issues, such as sites being down or other errors
+needing repair.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath viptela-home.png}
+      \captionof{figure}{Viptela Home Dashboard}
+    \end{minipage}
+
+Clicking on the vEdge number ``4'', one can explore the status of the four
+remote sites. While not particularly interesting in a network where everything
+is working, this provides additional details about the sites in the network,
+and is a good place to start troubleshooting when issues arise.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath viptela-nodes.png}
+      \captionof{figure}{Viptela Node Summary}
+    \end{minipage}
+
+Next, the administrator can investigate a specific node in greater detail to
+identify any faults recorded in the event log. The screenshot on the following
+page is from SDWAN4, which provides a visual representation of the current
+events and the text details in one screen.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath viptela-events.png}
+      \captionof{figure}{Viptela Event Logging}
+    \end{minipage}
+
+The screenshot below depicts the bandwidth consumed between different hosts on
+the network. More granular details such as ports, protocols, and IP addresses
+are available between the different monitoring options from the left-hand
+pane. This screenshot provides output from the ``Flows'' option on the SDWAN4
+node, which is a physical vEdge-100m appliance.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath viptela-flows.png}
+      \captionof{figure}{Viptela Flow Exploration}
+    \end{minipage}
+
+Last, the solution allows for granular flow-based policy control, similar to
+traditional policy-based routing, except centrally controlled and fully
+dynamic. The screenshot below shows a policy to match DSCP 46, typically used
+for expedited forwarding of inelastic, interactive VOIP traffic. The preferred
+color (preferred link in this case) is the direct Ethernet-based Internet
+connection this particular node has. Not shown is the backup 4G LTE link this
+vEdge-100m node also has. This link is slower, higher latency, and less
+preferable for voice transport, so we administratively prefer the wireline
+Internet link. Not shown is the SLA configuration and other policy parameters
+to specify the voice performance characteristics that must be met. For
+example: 150 ms one way latency, less than 0.1\% packet loss, and less than 30
+ms jitter. If the wireline Internet exceeds any of these thresholds, the
+vSmart controllers with automatically start using the 4G LTE link, assuming
+that its performance is within the SLA's specification.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath viptela-voice-policy.png}
+      \captionof{figure}{Viptela VoIP QoS Policy}
+    \end{minipage}
+
+For those interested in replicating this demonstration, please visit
+\href{https://dcloud.cisco.com/}{Cisco dCloud}.
+Note that the compute/storage requirements for these Cisco SD-WAN components
+is very low, making it easy to run almost anywhere. The only exception is the
+vManage component and its VM requirements can be found
+\href{https://sdwan-docs.cisco.com/Product_Documentation/Getting_Started/
+Hardware_and_Software_Installation/Server_Hardware_Recommendations}{here}.
+The VMs can be run either on VMware ESXi or Linux KVM-based hypervisors (which
+includes Cisco NFVIS discussed later in this book).
+
 \subsubsection{Software-Defined Access (SDA)}
+Cisco's SDA architecture is a holistic, intent-based networking solution
+designed for enterprises to operate, maintain, and secure their access layer
+networks. Campus Fabric is one of the core components of this design, and is
+of particular interest to network engineers.
+\\ \\
+Cisco’s Campus Fabric is a main component of the Digital Network Architecture
+(DNA), a major Cisco networking initiative. Campus Fabric relies on a
+VXLAN-based data plane, encapsulating traffic at the edges of the fabric
+inside IP packets to provide L2VPN and L3VPN service. Security Group Tags
+(SGT), Quality of Service (QoS) markings, and the VXLAN Virtual Network ID
+(VNI) are all carried in the VXLAN header, giving the underlay network some
+ability to apply policy to transit traffic. Campus Fabric was designed with
+mobility, scale, and performance in mind.
+\\ \\
+The solution uses Location/Identification Separation Protocol (LISP) as its
+control-plane. LISP is like a combination of DNS and NHRP as a mapping server
+binds endpoint IDs (EIDs) to routing locations (RLOCs) in a centralized
+manner. Like NHRP, LISP is a reactive control plane whereby EIDs are exchanged
+between endpoints via ``conversational learning''. That is to say, edge nodes
+don’t retain all state at all times, but rather only when it is needed. The
+initial setup of communications between two nodes when the state is absent can
+take some time as LISP converges. Unlike DNS, the LISP mapping server does not
+reply directly to LISP edge nodes as such a reply is not a guarantee that two
+edge nodes can actually communicate. The LISP mapping server forwards the
+request to the remote edge node authoritative for a given EID, which generates
+the response. This behavior is similar to how NHRP works in DMVPN phases 2 and
+3 when spoke-to-spoke tunnels are dynamically built.
+\\ \\
+Campus Fabric offers separation using both policy-based segmentation via
+Security Group Tags (SGT) and network-based segmentation via VXLAN/LISP. These
+options are not mutually exclusive and can be deployed together for even
+better separation between virtual networks. Extending virtual networks outside
+of the fabric is done using VRF-Lite in an MPLS Inter-AS Option A fashion,
+effectively extending the virtual networks without merging the control-planes.
+This architecture can be thought of like an SD-LAN although Cisco (and the
+industry in general) do not use this term. The IP routed underlay is kept
+simple with complex, tenant-specific overlays added on top according to the
+business needs.
+\\ \\
+Note that Campus Fabric is the LAN networking component of the overall SDA
+architecture. Fabric border nodes are similar to fabric edge nodes (access
+switches) except that they connect the fabric to upstream resources, such as
+the core network. This is how users access other places in the network, such
+as WAN, data center, Internet edge, etc. DNA-C, ISE, Network Data Platform
+(NDP) analytics, and wireless LAN controllers (WLC) are typically locally in
+the data center and control the entire SDA architecture. Being able to express
+intent in human language through DNA-C, then have the system map this intent
+to device configuration automatically, is a major advantage of SDA.
+\\ \\
+At the time of this writing, the SDA solution is supported on most modern
+Cisco switch product lines. Some of the common ones include the Catalyst 9000,
+Catalyst 3650/3850, and Nexus 7000 lines. DNA-C within the SDA architecture is
+analogous to an SDN controller as it asserts the desired configuration/state
+onto the managed devices within the SDA architecture. DNA-C is programmable
+through a northbound REST API to allow business applications to communicate
+their intent to DNA-C, which uses its southbound interfaces (SSH, SNMP, and/or
+HTTPS) to program network devices.
+
 \subsubsection{Software-Defined Data Center (SD-DC)}
+SD-DC as a generic term describes a data center design model whereby all DC
+resources are virtualized and on-demand. That is to say, SD-DC brings
+cloud-like provisioning of all DC resources (compute, network, and storage) to
+support specific applications in automated fashion. Security within
+application components (e.g. front-end, application, and database containers)
+and between different applications (e.g. APIs) is inherent with any SD-DC
+solution. Resources are pooled and shared between resources for maximum cost
+effectiveness, flexibility, and ability to respond to changing market demands.
+\\ \\
+One example of an SD-DC solution is Cisco's Application Centric Infrastructure
+(ACI). As discussed earlier, ACI separates policy from reachability and could
+be considered a hybrid SDN solution, much like Cisco's original SD-WAN
+solution, Intelligent WAN (IWAN). ACI is more revolutionary than IWAN as it
+reuses less technology and relies on custom hardware and software.
+Specifically, ACI is supported on the Cisco Nexus 9000 product line using a
+version of software specific to ACI. This differs from the original NX-OS
+which is considered a ``standalone'' or ``non-ACI'' deployment of the Nexus 9000.
+Unlike IWAN, ACI is positioned within the data center as a software defined
+data center (SDDC) solution.
+\\ \\
+The creation of ACI, to include its complement of customized hardware, was
+driven by a number of factors (not a comprehensive list):
+
+\begin{enumerate}
+  \item Software alone cannot solve the migration of 1Gbps to 10Gbps in the
+  server access layer or 10Gbps to 40Gbps/100Gbps in the DC aggregation and
+  core layers.
+  \item The overall design of the DC has to change to better support east/west
+  (lateral flows within the DC) traffic flows being generated by distributed,
+  multi-tiered applications. Traditional DC designs focused on north/south
+  (into and out of the DC) traffic for user application access.
+  \item There is a need for rapid service deployment for internal IT consumers
+  in a secure and scalable way. This prevents individuals from going
+  ``elsewhere'' (unauthorized third-parties, for example) when enterprise IT
+  providers cannot meet their needs.
+  \item Central management isn’t a new thing, but has traditionally failed as
+  network devices did not have machine-friendly interfaces since they were
+  often configured directly by humans (SNMP is an exception). Such interfaces
+  are called Application Programmability Interfaces (API) which are discussed
+  later in this document.
+\end{enumerate}
+
+The controller used for ACI is known as the Application Policy Infrastructure
+Controller (APIC). Cisco’s approach in developing this controller was
+different from the classic thought process of ``the controller needs to get a
+packet from point A to point B''. Networks have traditionally done this job
+well. Instead, APIC focuses on \textit{when the packets can move and what
+happens when they do}. That is to say, under what policy conditions a
+packet should be forward, dropped, rerouted over an alternative link, etc.
+Packet forwarding continues in the distributed control-plane model as
+discussed before, but the APIC is able to configure any node in the network
+with specific policy, to include security policy, or to enhance/modify any
+given flow in the data center. Policy is retained in the nodes even in the
+event of a controller failure, but policy can only be modified by the APIC.
+\\ \\
+The ACI infrastructure is built on a leaf/spine network fabric which has a
+number of interesting characteristics:
+
+\begin{enumerate}
+  \item Adding bandwidth is achieved by adding spines and linking the leaves to it.
+  \item Adding access density is achieved by adding leaves and linking them to the spines.
+  \item ``Border'' leaves are identified as the egress point from the fabric, not the spines.
+  \item Nothing connects to the spines other than leaves (no services).
+  \item Spines are never connected laterally.
+\end{enumerate}
+
+This architecture is not new (in general), but is becoming popular in DC
+fabrics for its superior distribution of bandwidth for north/south and
+east/west DC flows. The significant advantage of this design for any SDN DC
+solution is that it is universally useful; other SDN vendors in the DC space
+typically prefer that the underlying architecture look this way. This topology
+need not change even as the APIC policies change significantly since it is
+designed only for high-speed transport. In an ACI network, the network makes
+no attempt to automatically classify, treat, and prioritize specific
+applications absent input from the user (via APIC). That is to say, it is both
+cost prohibitive and error prone for the network to make such a classification
+when the business drivers (i.e. human input) are what drives the
+prioritization, security policy, and other treatment characteristics of a
+given application's traffic.
+\\ \\
+Policy applied to the APIC is applied to the network using several constructs:
+
+\begin{enumerate}
+  \item \textbf{Application Network Profile:} Logical template for how the
+  application connects and works. All tiers of a given application are
+  encompassed by this profile. The profile can contain multiple policies which
+  are applied between the components of an application. These policies can
+  define things like QoS, availability, and security requirements. This
+  ``declarative'' model is intuitive and is application-focused. The policy
+  also follows applications across the DC as they migrate for mobility purposes.
+  \item \textbf{Endpoint Groups (EPG):} EPGs are designed to group elements
+  that share a common policy together. Consider a classic three-tier
+  application. All web servers would be in one EPG, while the application
+  servers would be in a second. The database servers would be in a third. The
+  policy application would occur between these endpoint groups. Components are
+  placed into groups based on any number of fields, such as VLAN, IP address,
+  port (physical or layer-4), and other fields.
+  \item \textbf{Contracts:} Contracts determine the types of traffic (and
+  their treatment) between EPGs. The contract is the application of policy
+  between EPGs which effectively represents an agreement between two entities
+  to exchange information. Contracts are aptly named as it is not possible to
+  violate a contract; this is enforced by the APIC policies, which are driven
+  by business requirements.
+\end{enumerate}
+
+The diagram below depicts a high level image of the ACI infrastructure provided by Cisco.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath aci-overview.png}
+      \captionof{figure}{Cisco ACI SD-DC High Level}
+    \end{minipage}
