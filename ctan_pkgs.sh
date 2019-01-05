@@ -18,7 +18,8 @@ CTAN_PKGS=(
 
 echo setting up "tlmgr"
 tlmgr init-usertree
-tlmgr update --self
+# tlmgr update --self
 
 echo packages to install: ${CTAN_PKGS[@]}
-tlmgr update --verify-repo=none ${CTAN_PKGS[@]}
+# tlmgr update --verify-repo=none ${CTAN_PKGS[@]}
+tlmgr update ${CTAN_PKGS[@]}
