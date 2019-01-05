@@ -3,8 +3,9 @@ language: python
 python:
   - "3.6"
 
-# Install python packages for ansible and linters.
-# Install a minimal TexLive installation for LaTeX support.
+# Install basic TexLive along with TL and Python packages.
+# Note: Everything after "minted" is a dependency of it, not directly
+# included by any tex source files in this project.
 install:
   # - "sudo apt-get install chktex xzdec texlive-latex-base -y"
   - "wget http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz"
@@ -13,14 +14,12 @@ install:
   - "./install-tl -profile texlive.profile"
   - "PATH=$PATH:/usr/local/texlive/2018/bin/x86_64-linux"
   - "tlmgr --version"
-  - >-
-    tlmgr install
-    booktabs caption minted chktex
-	fvextra etoolbox fancyvrb xcolor upquote lineno ifplatform xstring framed float
+  - "tlmgr install booktabs caption chktex minted fvextra etoolbox fancyvrb"
+  - "tlmgr install xcolor upquote lineno ifplatform xstring framed float"
   - "pip install -r requirements.txt"
 
 # Execute linting tests before running the main playbook.
-# chktex apparently always returns rc=0 
+# Note: "chktex" apparently always returns rc=0
 # draft-mode will not render images, and provides detailed fail log
 before_script:
   - "make lint"

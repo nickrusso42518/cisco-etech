@@ -1,3 +1,7 @@
+[![Build Status](
+https://travis-ci.org/nickrusso42518/cisco-etech.svg?branch=master)](
+https://travis-ci.org/nickrusso42518/cisco-etech)
+
 # Cisco CCIE/CCDE Evolving Technologies
 This book covers the Cisco Evolving Technologies version 1.1 blueprint
 and includes detailed explanations of modern cloud, network programmability,
@@ -44,7 +48,7 @@ it were code. "Walk the walk", as it were.
 
 __Q__: How does this book compare to other Cisco evolving tech books?\
 __A__: Having not read any, I cannot comment directly. I encourage
-readers to research the available options and decide for yourself. I will
+readers to research the available options and decide for themselves. I will
 say that this book goes far beyond what Cisco written exams typically
 require. Readers will find it a useful field guide/reference for their
 professional lives beyond a certification test.
@@ -59,5 +63,5 @@ the time of this writing.
 __Q__: Who covers your operating expenses for maintenance/updates?\
 __A__: Given that the book is and always will be free, I fund everything with
 the help of generous donations from others. If you like the book, like the
-cause, like the concept, or just like me as a person, I'd encourae you to donate
-[here](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=KA9QZVDMVYN26&lc=US&item_name=Evolving Technology Study Guide&item_number=42518&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted).
+cause, like the concept, or just like me as a person, __please donate__
+[here](https://www.paypal.com/donate/?token=PAgLQIXPZ0b7h1qkdLXmKyAjrEpmzaWgk09MtVtozb00NXjmbrT9Vj58K-ex13sEn8hll0&country.x=US&locale.x=US).
