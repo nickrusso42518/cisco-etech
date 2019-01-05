@@ -6,8 +6,10 @@ python:
 # Install python packages for ansible and linters.
 # Install a minimal TexLive installation for LaTeX support.
 install:
-  - "sudo apt-get install xzdec texlive-latex-base -y"
-  - "./ctan_pkgs.sh"
+  - "sudo apt-get install chktex xzdec texlive-latex-base -y"
+  - "tlmgr init-usertree"
+  - "tlmgr option repository ftp://tug.org/historic/systems/texlive/2015/tlnet-final"
+  - "tlmgr update longtable minted booktabs graphicx caption array"
   - "pip install -r requirements.txt"
 
 # Execute linting tests before running the main playbook.
