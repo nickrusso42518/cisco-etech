@@ -6,11 +6,11 @@ python:
 # Install basic TexLive along with TL and Python packages.
 # Note: Everything after "minted" is a dependency of it, not directly
 # included by any tex source files in this project.
+# tar --strip-components avoids the install-tl-(date) directory creation
 install:
   # - "sudo apt-get install chktex xzdec texlive-latex-base -y"
   - "wget http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz"
-  - "tar -xzvf install-tl-unx.tar.gz"
-  - "cd install-tl-20*"
+  - "tar -xzvf install-tl-unx.tar.gz --strip-components 1"
   - "./install-tl -profile texlive.profile"
   - "PATH=$PATH:/usr/local/texlive/2018/bin/x86_64-linux"
   - "tlmgr --version"
