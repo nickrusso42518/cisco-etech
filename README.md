@@ -21,10 +21,11 @@ included 10% of their questions pulled from a new "evolving techologies"
 topic domain. This book seeks to address that new section.
 
 ## Structure
-tbd
+TBD
 
 ## Tooling
-tbd
+Still being built, but uses a GNU `Makefile` for simplify linting and
+typesetting functions. Alsu uses Travis CI for automated testing.
 
 ## FAQ
 __Q__: Why was LaTeX chosen over simpler Markdown or reStructuredText?\

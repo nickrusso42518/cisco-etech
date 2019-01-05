@@ -21,4 +21,4 @@ tlmgr init-usertree
 tlmgr update --self
 
 echo packages to install: ${CTAN_PKGS[@]}
-tlmgr update --no-require-verification ${CTAN_PKGS[@]}
+tlmgr update --verify-repo=none ${CTAN_PKGS[@]}

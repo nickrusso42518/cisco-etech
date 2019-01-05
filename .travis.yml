@@ -6,7 +6,7 @@ python:
 # Install python packages for ansible and linters.
 # Install a minimal TexLive installation for LaTeX support.
 install:
-  - "sudo apt-get install texlive-latex-base -y"
+  - "sudo apt-get install xzdec texlive-latex-base -y"
   - "./ctan_pkgs.sh"
   - "pip install -r requirements.txt"
 
