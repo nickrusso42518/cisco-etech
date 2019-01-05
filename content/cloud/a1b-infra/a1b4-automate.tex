@@ -637,4 +637,1178 @@ issue \verb|kubectl| commands as usual, along with all dashboard functionality
 one would expect.
 
 \subsubsection{Amazon Web Services (AWS) CLI Demonstration}
+The AWS command line interface (CLI) is a simple way to interact with AWS
+programmatically. Like most APIs, consumers can both read and write data,
+which simplifies interaction. Initially setting up the AWS CLI is relatively
+simple and many tutorials exist, so this book covers the main points using
+some AWS console screenshots.
+\\ \\
+First, create a user and group with permissions to, at a minimum, create and
+delete EC2 instances. For demonstration purposes, the ``terraform'' user is
+placed in the ``terraform'' has full EC2 access (create, delete, change power
+state, etc.) Note that the word ``terraform'' is used because this section
+serves as a primer for the Terraform demo in the following section. Take note
+of the user Amazon Resource Name (ARN) as this can be used for verifying AWS
+CLI connectivity.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath tf-user-group.png}
+      \captionof{figure}{AWS User/Group Assignments for Terraform}
+    \end{minipage}
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath tf-ec2-fullperm.png}
+      \captionof{figure}{AWS EC2 Permissions for Terraform}
+    \end{minipage}
+
+Next, generate specific programmatic credentials for the ``terraform'' user. The
+access key is used by AWS to communicate the username and other unique data
+about your AWS account, and the secret key is a password that should not be shared.
+\\ \\
+Once the new ``terraform'' user exists in the proper group with the proper
+permissions and a valid access key, run \verb|aws configure| from the shell. The
+"aws" binary can be installed via Python pip, but if you are like the author
+and are using an EC2 instance to run the AWS CLI, it comes pre-installed on
+Amazon Linux. Simply answer the questions as they appear, and always
+copy/paste the access and secret keys to avoid typos. Choose a region near you
+and use ``json'' for the output format, which is the most programmatically
+appropriate answer.
+
+\begin{minted}{bash}
+[ec2-user@devbox ~]$ aws configure
+AWS Access Key ID [None]: AKIAJKRONVDHHQ3GJYGA
+AWS Secret Access Key [None]: [hidden]
+Default region name [None]: us-east-1
+Default output format [None]: json
+\end{minted}
+
+To quickly test whether AWS CLI is set up correctly, use the command below. Be sure to match up the "Arn" number and username to what is shown in the screenshots above. This runs very quickly in about 300 ms so use it regularly to test for access issues.
+
+\begin{minted}{json}
+[ec2-user@devbox ~]$ time aws sts get-caller-identity
+{
+    "Account": "043535020805", 
+    "UserId": "AIDAINLWE2QY3Q3U6EVF4", 
+    "Arn": "arn:aws:iam::043535020805:user/terraform"
+}
+
+real    0m0.319s
+user    0m0.256s
+sys     0m0.051s
+\end{minted}
+
+The goal of this short demonstration is to deploy a Cisco CSR1000v into the
+default VPC within the availability zone us-east-1a. Building out a whole new
+virtual environment using the AWS CLI manually is not terribly difficult but
+would be time consuming (and likely boring) for readers. Many of the AWS CLI
+``getter'' commands are prefixed with the word \verb|describe|. To get information
+about VPCs, use \verb|describe-vpcs| shown below. The current environment has two
+VPCs: the default VPC and a custom Ansible VPC used for Ansible development.
+The VPC without a name is the default. Record the \verb|VpcId| of the default VPC
+which is \verb|vpc-889b03ee|.
+
+\begin{minted}{json}
+[ec2-user@devbox ~]$ aws ec2 describe-vpcs
+{
+    "Vpcs": [
+        {
+            "VpcId": "vpc-7d5a7b1b", 
+            "InstanceTenancy": "default", 
+            "Tags": [
+                {
+                    "Value": "VPC_Ansible", 
+                    "Key": "Name"
+                }
+            ], 
+            "CidrBlockAssociationSet": [
+                {
+                    "AssociationId": "vpc-cidr-assoc-7d5c0815", 
+                    "CidrBlock": "10.125.0.0/16", 
+                    "CidrBlockState": {
+                        "State": "associated"
+                    }
+                }
+            ], 
+            "State": "available", 
+            "DhcpOptionsId": "dopt-4d2cb42a", 
+            "CidrBlock": "10.125.0.0/16", 
+            "IsDefault": false
+        }, 
+        {
+            "VpcId": "vpc-889b03ee", 
+            "InstanceTenancy": "default", 
+            "CidrBlockAssociationSet": [
+                {
+                    "AssociationId": "vpc-cidr-assoc-c66fe2ae", 
+                    "CidrBlock": "172.31.0.0/16", 
+                    "CidrBlockState": {
+                        "State": "associated"
+                    }
+                }
+            ], 
+            "State": "available", 
+            "DhcpOptionsId": "dopt-4d2cb42a", 
+            "CidrBlock": "172.31.0.0/16", 
+            "IsDefault": true
+        }
+    ]
+}
+\end{minted}
+
+Armed with the VPC ID from above, ask for the subnets available in this VPC.
+By default, every AZ within this region has a default subnet, but since this
+demonstration is focused on us-east-1a, we can apply some filters. First, we
+filter subnets only contained in the default VPC, then additionally only on
+the us-east-1a AZ subnets. One subnet is returned with \verb|SubnetId|
+of \verb|subnet-f1dfa694|.
+
+\begin{minted}{json}
+[ec2-user@devbox ~]$ aws ec2 describe-subnets --filters \
+>  'Name=vpc-id,Values=vpc-889b03ee' 'Name=availability-zone,Values=us-east-1a'
+{
+    "Subnets": [
+        {
+            "AvailabilityZone": "us-east-1a", 
+            "AvailableIpAddressCount": 4091, 
+            "DefaultForAz": true, 
+            "Ipv6CidrBlockAssociationSet": [], 
+            "VpcId": "vpc-889b03ee", 
+            "State": "available", 
+            "MapPublicIpOnLaunch": true, 
+            "SubnetId": "subnet-f1dfa694", 
+            "CidrBlock": "172.31.64.0/20", 
+            "AssignIpv6AddressOnCreation": false
+        }
+    ]
+}
+\end{minted}
+
+Armed with the proper subnet for the CSR1000v, an Amazon Machine Image (AMI)
+must be identified to deploy. Sine there are many flavors of CSR1000v
+available, such as bring your own license (BYOL), maximum performance, and
+security, apply a filter to target the specific image desired. The example
+below shows a name-based filter searching for a string containing 16.09 as the
+version followed later by BYOL, the lowest cost option. Record the \verb|ImageId|,
+which is \verb|ami-0d1e6af4c329efd82|, as this is the image to deploy.
+
+\begin{minted}{json}
+[ec2-user@devbox ~]$ aws ec2 describe-images --filters \
+>  'Name=name,Values=cisco-CSR-.16.09*BYOL*'
+{
+    "Images": [
+        {
+            "ProductCodes": [
+                {
+                    "ProductCodeId": "5tiyrfb5tasxk9gmnab39b843", 
+                    "ProductCodeType": "marketplace"
+                }
+            ], 
+            "Description": "cisco-CSR-trhardy-20180727122305.16.09.01-BYOL-HVM", 
+            "VirtualizationType": "hvm", 
+            "Hypervisor": "xen", 
+            "ImageOwnerAlias": "aws-marketplace", 
+            "EnaSupport": true, 
+            "SriovNetSupport": "simple", 
+            "ImageId": "ami-0d1e6af4c329efd82", 
+            "State": "available", 
+            "BlockDeviceMappings": [
+                {
+                    "DeviceName": "/dev/xvda", 
+                    "Ebs": {
+                        "Encrypted": false, 
+                        "DeleteOnTermination": true, 
+                        "VolumeType": "standard", 
+                        "VolumeSize": 8, 
+                        "SnapshotId": "snap-010a7ddb206eb016e"
+                    }
+                }
+            ], 
+            "Architecture": "x86_64", 
+            "ImageLocation": "aws-marketplace/cisco-CSR-.16.09.01-BYOL-HVM-[snip]", 
+            "RootDeviceType": "ebs", 
+            "OwnerId": "679593333241", 
+            "RootDeviceName": "/dev/xvda", 
+            "CreationDate": "2018-09-19T00:59:25.000Z", 
+            "Public": true, 
+            "ImageType": "machine", 
+            "Name": "cisco-CSR-.16.09.01-BYOL-[snip]"
+        }
+    ]
+}
+\end{minted}
+
+Two other minor pieces of information are needed. First, capture the available
+key chains and choose the most appropriate one for this instance. One key pair
+is available. The name ``EC2-key-pair'' will be used when deploying the CSR1000v.
+
+\begin{minted}{json}
+[ec2-user@devbox ~]$ aws ec2 describe-key-pairs
+{
+    "KeyPairs": [
+        {
+            "KeyName": "EC2-key-pair", 
+            "KeyFingerprint": "fc:41:d4:[snip]"
+        }
+    ]
+}
+\end{minted}
+
+Next, capture the available security groups and choose one. Be sure to filter
+on the default VPC to avoid cluttering output with any Ansible VPC related
+security groups. The default security group, in this case, is wide open and
+permits all traffic. The \verb|GroupId| of \verb|sg-4d3a5c31| can be used
+when deploying the CSR1000v.
+
+\begin{minted}{json}
+[ec2-user@devbox ~]$ aws ec2 describe-security-groups --filter \
+>  'Name=vpc-id,Values=vpc-889b03ee'
+{
+    "SecurityGroups": [
+        {
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1", 
+                    "PrefixListIds": [], 
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ], 
+                    "UserIdGroupPairs": [], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "Description": "default VPC security group", 
+            "IpPermissions": [
+                {
+                    "IpProtocol": "-1", 
+                    "PrefixListIds": [], 
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ], 
+                    "UserIdGroupPairs": [], 
+                    "Ipv6Ranges": []
+                }
+            ], 
+            "GroupName": "default", 
+            "VpcId": "vpc-889b03ee", 
+            "OwnerId": "043535020805", 
+            "GroupId": "sg-4d3a5c31"
+        }
+    ]
+}
+\end{minted}
+
+With all the key information collected, use the command below with the
+appropriate inputs to create the new EC2 instance. After running the command,
+a string is returned with the instance ID of the new instance; this is why the
+\verb|--query| argument is handy when deploying new instances using AWS CLI. The
+CSR1000v will take a few minutes to fully power up.
+
+\begin{minted}{json}
+[ec2-user@devbox ~]$ aws ec2 run-instances --image-id ami-0d1e6af4c329efd82 \
+>                              --subnet-id subnet-f1dfa694 \
+>                              --security-group-ids sg-4d3a5c31 \
+>                              --count 1 \
+>                              --instance-type t2.medium \
+>                              --key-name EC2-key-pair \
+>                              --query "Instances[0].InstanceId"
+"i-08808ba7abf0d2242"
+\end{minted}
+
+In the meantime, collect information about the instance using the command
+below. Use the \verb|--instance-ids| option to supply a list of strings, each
+containing a specific instance ID. The value returned above is pasted below.
+The status is still ``initializing''.
+
+\begin{minted}{json}
+[ec2-user@devbox ~]$ aws ec2 describe-instance-status --instance-ids 'i-08808ba7abf0d2242'
+{
+    "InstanceStatuses": [
+        {
+            "InstanceId": "i-08808ba7abf0d2242", 
+            "InstanceState": {
+                "Code": 16, 
+                "Name": "running"
+            }, 
+            "AvailabilityZone": "us-east-1a", 
+            "SystemStatus": {
+                "Status": "ok", 
+                "Details": [
+                    {
+                        "Status": "passed", 
+                        "Name": "reachability"
+                    }
+                ]
+            }, 
+            "InstanceStatus": {
+                "Status": "initializing", 
+                "Details": [
+                    {
+                        "Status": "initializing", 
+                        "Name": "reachability"
+                    }
+                ]
+            }
+        }
+    ]
+}
+\end{minted}
+
+You can continue running the above command every few minutes until the status
+changes to ``ok''.
+
+\begin{minted}{json}
+[ec2-user@devbox ~]$ aws ec2 describe-instance-status \
+>  --instance-ids 'i-08808ba7abf0d2242'
+{
+[snip]
+            "InstanceStatus": {
+                "Status": "ok", 
+                "Details": [
+                    {
+                        "Status": "passed", 
+                        "Name": "reachability"
+                    }
+[snip]
+}
+\end{minted}
+
+In order to connect to the instance to configure it, the public IP or public
+DNS hostname is required. The command below targets this specific information
+without a massive JSON dump. Simply feed in the instance ID. Without the
+complex query, one could manually scan the JSON to find the address, but this
+solution is more targeted and elegant.
+
+\begin{minted}{json}
+[ec2-user@devbox ~]$ aws ec2 describe-instances \
+>  --instance-ids i-08808ba7abf0d2242 --output text \
+>  --query 'Reservations[*].Instances[*].PublicIpAddress' 
+34.201.13.127
+\end{minted}
+
+Assuming your private key is already present with the proper permissions
+(read-only for owner), SSH into the instance using the newly-discovered public
+IP address. A quick check of the IOS XE version suggests that the deployment
+succeeded.
+
+\begin{minted}{json}
+[ec2-user@devbox ~]$ ls -l privkey.pem 
+-r-------- 1 ec2-user ec2-user 1670 Jan  1 16:54 privkey.pem
+
+[ec2-user@devbox ~]$ ssh -i privkey.pem ec2-user@34.201.13.127
+
+ip-172-31-66-99#show version | include IOS XE
+Cisco IOS XE Software, Version 16.09.01
+\end{minted}
+
+Termination is simple as well. The only challenge is that, generally, one
+would have to rediscover the instance ID assuming the termination happened
+long after the instance was created. The alternative is manually writing some
+kind of shell script to store that data in a file, which must be manually read
+back in to delete the instance. The next section on Terraform helps overcome
+these state problems in a simple way, but for now, simply delete the CSR1000v
+using the command below. The JSON output confirms that the instance is
+shutting down.
+
+\begin{minted}{json}
+[ec2-user@devbox ~]$ aws ec2 terminate-instances --instance-ids i-08808ba7abf0d2242
+{
+    "TerminatingInstances": [
+        {
+            "InstanceId": "i-08808ba7abf0d2242", 
+            "CurrentState": {
+                "Code": 32, 
+                "Name": "shutting-down"
+            }, 
+            "PreviousState": {
+                "Code": 16, 
+                "Name": "running"
+            }
+        }
+    ]
+}
+\end{minted}
+
+This ``CCurrentState'' of ``shutting-down'' will remain for a few minutes until the
+instance is gone. Running the command again confirms the instance no longer
+exists as the state is ``terminated''.
+
+\begin{minted}{json}
+[ec2-user@devbox ~]$ aws ec2 terminate-instances --instance-ids i-08808ba7abf0d2242
+{
+    "TerminatingInstances": [
+        {
+            "InstanceId": "i-08808ba7abf0d2242", 
+            "CurrentState": {
+                "Code": 48, 
+                "Name": "terminated"
+            }, 
+            "PreviousState": {
+                "Code": 48, 
+                "Name": "terminated"
+            }
+        }
+    ]
+}
+\end{minted}
+
 \subsubsection{Infrastructure as Code using Terraform}
+Terraform, like Ansible (discussed later in this book), is relatively easy to
+get started using. Understanding Terraform's value is best understood by
+contrasting it with the AWS CLI demonstrated in the previous section. While
+the AWS CLI provides a simple and powerful method to interact with AWS, it has
+several drawbacks. Think of a traditional shell script that simply runs
+commands and has basic logical constructs like conditionals, loops, and
+variables. Suppose one wants to make the script state-aware so that it only
+takes the necessary actions. For example, it doesn't create EC2 instances that
+already exist and doesn't try to delete non-existent instances. To accomplish
+this, the programmer would have to constantly test for the presence or absence
+of certain characteristics (the presence of an instance, the presence of a
+line of a text in a file, etc.) before taking action. This makes the script
+complex and quickly gets out of control for any non-trivial problem.
+\\ \\
+Terraform solves this problem through abstraction using a domain-specific
+language (DSL), like Ansible. This simplified pseudo-code allows programmers
+to declare their intent/endstate and Terraform implements the plan. Like many
+automation tools, it is often used as ``infrastructure as code'' whereby the
+desired system is described in its entirety, checked into version control, and
+centrally enforced. Terraform has a collection of providers, which are
+specific libraries used to interact with a variety of platforms. For example,
+the forthcoming demonstration will use several AWS-specific providers. Because
+Terraform is an abstraction layer, it does not reinvent the AWS CLI, but
+rather relies on it behind the scenes.
+\\ \\
+Terraform's DSL is a completely new format, known as Hashicorp Configuration
+Language (HCL). The language resembles a simplified JSON format with the
+addition of single and multi line comments. It is designed to be both human
+and machine friendly.
+\\ \\
+In this demonstration, Terraform will provision a new virtual networking
+environment within AWS known as a virtual private cloud (VPC) that has a large
+IP supernet from which all subnets must be contained. A new subnet will be
+created which represents a DMZ for public facing enterprise services offered
+by a fictitious company. A Cisco ASAv serves as the Internet edge firewall.
+Within the DMZ, a Cisco CSR1000v serves as a VPN concentrator for site-to-site
+VPNs. These devices won't be configured at a CLI-level by Terraform, but will
+be provisioned and properly connected using AWS networking constructs.
+Subsequent configuration management using Ansible, Nornir, or homemade scripts
+would generally occur after provisioning by Terraform.
+\\ \\
+Armed with basic knowledge about Terraform and the task at hand, the
+demonstration will provision several AWS resources:
+
+\begin{enumerate}
+  \item	Build a new VPC (region us-east-1) for our DMZ devices using the
+  \verb|aws_vpc| resource
+  \item	Build a new DMZ subnet using the \verb|aws_subnet| resource in the
+  us-east-1a availability zone
+  \item	Deploy an unlicensed Cisco CSR1000v using the \verb|aws_instance| resource
+  \item	Deploy an unlicensed Cisco ASAv using the \verb|aws_instance| resource
+\end{enumerate}
+
+Note that the preparatory work described in the AWS CLI section must be
+completed before continuing. The author strongly recommends completing that
+demonstration first before jumping into Terraform. This ensures that Terraform
+can use the AWS CLI credentials to access AWS programmatically.
+\\ \\
+Installing Terraform requires downloading the proper package for your
+operating system from here. For this demonstration, the Linux 64-bit package
+is downloaded via wget below.
+
+\begin{minted}{text}
+[ec2-user@devbox ~]$ wget \
+>  https://releases.hashicorp.com/terraform/0.11.11/terraform_0.11.11_linux_amd64.zip
+[snip, downloading file]
+2019-01-01 15:26:18 (53.2 MB/s) - ‘terraform_0.11.11_linux_amd64.zip’ saved
+
+[ec2-user@devbox ~]$ ls -l
+-rw-rw-r-- 1 ec2-user ec2-user 20971661 Dec 14 21:21 terraform_0.11.11_linux_amd64.zip
+\end{minted}
+
+Unzip the package to reveal a single binary. At this point, Terraform
+operators have 3 options:
+
+\begin{enumerate}
+  \item	Move the binary to a directory in your PATH. This is the author's
+  preferred choice and what is done below.
+  \item	Add the current directory (where the terraform binary exists) to the shell PATH.
+  \item	Prefix the binary with ./ every time you want to use it.
+\end{enumerate}
+
+\begin{minted}{text}
+ [ec2-user@devbox ~]$ unzip terraform_0.11.11_linux_amd64.zip
+Archive:  terraform_0.11.11_linux_amd64.zip
+  inflating: terraform
+
+[ec2-user@devbox ~]$ file terraform
+terraform: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, stripped
+
+[ec2-user@devbox ~]$ echo $PATH
+/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/ec2-user/.local/bin:/home/ec2-user/bin
+
+[ec2-user@devbox ~]$ sudo mv terraform /usr/local/bin/
+\end{minted}
+
+Test to ensure your shell recognizes \verb|terraform| as a command before continuing.
+
+\begin{minted}{text}
+[ec2-user@devbox ~]$ which terraform
+/usr/local/bin/terraform
+
+[ec2-user@devbox ~]$ terraform --version
+Terraform v0.11.11
+\end{minted}
+
+Last, the author recommends creating a directory for this particular Terraform
+project as shown below. Change into that directly and create a new text file
+called ``network.tf''. Open the file in your favorite editor to begin creating
+the Terraform plan.
+
+\begin{minted}{text}
+[ec2-user@devbox ~]$ mkdir tf-demo && cd tf-demo
+[ec2-user@devbox tf-demo]$
+\end{minted}
+
+First, invoke the AWS provider using the code below. While this is technically
+not needed, specifying the region in the Terraform plan means that Terraform
+will not interactively prompt to hand-type a region every time. Note that the
+access and secret keys are not needed because AWS CLI has already been configured.
+
+\begin{minted}{text}
+# This avoids interaction prompting. The rest of the AWS CLI
+# parameters (access and secret keys) should already be defined.
+provider "aws" {
+  region = "us-east-1"
+}
+\end{minted}
+
+Next, use the \verb|aws_vpc| resource to create a new VPC. The documentation
+suggests that only the \verb|cidr_block| argument is required. The author
+suggests adding a \verb|Name| tag to help organize resources as well. Note
+that there is a large list of "attribute" fields on the documentation page.
+These are the pieces of data returned by Terraform, such as the VPD ID and
+Amazon Resource Name (ARN). These are dynamically allocated at runtime and
+referencing these values can simply the Terraform plan later.
+
+\begin{minted}{text}
+# Create a new VPC for DMZ services
+resource "aws_vpc" "tfvpc" {
+  cidr_block = "203.0.113.0/24"
+  tags = {
+    Name = "tfvpc"
+  }
+}
+\end{minted}
+
+Next, use the \verb|aws_subnet| resource to create a new IP subnet. The
+documentation indicates that \verb|cidr_block| and \verb|vpc_id| arguments are needed.
+The former is self-explanatory as it represents a subnet within the VPC
+network of 203.0.113.0/24; this demonstration uses 203.0.113.64/26. The VPC ID
+is returned from the \verb|aws_vpc| provider and can be referenced using the \verb|${}|
+syntax shown below. The name \verb|tfvpc| has an attribute called \verb|id| that
+identifies the VPC in which this new subnet should be created. Like the
+\verb|aws_vpc| provider, \verb|aws_subnet| also returns an ID which can be referenced
+later when creating EC2 instances.
+
+\begin{minted}{text}
+# Create subnet within the new VPC for the DMZ
+resource "aws_subnet" "dmz" {
+  vpc_id            = "${aws_vpc.tfvpc.id}"
+  cidr_block        = "203.0.113.64/26"
+  availability_zone = "us-east-1a"
+  tags = {
+    Name = "dmz"
+  }
+}
+\end{minted}
+
+Now that the basic network constructs have been configured, its time to add
+EC2 instances to construct the DMZ. One could just add a few more resource
+invocations to the existing network.tf file. For variety, the author is going
+to create a second file for the EC2 compute devices. When multiple *.tf
+configuration files exist, they are loaded in alphabetical order, but that's
+largely irrelevant since Terraform is smart enough to create/destroy resources
+in the appropriate sequence regardless of the file names.
+\\ \\
+Edit a file called ``services.tf'' in your favorite text editor and apply the
+following configuration to deploy a Cisco ASAv and CSR1000v within the
+us-east-1a AZ. The AMI for the CSR1000v is the same one used in the AWS CLI
+demonstration. The AMI for the ASAv is the BYOL version, which was derived
+using the AWS CLI \verb|describe-instances|. Both instances are placed in the newly
+created subnet within the newly created VPC, keeping everything separate from
+any existing AWS resources.
+
+\begin{minted}{text}
+# Cisco ASAv BYOL
+resource "aws_instance" "dmz_asav" {
+  ami           = "ami-4fbf3c30"
+  instance_type = "m4.large"
+  subnet_id     = "${aws_subnet.dmz.id}"
+  tags = {
+    Name = "dmz_asav"
+  }
+}
+
+# Cisco CSR1000v BYOL
+resource "aws_instance" "dmz_csr1000v" {
+  ami           = "ami-0d1e6af4c329efd82"
+  instance_type = "t2.medium"
+  subnet_id     = "${aws_subnet.dmz.id}"
+  tags = {
+    Name = "dmz_csr1000v"
+  }
+}
+\end{minted}
+
+Once the Terraform plan files have been configured, use \verb|terraform init|.
+This scans all the plan files for any required plugins. In this case, the AWS
+provider is needed given the types of resource invocations present. To keep
+the initial Terraform binary small, individual provider plugins are not
+included and are downloaded as-needed. Like most good tools, Terraform is very
+verbose and provides hints and help along the way. The output below represents
+a successful setup.
+
+\begin{minted}{text}
+[ec2-user@devbox tf-demo]$ terraform init
+
+Initializing provider plugins...
+- Checking for available provider plugins on https://releases.hashicorp.com...
+- Downloading plugin for provider "aws" (1.54.0)...
+
+The following providers do not have any version constraints in configuration,
+so the latest version was installed.
+
+To prevent automatic upgrades to new major versions that may contain breaking
+changes, it is recommended to add version = "..." constraints to the
+corresponding provider blocks in configuration, with the constraint strings
+suggested below.
+
+* provider.aws: version = "~> 1.54"
+
+Terraform has been successfully initialized!
+[snip]
+\end{minted}
+
+Now, run \verb|terraform plan| which loads all the HCL files (.tf) and determines
+what changes are needed. Since there is no state already and this plan hasn't
+been written to a file, its best to use this output as an opportunity to
+review the plan. The fields labeled as \verb|<computed>| are automatically generated
+and are available for use by the Terraform operator later. The output is very
+long, and future iterations of this output will be snipped for brevity.
+
+\begin{minted}{text}
+[ec2-user@devbox tf-demo]$ terraform plan
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but will not be
+persisted to local or remote state storage.
+
+------------------------------------------------------------------------
+
+An execution plan has been generated and is shown below.
+Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  + aws_instance.dmz_asav
+      id:                               <computed>
+      ami:                              "ami-4fbf3c30"
+      arn:                              <computed>
+      associate_public_ip_address:      <computed>
+      availability_zone:                <computed>
+      cpu_core_count:                   <computed>
+      cpu_threads_per_core:             <computed>
+      ebs_block_device.#:               <computed>
+      ephemeral_block_device.#:         <computed>
+      get_password_data:                "false"
+      host_id:                          <computed>
+      instance_state:                   <computed>
+      instance_type:                    "m4.large"
+      ipv6_address_count:               <computed>
+      ipv6_addresses.#:                 <computed>
+      key_name:                         <computed>
+      network_interface.#:              <computed>
+      network_interface_id:             <computed>
+      password_data:                    <computed>
+      placement_group:                  <computed>
+      primary_network_interface_id:     <computed>
+      private_dns:                      <computed>
+      private_ip:                       <computed>
+      public_dns:                       <computed>
+      public_ip:                        <computed>
+      root_block_device.#:              <computed>
+      security_groups.#:                <computed>
+      source_dest_check:                "true"
+      subnet_id:                        "${aws_subnet.dmz.id}"
+      tags.%:                           "1"
+      tags.Name:                        "dmz_asav"
+      tenancy:                          <computed>
+      volume_tags.%:                    <computed>
+      vpc_security_group_ids.#:         <computed>
+
+  + aws_instance.dmz_csr1000v
+      id:                               <computed>
+      ami:                              "ami-0d1e6af4c329efd82"
+      arn:                              <computed>
+      associate_public_ip_address:      <computed>
+      availability_zone:                <computed>
+      cpu_core_count:                   <computed>
+      cpu_threads_per_core:             <computed>
+      ebs_block_device.#:               <computed>
+      ephemeral_block_device.#:         <computed>
+      get_password_data:                "false"
+      host_id:                          <computed>
+      instance_state:                   <computed>
+      instance_type:                    "t2.medium"
+      ipv6_address_count:               <computed>
+      ipv6_addresses.#:                 <computed>
+      key_name:                         <computed>
+      network_interface.#:              <computed>
+      network_interface_id:             <computed>
+      password_data:                    <computed>
+      placement_group:                  <computed>
+      primary_network_interface_id:     <computed>
+      private_dns:                      <computed>
+      private_ip:                       <computed>
+      public_dns:                       <computed>
+      public_ip:                        <computed>
+      root_block_device.#:              <computed>
+      security_groups.#:                <computed>
+      source_dest_check:                "true"
+      subnet_id:                        "${aws_subnet.dmz.id}"
+      tags.%:                           "1"
+      tags.Name:                        "dmz_csr1000v"
+      tenancy:                          <computed>
+      volume_tags.%:                    <computed>
+      vpc_security_group_ids.#:         <computed>
+
+  + aws_subnet.dmz
+      id:                               <computed>
+      arn:                              <computed>
+      assign_ipv6_address_on_creation:  "false"
+      availability_zone:                "us-east-1a"
+      availability_zone_id:             <computed>
+      cidr_block:                       "203.0.113.64/26"
+      ipv6_cidr_block:                  <computed>
+      ipv6_cidr_block_association_id:   <computed>
+      map_public_ip_on_launch:          "false"
+      owner_id:                         <computed>
+      tags.%:                           "1"
+      tags.Name:                        "dmz"
+      vpc_id:                           "${aws_vpc.tfvpc.id}"
+
+  + aws_vpc.tfvpc
+      id:                               <computed>
+      arn:                              <computed>
+      assign_generated_ipv6_cidr_block: "false"
+      cidr_block:                       "203.0.113.0/24"
+      default_network_acl_id:           <computed>
+      default_route_table_id:           <computed>
+      default_security_group_id:        <computed>
+      dhcp_options_id:                  <computed>
+      enable_classiclink:               <computed>
+      enable_classiclink_dns_support:   <computed>
+      enable_dns_hostnames:             <computed>
+      enable_dns_support:               "true"
+      instance_tenancy:                 "default"
+      ipv6_association_id:              <computed>
+      ipv6_cidr_block:                  <computed>
+      main_route_table_id:              <computed>
+      owner_id:                         <computed>
+      tags.%:                           "1"
+      tags.Name:                        "tfvpc"
+
+
+Plan: 4 to add, 0 to change, 0 to destroy.
+
+------------------------------------------------------------------------
+
+Note: You didn't specify an "-out" parameter to save this plan, so Terraform
+can't guarantee that exactly these actions will be performed if
+"terraform apply" is subsequently run.
+\end{minted}
+
+Running the command again and specifying an optional output file allows the
+plan to be saved to disk.
+
+\begin{minted}{text}
+[ec2-user@devbox tf-demo]$ terraform plan -out=plan.tfstate
+[snip]
+  + aws_instance.dmz_asav
+      [snip]
+
+  + aws_instance.dmz_csr1000v
+      [snip]
+
+  + aws_subnet.dmz
+      [snip]
+
+  + aws_vpc.tfvpc
+      [snip]
+
+Plan: 4 to add, 0 to change, 0 to destroy.
+
+------------------------------------------------------------------------
+
+This plan was saved to: plan.tfstate
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "plan.tfstate"
+\end{minted}
+
+Executing \verb|terraform apply plan.tfstate| instructs Terraform to make this plan
+(the intended configuration) become the new reality. Terraform is smart enough
+to deploy the resources in the correct sequence when dependencies exist, such
+as the subnet referencing the VPC, and the EC2 instances referencing the
+subnet. The output from the \verb|apply| command is similar to \verb|plan| in its
+formatting and display, but because it is running in realtime, it provides
+status updates. Also note that the newly-created subnet
+\verb|subnet-01461157fed507e7b| was correctly referenced by the EC2 instances.
+
+\begin{minted}{text}
+[ec2-user@devbox tf-demo]$ terraform apply plan.tfstate
+aws_vpc.tfvpc: Creating...
+  arn:                              "" => "<computed>"
+  assign_generated_ipv6_cidr_block: "" => "false"
+  cidr_block:                       "" => "203.0.113.0/24"
+  [snip]
+  tags.%:                           "" => "1"
+  tags.Name:                        "" => "tfvpc"
+aws_vpc.tfvpc: Creation complete after 1s (ID: vpc-0edde0f2f198451e1)
+aws_subnet.dmz: Creating...
+  arn:                             "" => "<computed>"
+  assign_ipv6_address_on_creation: "" => "false"
+  availability_zone:               "" => "us-east-1a"
+  availability_zone_id:            "" => "<computed>"
+  cidr_block:                      "" => "203.0.113.64/26"
+  [snip]
+  tags.%:                          "" => "1"
+  tags.Name:                       "" => "dmz"
+  vpc_id:                          "" => "vpc-0edde0f2f198451e1"
+aws_subnet.dmz: Creation complete after 1s (ID: subnet-01461157fed507e7b)
+aws_instance.dmz_csr1000v: Creating...
+  ami:                          "" => "ami-0d1e6af4c329efd82"
+  arn:                          "" => "<computed>"
+  [snip]
+  source_dest_check:            "" => "true"
+  subnet_id:                    "" => "subnet-01461157fed507e7b"
+  tags.%:                       "" => "1"
+  tags.Name:                    "" => "dmz_csr1000v"
+  tenancy:                      "" => "<computed>"
+  volume_tags.%:                "" => "<computed>"
+  vpc_security_group_ids.#:     "" => "<computed>"
+aws_instance.dmz_asav: Creating...
+  ami:                          "" => "ami-4fbf3c30"
+  arn:                          "" => "<computed>"
+  [snip]
+  source_dest_check:            "" => "true"
+  subnet_id:                    "" => "subnet-01461157fed507e7b"
+  tags.%:                       "" => "1"
+  tags.Name:                    "" => "dmz_asav"
+  tenancy:                      "" => "<computed>"
+  volume_tags.%:                "" => "<computed>"
+  vpc_security_group_ids.#:     "" => "<computed>"
+aws_instance.dmz_csr1000v: Still creating... (10s elapsed)
+aws_instance.dmz_asav: Still creating... (10s elapsed)
+aws_instance.dmz_asav: Creation complete after 15s (ID: i-03ac772e458bb9282)
+aws_instance.dmz_csr1000v: Still creating... (20s elapsed)
+aws_instance.dmz_csr1000v: Still creating... (30s elapsed)
+aws_instance.dmz_csr1000v: Creation complete after 32s (ID: i-04e2992781578b002)
+
+Apply complete! Resources: 4 added, 0 changed, 0 destroyed.
+\end{minted}
+
+Quickly verify that the instances were successfully created and are powering
+up. It's best to do this verification outside of Terraform just to confirm
+from multiple sources that the infrastructure is working as expected. Using
+the AWS CLI with a detailed query, one can limit the output to just a few
+lines, effectively only collecting the \verb|Status| value. Note that the two
+instance IDs specified here are annotated above in the output from Terraform.
+
+\begin{minted}{text}
+[ec2-user@devbox tf-demo]$ aws ec2 describe-instance-status \
+>  --instance-ids 'i-03ac772e458bb9282' 'i-04e2992781578b002' \
+>  --query InstanceStatuses[*].InstanceStatus.Status
+[
+    "initializing",
+    "initializing"
+]
+\end{minted}
+
+For those preferring visual confirmation, below is a screenshot from the AWS
+console showing these particular instances running. Note that both instances
+are in the correct AZ of us-east-1a as well.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath tf-create.png}
+      \captionof{figure}{Verifying EC2 Instances Made by Terraform}
+    \end{minipage}
+
+Quickly checking the subnet details in the AWS console confirm that the subnet
+is in the correct VPC, AZ, and has the right IPv4 CIDR range.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath tf-subnet.png}
+      \captionof{figure}{Verifying AWS Subnet Made by Terraform}
+    \end{minipage}
+
+Going back to Terraform, notice that a new terraform.tfstate file has been
+created. This represents the new infrastructure state after the Terraform plan
+was applied. Use \verb|terraform show| to view the file, which contains all the
+\verb|computed| fields filled in, such as the ARN.
+
+\begin{minted}{text}
+[ec2-user@devbox tf-demo]$ ls -l
+total 28
+-rw-rw-r-- 1 ec2-user ec2-user   533 Jan  1 18:54 network.tf
+-rw-rw-r-- 1 ec2-user ec2-user  7437 Jan  1 19:00 plan.tfstate
+-rw-rw-r-- 1 ec2-user ec2-user   417 Jan  1 18:59 services.tf
+-rw-rw-r-- 1 ec2-user ec2-user 10917 Jan  1 19:01 terraform.tfstate
+
+[ec2-user@devbox tf-demo]$ terraform show
+aws_instance.dmz_asav:
+  id = i-03ac772e458bb9282
+  ami = ami-4fbf3c30
+  arn = arn:aws:ec2:us-east-1:043535020805:instance/i-03ac772e458bb9282
+  associate_public_ip_address = false
+  availability_zone = us-east-1a
+  cpu_core_count = 1
+  cpu_threads_per_core = 2
+  credit_specification.# = 1
+  credit_specification.0.cpu_credits = standard
+  [snip]
+\end{minted}
+
+Running \verb|terraform plan| again provides a diff-like report on what changes
+need to be made to the infrastructure to implement the plan. Since no new
+changes have been made manually to the environment (outside of Terraform), no
+updates are needed.
+
+\begin{minted}{text}
+[ec2-user@devbox tf-demo]$ terraform plan
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but will not be
+persisted to local or remote state storage.
+
+aws_vpc.tfvpc: Refreshing state... (ID: vpc-0edde0f2f198451e1)
+aws_subnet.dmz: Refreshing state... (ID: subnet-01461157fed507e7b)
+aws_instance.dmz_csr1000v: Refreshing state... (ID: i-04e2992781578b002)
+aws_instance.dmz_asav: Refreshing state... (ID: i-03ac772e458bb9282)
+
+------------------------------------------------------------------------
+
+No changes. Infrastructure is up-to-date.
+
+This means that Terraform did not detect any differences between your
+configuration and real physical resources that exist. As a result, no
+actions need to be performed.
+\end{minted}
+
+Suppose a clumsy user accidentally deletes the CSR1000v as shown below. Wait
+for the instance to be \verb|terminated|.
+
+\begin{minted}{text}
+[ec2-user@devbox tf-demo]$ aws ec2 terminate-instances \
+>  --instance-ids i-04e2992781578b002
+{
+    "TerminatingInstances": [
+        {
+            "InstanceId": "i-04e2992781578b002",
+            "CurrentState": {
+                "Code": 32,
+                "Name": "shutting-down"
+            },
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+\end{minted}
+
+Using \verb|terraform plan| now detects a change and suggests needing to add 1 more
+resource to the infrastructure make the intended plan a reality. Simple use
+\verb|terraform apply| to update the infrastructure and answer \verb|yes| to confirm.
+Note that you cannot simply rerun \verb|plan.tfstate| because it was created
+against an old state (ie, an old diff between intended and actual states).
+
+\begin{minted}{text}
+[ec2-user@devbox tf-demo]$ terraform plan
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but will not be
+persisted to local or remote state storage.
+
+aws_vpc.tfvpc: Refreshing state... (ID: vpc-0edde0f2f198451e1)
+aws_subnet.dmz: Refreshing state... (ID: subnet-01461157fed507e7b)
+aws_instance.dmz_asav: Refreshing state... (ID: i-03ac772e458bb9282)
+aws_instance.dmz_csr1000v: Refreshing state... (ID: i-04e2992781578b002)
+
+------------------------------------------------------------------------
+
+An execution plan has been generated and is shown below.
+Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  + aws_instance.dmz_csr1000v
+      id:                           <computed>
+      ami:                          "ami-0d1e6af4c329efd82"
+      arn:                          <computed>
+      [snip]
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+
+[ec2-user@devbox tf-demo]$ terraform apply
+aws_vpc.tfvpc: Refreshing state... (ID: vpc-0edde0f2f198451e1)
+aws_subnet.dmz: Refreshing state... (ID: subnet-01461157fed507e7b)
+aws_instance.dmz_asav: Refreshing state... (ID: i-03ac772e458bb9282)
+aws_instance.dmz_csr1000v: Refreshing state... (ID: i-04e2992781578b002)
+
+An execution plan has been generated and is shown below.
+Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  + aws_instance.dmz_csr1000v
+      id:                           <computed>
+      ami:                          "ami-0d1e6af4c329efd82"
+      arn:                          <computed>
+      [snip]
+      source_dest_check:            "true"
+      subnet_id:                    "subnet-01461157fed507e7b"
+      tags.%:                       "1"
+      tags.Name:                    "dmz_csr1000v"
+      tenancy:                      <computed>
+      volume_tags.%:                <computed>
+      vpc_security_group_ids.#:     <computed>
+
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+aws_instance.dmz_csr1000v: Creating...
+  ami:                          "" => "ami-0d1e6af4c329efd82"
+  arn:                          "" => "<computed>"
+  [snip]
+  source_dest_check:            "" => "true"
+  subnet_id:                    "" => "subnet-01461157fed507e7b"
+  tags.%:                       "" => "1"
+  tags.Name:                    "" => "dmz_csr1000v"
+  tenancy:                      "" => "<computed>"
+  volume_tags.%:                "" => "<computed>"
+  vpc_security_group_ids.#:     "" => "<computed>"
+aws_instance.dmz_csr1000v: Still creating... (10s elapsed)
+aws_instance.dmz_csr1000v: Still creating... (20s elapsed)
+aws_instance.dmz_csr1000v: Still creating... (30s elapsed)
+aws_instance.dmz_csr1000v: Creation complete after 32s (ID: i-05d5bb841cf4e2ad1)
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+\end{minted}
+
+The new instance is currently initializing, and Terraform plan says all is well.
+
+\begin{minted}{text}
+[ec2-user@devbox tf-demo]$ aws ec2 describe-instance-status \
+>  --instance-ids 'i-05d5bb841cf4e2ad1' \
+>  --query InstanceStatuses[*].InstanceStatus.Status
+[
+    "initializing"
+]
+
+[ec2-user@devbox tf-demo]$ terraform plan
+[snip]
+No changes. Infrastructure is up-to-date.
+\end{minted}
+
+To cleanup, use \verb|terraform plan -destroy| to view a plan to remove all of the
+resources added by Terraform. This is a great way to ensure no residual AWS
+resources are left in place (and costing money) long after they are needed.
+
+\begin{minted}{text}
+[ec2-user@devbox tf-demo]$ terraform plan -destroy
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but will not be
+persisted to local or remote state storage.
+
+aws_vpc.tfvpc: Refreshing state... (ID: vpc-0edde0f2f198451e1)
+aws_subnet.dmz: Refreshing state... (ID: subnet-01461157fed507e7b)
+aws_instance.dmz_csr1000v: Refreshing state... (ID: i-05d5bb841cf4e2ad1)
+aws_instance.dmz_asav: Refreshing state... (ID: i-03ac772e458bb9282)
+
+------------------------------------------------------------------------
+
+An execution plan has been generated and is shown below.
+Resource actions are indicated with the following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+  - aws_instance.dmz_asav
+
+  - aws_instance.dmz_csr1000v
+
+  - aws_subnet.dmz
+
+  - aws_vpc.tfvpc
+
+
+Plan: 0 to add, 0 to change, 4 to destroy.
+\end{minted}
+
+The command above serves as a good preview into what \verb|terraform destroy| will
+perform. Below, the infrastructure is torn down in the reverse order it was
+created. Note that \verb|-auto-approve| can be appended to both "apply" and
+\verb|destroy| actions to remove the interactive prompt asking for \verb|yes|.
+
+\begin{minted}{text}
+[ec2-user@devbox tf-demo]$ terraform destroy -auto-approve
+aws_vpc.tfvpc: Refreshing state... (ID: vpc-0edde0f2f198451e1)
+aws_subnet.dmz: Refreshing state... (ID: subnet-01461157fed507e7b)
+aws_instance.dmz_csr1000v: Refreshing state... (ID: i-05d5bb841cf4e2ad1)
+aws_instance.dmz_asav: Refreshing state... (ID: i-03ac772e458bb9282)
+aws_instance.dmz_csr1000v: Destroying... (ID: i-05d5bb841cf4e2ad1)
+aws_instance.dmz_asav: Destroying... (ID: i-03ac772e458bb9282)
+aws_instance.dmz_asav: Still destroying... (ID: i-03ac772e458bb9282, 10s elapsed)
+aws_instance.dmz_csr1000v: Still destroying... (ID: i-05d5bb841cf4e2ad1, 10s elapsed)
+aws_instance.dmz_csr1000v: Still destroying... (ID: i-05d5bb841cf4e2ad1, 20s elapsed)
+aws_instance.dmz_asav: Still destroying... (ID: i-03ac772e458bb9282, 20s elapsed)
+aws_instance.dmz_asav: Still destroying... (ID: i-03ac772e458bb9282, 30s elapsed)
+aws_instance.dmz_csr1000v: Still destroying... (ID: i-05d5bb841cf4e2ad1, 30s elapsed)
+aws_instance.dmz_asav: Destruction complete after 40s
+aws_instance.dmz_csr1000v: Still destroying... (ID: i-05d5bb841cf4e2ad1, 40s elapsed)
+[snip, waiting for CSR1000v to terminate]
+aws_instance.dmz_csr1000v: Still destroying... (ID: i-05d5bb841cf4e2ad1, 2m50s elapsed)
+aws_instance.dmz_csr1000v: Destruction complete after 2m51s
+aws_subnet.dmz: Destroying... (ID: subnet-01461157fed507e7b)
+aws_subnet.dmz: Destruction complete after 1s
+aws_vpc.tfvpc: Destroying... (ID: vpc-0edde0f2f198451e1)
+aws_vpc.tfvpc: Destruction complete after 0s
+
+Destroy complete! Resources: 4 destroyed.
+\end{minted}
+
+Using \verb|terraform plan -destroy| again says there is nothing left to destroy,
+indicating that everything has been cleaned up. Further verification via AWS
+CLI or AWS console may be desirable, but for brevity, the author excludes it here.
+
+\begin{minted}{text}
+[ec2-user@devbox tf-demo]$ terraform plan -destroy
+[snip]
+No changes. Infrastructure is up-to-date.
+\end{minted}
