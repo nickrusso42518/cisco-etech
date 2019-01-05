@@ -14,8 +14,9 @@ install:
   - "sudo ./install-tl -profile texlive.profile"
   - "PATH=$PATH:/usr/local/texlive/2018/bin/x86_64-linux"
   - "tlmgr --version"
-  - "tlmgr install booktabs caption chktex minted fvextra etoolbox fancyvrb"
-  - "tlmgr install xcolor upquote lineno ifplatform xstring framed float"
+  - "sudo tlmgr install booktabs caption chktex"
+  - "sudo tlmgr install minted fvextra etoolbox fancyvrb xcolor upquote"
+  - "sudo tlmgr install lineno ifplatform xstring framed float"
   - "pip install -r requirements.txt"
 
 # Execute linting tests before running the main playbook.
