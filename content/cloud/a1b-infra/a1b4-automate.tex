@@ -6,8 +6,8 @@ or generating a report. Orchestration refers to assembling/coordinating a
 process/workflow, which is effectively an ordered set of tasks glued together
 with conditions. For example, deploy this virtual machine, and if it fails,
 shutdown this interface and generate a report. Automation is to task as
-orchestration is to process/workflow.
-\\ \\
+orchestration is to process/workflow. \\
+
 Often times the task to automate is what an engineer would configure using
 some programming/scripting language such as Java, C, Python, Perl, Ruby, etc.
 The variance in tasks can be very large since an engineer could be presented
@@ -17,8 +17,8 @@ task is ideal. Adding this script as an input for an orchestration engine
 could properly insert this task into a workflow. For example, run the
 VLAN-creation script after the nightly backups but before 6:00 AM the
 following day. If it fails, the orchestrator can revert all configurations so
-that the developer can troubleshoot any script errors.
-\\ \\
+that the developer can troubleshoot any script errors. \\
+
 With all the advances in network automation, it is important to understand the
 role of configuration management (CM) and how new technologies may change the
 logic. Depending on the industry, the term CM may be synonymous with source
@@ -55,8 +55,8 @@ the CodeCommit and CodeBuild SaaS offerings, respectively. The same
 organization could be using Microsoft Azure for its Active Directory (AD)
 services as Azure offers AD as a service. Last, the organization may use a
 private cloud (e.g. OpenStack or VMware) to host sensitive applications which
-are Government-regulated and have strict data protection requirements.
-\\ \\
+are Government-regulated and have strict data protection requirements. \\
+
 Managing each of these clouds independently, using their respective dashboards
 and APIs, can become cumbersome. Cisco Cloud Center is designed to be another
 level of abstraction in an organization's cloud management strategy by
@@ -68,8 +68,8 @@ clouds based on user policy. For example, one application may require very
 high disk read/write capabilities, and perhaps this is less expensive in
 Azure. Another application may require very high availability, and perhaps
 this is best achieved in AWS. Note that these are examples only and not
-indicative of any cloud provider in particular.
-\\ \\
+indicative of any cloud provider in particular. \\
+
 Applications can be abstracted into individual components, usually virtual
 machines or containers, and Cloud Center can deploy those applications where
 they best serve the organization's needs. The administrator can ``just say go''
@@ -322,12 +322,12 @@ Docker is to VMware virtual machines; Docker abstracts individual application
 components and Kubernetes allows the application to scale, be made highly
 available, and be centrally managed/monitored. Kubernetes is not a CI/CD
 system for deploying code, but managing the containers in which the code has
-already been deployed.
-\\ \\
+already been deployed. \\
+
 Kubernetes introduces many new terms which are critical to understand its
 operation. The most important terms, at least for the demonstration in this
-section, are discussed on the following page.
-\\ \\
+section, are discussed on the following page. \\
+
 \textbf{A pod} is the smallest building block of a Kubernetes deployment. Pods
 contain application containers and are managed a single entity. It is common
 to place exactly one container in each pod, giving the administrator granular
@@ -338,16 +338,17 @@ containers within a pod ``move together'' between resources in a Kubernetes
 cluster. Like Docker containers, pods get one IP address and can have volumes
 for data storage. Scaling pods is of particular interest, and using replica
 sets is a common way to do this. This creates more copies of a pod within a
-deployment.
-\\ \\
+deployment. \\
+
 \textbf{A deployment} is an overarching term to define the entire application
 in its totality. This typically includes multiple pods communicating between
 one another to make the application functional. Newly created deployments are
 placed into servers in the cluster to be executed. High availability is built
 into Kubernetes as any failure of the server running the application would
 prompt Kubernetes to move the application elsewhere. A deployment can define a
-desired state of an application and all of its components (pods, replica sets, etc.)
-\\ \\
+desired state of an application and all of its components (pods, replica sets,
+etc.) \\
+
 \textbf{A node} is a worker machine in Kubernetes, which can be physical or
 virtual. Where the pods are components of a deployment/application, nodes are
 components of a cluster. Although an administrator and just ``create'' nodes in
@@ -355,15 +356,15 @@ Kubernetes, this creation is just a representation of a node. The
 usability/health of a node depends on whether the Kubernetes master can
 communicate with the node. Because nodes can be virtual platforms and
 hostnames can be DNS-resolvable, the definition of these nodes can be portable
-between physical infrastructures.
-\\ \\
+between physical infrastructures. \\
+
 \textbf{A cluster} is a collection of nodes that are capable of running pods,
 deployments, replica sets, etc. The Kubernetes master is a special type of
 node which facilitates communications within the cluster. It is responsible
 for scheduling pods onto nodes and responding to events within the cluster. A
 node-down event, for example, would require the master to reschedule pods
-running on that node elsewhere.
-\\ \\
+running on that node elsewhere. \\
+
 \textbf{A service} is concept used to group pods of similar functionality
 together. For example, many database containers contain content for a web
 application. The database group could be scaled up or down (i.e. they change
@@ -373,8 +374,9 @@ containers to read/write data. The service often has a label, such as
 communicates to the service over TCP/IP, the service communicates to any pod
 with the "database" tag. Services could include node-specific ports, which is
 a simple port forwarding mechanism to access pods on a node. Advanced load
-balancing services are also available but are not discussed in detail in this book.
-\\ \\
+balancing services are also available but are not discussed in detail in this
+book. \\
+
 \textbf{Labels} are an important Kubernetes concept and warrant further
 discussion. Almost any resource in Kubernetes can carry a collection of
 labels, which is a key/value pair. For example, consider the blue/green
@@ -388,14 +390,14 @@ a decision based on that. One engineer described labels as "flexible and
 extensible source of metadata. They can reference releases of code, locations,
 or any sort of logical groupings. There is no limitation of how many labels
 can be applied." In this way, labels are similar to tags in Ansible which can
-be used to pick-and-choose certain tasks to execute or skip, depending.
-\\ \\
+be used to pick-and-choose certain tasks to execute or skip, depending. \\
+
 The \verb|minikube| solution provides a relatively easy way to get started
 with Kubernetes. It is a VM that can run on Linux, Windows, or Mac OS using a
 variety of underlying hypervisors. It represents a tiny Kubernetes cluster for
 learning the basics. The command line utility used to interact with Kubernetes
-is known as \verb|kubectl| and is installed independently of \verb|minikube|.
-\\ \\
+is known as \verb|kubectl| and is installed independently of \verb|minikube|. \\
+
 The installation of \verb|kubectl| and \verb|minikube| on Mac OS is
 well-documented. The author recommends using VirtualBox, not xhyve or VMware
 Fusion. Despite being technically supported, the author was not able to get
@@ -641,8 +643,8 @@ The AWS command line interface (CLI) is a simple way to interact with AWS
 programmatically. Like most APIs, consumers can both read and write data,
 which simplifies interaction. Initially setting up the AWS CLI is relatively
 simple and many tutorials exist, so this book covers the main points using
-some AWS console screenshots.
-\\ \\
+some AWS console screenshots. \\
+
 First, create a user and group with permissions to, at a minimum, create and
 delete EC2 instances. For demonstration purposes, the ``terraform'' user is
 placed in the ``terraform'' has full EC2 access (create, delete, change power
@@ -665,8 +667,9 @@ CLI connectivity.
 
 Next, generate specific programmatic credentials for the ``terraform'' user. The
 access key is used by AWS to communicate the username and other unique data
-about your AWS account, and the secret key is a password that should not be shared.
-\\ \\
+about your AWS account, and the secret key is a password that should not be
+shared. \\
+
 Once the new ``terraform'' user exists in the proper group with the proper
 permissions and a valid access key, run \verb|aws configure| from the shell. The
 "aws" binary can be installed via Python pip, but if you are like the author
@@ -684,19 +687,20 @@ Default region name [None]: us-east-1
 Default output format [None]: json
 \end{minted}
 
-To quickly test whether AWS CLI is set up correctly, use the command below. Be sure to match up the "Arn" number and username to what is shown in the screenshots above. This runs very quickly in about 300 ms so use it regularly to test for access issues.
+To quickly test whether AWS CLI is set up correctly, use the command below. Be
+sure to match up the \verb|Arn| number and username to what is shown in the
+screenshots above.
+
+\begin{minted}{text}
+[ec2-user@devbox ~]$ aws sts get-caller-identity
+\end{minted}
 
 \begin{minted}{json}
-[ec2-user@devbox ~]$ time aws sts get-caller-identity
 {
     "Account": "043535020805", 
     "UserId": "AIDAINLWE2QY3Q3U6EVF4", 
     "Arn": "arn:aws:iam::043535020805:user/terraform"
 }
-
-real    0m0.319s
-user    0m0.256s
-sys     0m0.051s
 \end{minted}
 
 The goal of this short demonstration is to deploy a Cisco CSR1000v into the
@@ -709,8 +713,11 @@ VPCs: the default VPC and a custom Ansible VPC used for Ansible development.
 The VPC without a name is the default. Record the \verb|VpcId| of the default VPC
 which is \verb|vpc-889b03ee|.
 
-\begin{minted}{json}
+\begin{minted}{text}
 [ec2-user@devbox ~]$ aws ec2 describe-vpcs
+\end{minted}
+
+\begin{minted}{json}
 {
     "Vpcs": [
         {
@@ -764,9 +771,12 @@ filter subnets only contained in the default VPC, then additionally only on
 the us-east-1a AZ subnets. One subnet is returned with \verb|SubnetId|
 of \verb|subnet-f1dfa694|.
 
-\begin{minted}{json}
+\begin{minted}{text}
 [ec2-user@devbox ~]$ aws ec2 describe-subnets --filters \
 >  'Name=vpc-id,Values=vpc-889b03ee' 'Name=availability-zone,Values=us-east-1a'
+\end{minted}
+
+\begin{minted}{json}
 {
     "Subnets": [
         {
@@ -793,9 +803,12 @@ below shows a name-based filter searching for a string containing 16.09 as the
 version followed later by BYOL, the lowest cost option. Record the \verb|ImageId|,
 which is \verb|ami-0d1e6af4c329efd82|, as this is the image to deploy.
 
-\begin{minted}{json}
+\begin{minted}{text}
 [ec2-user@devbox ~]$ aws ec2 describe-images --filters \
 >  'Name=name,Values=cisco-CSR-.16.09*BYOL*'
+\end{minted}
+
+\begin{minted}{json}
 {
     "Images": [
         {
@@ -843,8 +856,11 @@ Two other minor pieces of information are needed. First, capture the available
 key chains and choose the most appropriate one for this instance. One key pair
 is available. The name ``EC2-key-pair'' will be used when deploying the CSR1000v.
 
-\begin{minted}{json}
+\begin{minted}{text}
 [ec2-user@devbox ~]$ aws ec2 describe-key-pairs
+\end{minted}
+
+\begin{minted}{json}
 {
     "KeyPairs": [
         {
@@ -861,9 +877,12 @@ security groups. The default security group, in this case, is wide open and
 permits all traffic. The \verb|GroupId| of \verb|sg-4d3a5c31| can be used
 when deploying the CSR1000v.
 
-\begin{minted}{json}
+\begin{minted}{text}
 [ec2-user@devbox ~]$ aws ec2 describe-security-groups --filter \
 >  'Name=vpc-id,Values=vpc-889b03ee'
+\end{minted}
+
+\begin{minted}{json}
 {
     "SecurityGroups": [
         {
@@ -909,7 +928,7 @@ a string is returned with the instance ID of the new instance; this is why the
 \verb|--query| argument is handy when deploying new instances using AWS CLI. The
 CSR1000v will take a few minutes to fully power up.
 
-\begin{minted}{json}
+\begin{minted}{text}
 [ec2-user@devbox ~]$ aws ec2 run-instances --image-id ami-0d1e6af4c329efd82 \
 >                              --subnet-id subnet-f1dfa694 \
 >                              --security-group-ids sg-4d3a5c31 \
@@ -925,8 +944,11 @@ below. Use the \verb|--instance-ids| option to supply a list of strings, each
 containing a specific instance ID. The value returned above is pasted below.
 The status is still ``initializing''.
 
-\begin{minted}{json}
+\begin{minted}{text}
 [ec2-user@devbox ~]$ aws ec2 describe-instance-status --instance-ids 'i-08808ba7abf0d2242'
+\end{minted}
+
+\begin{minted}{json}
 {
     "InstanceStatuses": [
         {
@@ -960,13 +982,15 @@ The status is still ``initializing''.
 \end{minted}
 
 You can continue running the above command every few minutes until the status
-changes to ``ok''.
+changes to \verb|ok|. Some extra information has been removed from the output.
 
-\begin{minted}{json}
+\begin{minted}{text}
 [ec2-user@devbox ~]$ aws ec2 describe-instance-status \
 >  --instance-ids 'i-08808ba7abf0d2242'
+\end{minted}
+
+\begin{minted}{json}
 {
-[snip]
             "InstanceStatus": {
                 "Status": "ok", 
                 "Details": [
@@ -974,7 +998,6 @@ changes to ``ok''.
                         "Status": "passed", 
                         "Name": "reachability"
                     }
-[snip]
 }
 \end{minted}
 
@@ -984,7 +1007,7 @@ without a massive JSON dump. Simply feed in the instance ID. Without the
 complex query, one could manually scan the JSON to find the address, but this
 solution is more targeted and elegant.
 
-\begin{minted}{json}
+\begin{minted}{text}
 [ec2-user@devbox ~]$ aws ec2 describe-instances \
 >  --instance-ids i-08808ba7abf0d2242 --output text \
 >  --query 'Reservations[*].Instances[*].PublicIpAddress' 
@@ -996,7 +1019,7 @@ Assuming your private key is already present with the proper permissions
 IP address. A quick check of the IOS XE version suggests that the deployment
 succeeded.
 
-\begin{minted}{json}
+\begin{minted}{text}
 [ec2-user@devbox ~]$ ls -l privkey.pem 
 -r-------- 1 ec2-user ec2-user 1670 Jan  1 16:54 privkey.pem
 
@@ -1015,8 +1038,11 @@ these state problems in a simple way, but for now, simply delete the CSR1000v
 using the command below. The JSON output confirms that the instance is
 shutting down.
 
-\begin{minted}{json}
+\begin{minted}{text}
 [ec2-user@devbox ~]$ aws ec2 terminate-instances --instance-ids i-08808ba7abf0d2242
+\end{minted}
+
+\begin{minted}{json}
 {
     "TerminatingInstances": [
         {
@@ -1034,12 +1060,15 @@ shutting down.
 }
 \end{minted}
 
-This ``CCurrentState'' of ``shutting-down'' will remain for a few minutes until the
-instance is gone. Running the command again confirms the instance no longer
-exists as the state is ``terminated''.
+This \verb|CurrentState| of \verb|shutting-down| will remain for a few minutes
+until the instance is gone. Running the command again confirms the instance no
+longer exists as the state is \verb|terminated|.
+
+\begin{minted}{text}
+[ec2-user@devbox ~]$ aws ec2 terminate-instances --instance-ids i-08808ba7abf0d2242
+\end{minted}
 
 \begin{minted}{json}
-[ec2-user@devbox ~]$ aws ec2 terminate-instances --instance-ids i-08808ba7abf0d2242
 {
     "TerminatingInstances": [
         {
@@ -1070,8 +1099,8 @@ already exist and doesn't try to delete non-existent instances. To accomplish
 this, the programmer would have to constantly test for the presence or absence
 of certain characteristics (the presence of an instance, the presence of a
 line of a text in a file, etc.) before taking action. This makes the script
-complex and quickly gets out of control for any non-trivial problem.
-\\ \\
+complex and quickly gets out of control for any non-trivial problem. \\
+
 Terraform solves this problem through abstraction using a domain-specific
 language (DSL), like Ansible. This simplified pseudo-code allows programmers
 to declare their intent/endstate and Terraform implements the plan. Like many
@@ -1081,13 +1110,13 @@ centrally enforced. Terraform has a collection of providers, which are
 specific libraries used to interact with a variety of platforms. For example,
 the forthcoming demonstration will use several AWS-specific providers. Because
 Terraform is an abstraction layer, it does not reinvent the AWS CLI, but
-rather relies on it behind the scenes.
-\\ \\
+rather relies on it behind the scenes. \\
+
 Terraform's DSL is a completely new format, known as Hashicorp Configuration
 Language (HCL). The language resembles a simplified JSON format with the
 addition of single and multi line comments. It is designed to be both human
-and machine friendly.
-\\ \\
+and machine friendly. \\
+
 In this demonstration, Terraform will provision a new virtual networking
 environment within AWS known as a virtual private cloud (VPC) that has a large
 IP supernet from which all subnets must be contained. A new subnet will be
@@ -1097,8 +1126,8 @@ Within the DMZ, a Cisco CSR1000v serves as a VPN concentrator for site-to-site
 VPNs. These devices won't be configured at a CLI-level by Terraform, but will
 be provisioned and properly connected using AWS networking constructs.
 Subsequent configuration management using Ansible, Nornir, or homemade scripts
-would generally occur after provisioning by Terraform.
-\\ \\
+would generally occur after provisioning by Terraform. \\
+
 Armed with basic knowledge about Terraform and the task at hand, the
 demonstration will provision several AWS resources:
 
@@ -1114,8 +1143,8 @@ demonstration will provision several AWS resources:
 Note that the preparatory work described in the AWS CLI section must be
 completed before continuing. The author strongly recommends completing that
 demonstration first before jumping into Terraform. This ensures that Terraform
-can use the AWS CLI credentials to access AWS programmatically.
-\\ \\
+can use the AWS CLI credentials to access AWS programmatically. \\
+
 Installing Terraform requires downloading the proper package for your
 operating system from here. For this demonstration, the Linux 64-bit package
 is downloaded via wget below.
@@ -1233,8 +1262,8 @@ invocations to the existing network.tf file. For variety, the author is going
 to create a second file for the EC2 compute devices. When multiple *.tf
 configuration files exist, they are loaded in alphabetical order, but that's
 largely irrelevant since Terraform is smart enough to create/destroy resources
-in the appropriate sequence regardless of the file names.
-\\ \\
+in the appropriate sequence regardless of the file names. \\
+
 Edit a file called ``services.tf'' in your favorite text editor and apply the
 following configuration to deploy a Cisco ASAv and CSR1000v within the
 us-east-1a AZ. The AMI for the CSR1000v is the same one used in the AWS CLI
@@ -1534,6 +1563,9 @@ instance IDs specified here are annotated above in the output from Terraform.
 [ec2-user@devbox tf-demo]$ aws ec2 describe-instance-status \
 >  --instance-ids 'i-03ac772e458bb9282' 'i-04e2992781578b002' \
 >  --query InstanceStatuses[*].InstanceStatus.Status
+\end{minted}
+
+\begin{minted}{json}
 [
     "initializing",
     "initializing"
@@ -1617,6 +1649,9 @@ for the instance to be \verb|terminated|.
 \begin{minted}{text}
 [ec2-user@devbox tf-demo]$ aws ec2 terminate-instances \
 >  --instance-ids i-04e2992781578b002
+\end{minted}
+
+\begin{minted}{json}
 {
     "TerminatingInstances": [
         {
@@ -1727,6 +1762,9 @@ The new instance is currently initializing, and Terraform plan says all is well.
 [ec2-user@devbox tf-demo]$ aws ec2 describe-instance-status \
 >  --instance-ids 'i-05d5bb841cf4e2ad1' \
 >  --query InstanceStatuses[*].InstanceStatus.Status
+\end{minted}
+
+\begin{minted}{json}
 [
     "initializing"
 ]

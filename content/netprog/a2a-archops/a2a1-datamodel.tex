@@ -11,8 +11,8 @@ network device CLIs which promotes simplified management in cloud environments
 and a progressive migration toward one of the SDN models discussed later in
 this document. Devices that implement NETCONF/YANG provide a uniform
 manageability interface which means vendor hardware/software can be swapped in
-a network without affecting the management architecture, operations, or strategy.
-\\ \\
+a network without affecting the management architecture, operations, or strategy. \\
+
 Previous revisions of this document claimed that NETCONF is to YANG as HTTP is
 to HTML. This is not technically accurate, as NETCONF serializes data using
 XML. In HTML, Document Type Definitions (DTDs) describe the building blocks of
@@ -28,11 +28,11 @@ YANG defines how data is structured/modeled rather than containing data
 itself. Below is snippet from RFC 6020 which defines YANG (section 4.2.2.1).
 The YANG model defines a "host-name" field as a string (array of characters)
 with a human-readable description. Pairing YANG with NETCONF, the XML syntax
-references the data field by its name to set a value.
-\\ \\
+references the data field by its name to set a value. \\
+
 YANG Example:
 
-\begin{minted}{text}
+\begin{minted}{c}
 leaf host-name {
     type string;
     description "Hostname for this system";
@@ -40,7 +40,7 @@ leaf host-name {
 \end{minted}
 
 NETCONF XML Example:
-\begin{minted}{text}
+\begin{minted}{xml}
 <host-name>my.example.com</host-name>
 \end{minted}
 
@@ -95,6 +95,9 @@ elements beneath it, which correspond to individual configuration parameters.
 
 \begin{minted}{text}
 Nicholass-MBP:1661 nicholasrusso$ cat Cisco-IOS-XE-eigrp.yang
+\end{minted}
+
+\begin{minted}{c}
 module Cisco-IOS-XE-eigrp {
   namespace "http://cisco.com/ns/yang/Cisco-IOS-XE-eigrp";
   prefix ios-eigrp;
@@ -110,8 +113,8 @@ module Cisco-IOS-XE-eigrp {
   import Cisco-IOS-XE-interface-common {
     prefix ios-ifc;
   }
-[snip]
- // router eigrp address-family
+ // [snip]
+ // the lines that follow are under "router eigrp address-family"
   grouping eigrp-address-family-grouping {
     list af-interface {
       description
@@ -137,7 +140,7 @@ module Cisco-IOS-XE-eigrp {
           "Configures hold time";
         type uint16;
 }
-[snip]
+// [snip]
 \end{minted}
 
 Before exploring NETCONF, which will use this model to get/set configuration
@@ -169,8 +172,10 @@ YANG model.
 
 \begin{minted}{text}
 Nicholass-MBP:YANG nicholasrusso$ pyang yang/vendor/cisco/xe/1661/Cisco-IOS-XE-eigrp.yang 
-yang/vendor/cisco/xe/1661/Cisco-IOS-XE-eigrp.yang:5: error: module "ietf-inet-types" not found in search path
-yang/vendor/cisco/xe/1661/Cisco-IOS-XE-eigrp.yang:10: error: module "Cisco-IOS-XE-types" not found in search path
+yang/vendor/cisco/xe/1661/Cisco-IOS-XE-eigrp.yang:5: error: module
+"ietf-inet-types" not found in search path
+yang/vendor/cisco/xe/1661/Cisco-IOS-XE-eigrp.yang:10: error: module
+"Cisco-IOS-XE-types" not found in search path
 [snip]
 
 Nicholass-MBP:YANG nicholasrusso$ echo $?
@@ -179,7 +184,7 @@ Nicholass-MBP:YANG nicholasrusso$ echo $?
 
 One could specify the module path using the \verb|--path option|, but it is
 simpler to just navigate to the directory. This allows pyang to see the
-imported data types such as those contained within ``ietf-inet-types''. When
+imported data types such as those contained within \verb|ietf-inet-types|. When
 using pyang from this location, no output is returned, and the program exits
 successfully. It is usually a good idea to validate YANG models before doing
 anything with them, especially committing them to a repository.
@@ -202,6 +207,9 @@ friendly to the YANG syntax.
 \begin{minted}{text}
 Nicholass-MBP:1661 nicholasrusso$ pyang Cisco-IOS-XE-eigrp.yang \
 >  --format=yin --yin-pretty-strings
+\end{minted}
+
+\begin{minted}{xml}
 <?xml version="1.0" encoding="UTF-8"?>
 <module name="Cisco-IOS-XE-eigrp"
      xmlns="urn:ietf:params:xml:ns:yang:yin:1"

@@ -3,12 +3,12 @@ Conceptually, containers and virtual machines are similar in that they are a
 way to virtualize services/machines on a single platform, effectively
 achieving multi-tenancy. The subsections of this section will focus on their
 differences and use cases, rather than discuss them at the top-level
-section.
-\\ \\
+section. \\
+
 A brief discussion on two new design paradigms popular within any data center
-is warranted. \textbf{Hyper-convergence and disaggregation} are polar opposites but are
-both highly effective in solving specific business problems.
-\\ \\
+is warranted. \textbf{Hyper-convergence and disaggregation} are polar
+opposites but are both highly effective in solving specific business problems. \\
+
 Hyper-convergence attempts to address issues with data center management and
 resource consumption/provisioning. For example, the traditional DC
 architecture will consist of four main components: network, storage, compute,
@@ -21,8 +21,9 @@ investments a business must make over time since the architecture need not
 change as the business grows. Hyper-converged systems, by virtue of their
 integrated management solution, simplify life cycle management of DC assets as
 the ``single pane of glass'' concept can be used to manage all components.
-Cisco's Hyperflex (also called Flexpod) is an example of a hyper-converged solution.
-\\ \\
+Cisco's Hyperflex (also called Flexpod) is an example of a hyper-converged
+solution. \\
+
 Disaggregation is the opposite of hyper-convergence in that rather than
 combining functions (storage, network, and compute) into a single entity, it
 breaks them apart even further. A network appliance, such as a router or
@@ -65,15 +66,15 @@ Multi-tenancy is achieved by memory isolation, effectively segmenting the
 different services deployed in different containers. There is still a thin
 software shim between the underlying OS and the containers known as the
 container manager, which enforces the multi-tenancy via memory isolation and
-other techniques.
-\\ \\
+other techniques. \\
+
 The main drawback of containers is that all containers must share the same OS.
 For applications or services where such behavior is desired (for example, a
 container per customer consuming a specific service), containers are a good
 choice. As a general-purpose virtualization platform in environments where
 requirements may change often (such as military networks), containers are a
-poor choice.
-\\ \\
+poor choice. \\
+
 Docker and Linux Containers (LXC) are popular examples of container engines.
 The image that follow is from from \url{www.docker.com} that compares VMs to
 containers at a high
@@ -91,7 +92,7 @@ Docker has been installed, run the following verification commands to ensure
 it is functioning correctly. Any modern version of Docker is sufficient to
 follow the example that will be discussed.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [centos@docker build]$ which docker && docker --version
 /usr/bin/docker
 Docker version 17.09.1-ce, build 19e2cf6
@@ -109,7 +110,7 @@ an interactive TTY session, respectively, which is great for demonstrations.
 Note that running Docker containers in the background is much more common as
 there are typically many containers.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [centos@docker build]$ docker container run -it centos:7
 Unable to find image 'centos:7' locally
 7: Pulling from library/centos
@@ -125,7 +126,7 @@ command. Then, exit from the container, as the only use for CentOS7 in our
 example is to serve as a ``base'' image for the custom Ansible image to be
 created.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [root@088bbd2a7544 /]# cat /etc/redhat-release 
 CentOS Linux release 7.4.1708 (Core) 
 
@@ -142,7 +143,7 @@ Every container gets a random hexadecimal ID and random text names for
 reference. The output can be very long, and so has been edited to fit the page
 neatly.
  
-\begin{minted}{bash}
+\begin{minted}{text}
 [centos@docker build]$ docker image ls
 REPOSITORY          TAG       IMAGE ID            CREATED             SIZE
 centos              7         e934aafc2206        7 weeks ago         199MB
@@ -171,8 +172,11 @@ original yum package installations remain unchanged, substantially reducing
 the image build time. Fewer RUN directives also results in fewer layers, which
 explains the extensive use of \&\& and \ in the Dockerfile.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [centos@docker build]$ cat Dockerfile
+\end{minted}
+
+\begin{minted}{docker}
 # Start from CentOS 7 base image.
 FROM centos:7
 
@@ -230,7 +234,7 @@ steps in the Dockerfile (FROM, RUN, RUN, WORKDIR, and HEALTHCHECK) are logged
 in the output below. The output looks almost identical to what one would see
 through stdout.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [centos@docker build]$ docker image build -t ansible:cmd_authz .
 Sending build context to Docker daemon  7.168kB
 Step 1/5 : FROM centos:7
@@ -287,7 +291,7 @@ to use. Last, note that the container more than doubled in size. Because many
 new packages were added for specific purposes, this makes the container less
 portable. Smaller is always better, especially for generic images.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [centos@docker build]$ docker image ls
 REPOSITORY   TAG           IMAGE ID            CREATED             SIZE
 ansible      cmd_authz     a8a6ac1b44e2        2 minutes ago       524MB
@@ -302,7 +306,7 @@ to change should be placed towards the top, such as the base image, common
 package installs, etc. This reduces image building time when Dockerfiles are
 changed.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [centos@docker build]$ docker image inspect a8a6ac1b44e2 | head -5
 [
     {
@@ -320,7 +324,7 @@ module on the control machine (the container itself) should yield several
 lines of JSON output about the device itself. Note that, towards the bottom of
 this output dump, ansible is aware that it is inside a Docker container.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [centos@docker build]$ docker container run -it ansible:cmd_authz
 [root@04eb3ee71a52 examples]# which ansible && ansible -m setup localhost 
 /ansible/bin/ansible
@@ -382,7 +386,7 @@ adjust the ansible.cfg file to use the hosts.yml inventory file and disable
 host key checking. Ansible needs to know which network devices are in its
 inventory and how to handle unknown SSH keys.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [root@04eb3ee71a52 examples]# head -20 ansible.cfg 
 [snip, comments]
 [defaults]
@@ -415,7 +419,7 @@ container can ping the router. This rules out any networking problems. The
 author does not show the initial setup of the CSR1000v, which includes adding
 a username/password of ansible/ansible, and nothing else.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [root@04eb3ee71a52 examples]# ping –c 3 csr1.njrusmc.net
 PING csr1.njrusmc.net (18.x.x.x) 56(84) bytes of data.
 64 bytes from ec2-18-x-x-x.x.com (18.x.x.x): icmp_seq=1 ttl=253 time=0.884 ms
@@ -434,7 +438,7 @@ test issues. This reduces the likelihood of invalid test results due to
 version confusion. In the DEBUG step below, there is no date/time output,
 which helps illustrate the Ansible issue that is being investigated.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [root@9bc07956b416 examples]# ansible --version | head -1
 ansible 2.6.0dev0 (command_authorization_failed_ios_regex 5a1568c753) [snip]
 
@@ -472,7 +476,7 @@ were 2 containers in the past, the newest one at the top. This was the Ansible
 container we just exited after completing our test. Again, some output has
 been truncated to make the table fit neatly.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [centos@docker build]$ docker container ls -a
 CONTAINER ID   IMAGE          COMMAND      CREATED   STATUS         PORTS   NAMES
 04eb3ee71a52   ans:cmd_authz  "/bin/bash"  33 m ago  Exited (127) 7 s ago   adoring_mestorf
@@ -492,8 +496,8 @@ drawbacks. Two are listed below:
   management strategy scales poorly.
 \end{enumerate}
   
-Docker includes a feature called docker-compose. Using YAML syntax, developers
-can specify all the containers they want to start, along with any minor
+Docker includes a feature called \verb|docker-compose|. Using YAML syntax,
+developers can specify all the containers they want to start, along with any minor
 options for those containers, then execute the compose file like a script. It
 is better than a shell script since it is more portable and easier to read. It
 is also an easy way to add volumes to Docker. There are different kinds of
@@ -505,8 +509,11 @@ container's file system. In this folder, one can copy the Ansible files
 access. While it is possible to handle volume mounting from the commands
 viewed previously, it is tedious and complex.
 
-\begin{minted}{yaml}
+\begin{minted}{text}
 [centos@docker compose]$ cat docker-compose.yml 
+\end{minted}
+
+\begin{minted}{yaml}
 version: '3.2'
 services:
   ansible:
@@ -525,7 +532,7 @@ The contents of these files was shown earlier, but ensure they are all placed
 in the mnt\_files/ directory with relation to where the docker-compose.yml file
 is located.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [centos@docker compose]$ tree
 .
 ├── docker-compose.yml
@@ -536,15 +543,15 @@ is located.
 \end{minted}
 
 To run the docker-compose file, use the command below. It will build
-containers for all keys specified under the ``services'' dictionary. In this
-case, there is only one container called ``ansible'' which is based on the
-``ansible:cmd\_authz'' image created earlier from the custom Dockerfile. The -i
+containers for all keys specified under the \verb|services| dictionary. In this
+case, there is only one container called \verb|ansible| which is based on the
+\verb|ansible:cmd\_authz| image created earlier from the custom Dockerfile. The -i
 and -t options are enabled to allow for interactive shell access. The -d
-option with the docker-compose command specifies the ``detach'' operation, which
+option with the docker-compose command specifies the \verb|detach| operation, which
 runs the containers in the background. View the list of containers to see the
 new Ansible container running successfully.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [centos@docker compose]$ docker-compose up -d
 Starting compose_ansible_1 ... done
 
@@ -559,7 +566,7 @@ contains all the necessary files. Copy the contents to the current directly,
 which will overwrite the basic ansible.cfg and hosts.yml files provided by
 Ansible.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [centos@docker compose]$ docker-compose exec ansible bash
 [root@cmd_authz examples]# tree mnt_files/
 mnt_files/
@@ -573,10 +580,10 @@ cp: overwrite './hosts.yml'? y
 \end{minted}
 
 Run the playbook again, and observe the same results as before. Now, assuming
-that this issue remains open for a long period of time, docker-compose helps
-reduce the test setup time.
+that this issue remains open for a long period of time, \verb|docker-compose|
+helps reduce the test setup time.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [root@cmd_authz examples]# ansible-playbook issue31575.yml 
 
 PLAY [csr1.njrusmc.net] ****************************************
@@ -592,7 +599,7 @@ of the shell does not cause the container to stop. Manually stop the container
 using the commands below. Note that only the first few characters of the
 container ID can be used for these operations.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [centos@docker compose]$ docker container ls -a
 CONTAINER ID  IMAGE              COMMAND     CREATED    STATUS          PORTS NAMES
 c16452e2a6b4  ansible:cmd_authz  "/bin/bash" 12 m ago  Up 10 m (health: ...)  compose_ansible_1
@@ -614,7 +621,7 @@ that they are not accidentally used for future use. Remember, containers are
 ephemeral, and should be built and discarded regularly.
 
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [centos@docker compose]$ docker container rm c16 04e 088
 c16
 04e
@@ -632,8 +639,8 @@ separate directory structures that contain separate storage areas for
 libraries, binaries, and other information specific to a development effort.
 The demonstration in this section is based on a real-life Ansible refactoring
 effort of the author's
-\href{https://github.com/nickrusso42518/}{free open-source Ansible projects.}
-\\ \\
+\href{https://github.com/nickrusso42518/}{free open-source Ansible projects.} \\
+
 When Ansible network modules such as \verb|ios_command| and \verb|ios_config| were
 introduced, they required \verb|provider| dictionaries to log into network devices.
 This dictionary wrapped basic login information such as hostname/IP address,
@@ -644,15 +651,15 @@ be a better long-term solution. These features were introduced in Ansible 2.5,
 but suppose you wrote all your playbooks in Ansible 2.4. How could you safely
 run two versions of Ansible on a single machine to perform the necessary
 refactoring? Python virtual environments (venv for short) are a good solution
-to this problem.
-\\ \\
+to this problem. \\
+
 First, create a new venv for Ansible 2.4.2 to demonstrate the now-deprecated
 provider dictionary method. The command below creates a new directory called
 ansible242 and populates it with many files needed to create a separate
 development environment. This book does not explore the inner workings of
 venv, but does include a link in the references section.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [ec2-user@devbox venv]$ virtualenv ansible242
 New python executable in /home/ec2-user/venv/ansible242/bin/python2
 Also creating executable in /home/ec2-user/venv/ansible242/bin/python
@@ -677,7 +684,7 @@ use the source command to update your current shell. The prompt changes to
 show the venv name at the far left. Use which to reveal that the pip binary
 has been selected from within the venv.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [ec2-user@devbox venv]$ which pip
 /usr/bin/pip
 
@@ -691,7 +698,7 @@ has been selected from within the venv.
 At this point, custom packages can be installed within the venv without
 interfering with the platform-level Python packages, if any exist.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 (ansible242) [ec2-user@devbox ansible242]$ ls -l lib/python2.7/site-packages/
 total 16
 -rw-rw-r--. 1 ec2-user ec2-user  126 Aug 22 07:06 easy_install.py
@@ -708,7 +715,7 @@ drwxrwxr-x. 2 ec2-user ec2-user  130 Aug 22 07:06 wheel-0.31.1.dist-info
 Install the correct version of Ansible using pip, and then check the
 site-packages within the venv to see that Ansible 2.4.2 has been installed.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 (ansible242) [ec2-user@devbox ansible242]$ pip install ansible==2.4.2.0
 Collecting ansible==2.4.2.0
 Collecting cryptography (from ansible==2.4.2.0)
@@ -736,7 +743,7 @@ binary to use to ensure the proper libraries are used. A fully qualified file
 name must be used as shortcuts like ``~'' are not allowed. The second variable
 is a nested login credentials dictionary.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 (ansible242) [ec2-user@devbox login]$ tree
 .
 ├── group_vars
@@ -782,7 +789,7 @@ Running the playbook with the custom inventory (containing one router called
 ``csr1'') and verbosity enabled so the CLI output is printed to standard
 output.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 (ansible242)[ec2-user@devbox login]$ ansible-playbook login.yml -i inv.yml -v
 Using /etc/ansible/ansible.cfg as config file
 
@@ -806,7 +813,7 @@ which is a custom binary specific to venv that effectively reverses what the
 source bin/activate command did. The shell returns to normal. Note that the
 deactivate command only exists inside of the venv.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 (ansible242) [ec2-user@devbox login]$ deactivate
 [ec2-user@devbox login]$
 
@@ -820,7 +827,7 @@ is named ansible263 which is the current version of Ansible at the time of
 this writing. The steps are shown below but are not explained in detail as
 they were in the first example.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [ec2-user@devbox venv]$ virtualenv ansible263
 New python executable in /home/ec2-user/venv/ansible263/bin/python2
 Also creating executable in /home/ec2-user/venv/ansible263/bin/python
@@ -835,7 +842,7 @@ Collecting PyYAML (from ansible==2.6.3)
 [snip, many packages]
 Successfully installed MarkupSafe-1.0 PyYAML-3.13 ansible-2.6.3 [snip]
 
-\begin{minted}{bash}
+\begin{minted}{text}
 (ansible263) [ec2-user@devbox login]$ ansible --version
 ansible 2.6.3
 \end{minted}
@@ -849,7 +856,7 @@ refactoring effort could be doen on a version control feature branch. In this
 way, multiple venvs could access a common code base. In this simple example,
 code is copied between venvs.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 (ansible263) [ec2-user@devbox ansible263]$ cp -R ../ansible242/login/ .
 (ansible263) [ec2-user@devbox ansible263]$ tree login/
 login/
@@ -894,7 +901,7 @@ playbook except modernized for the new version of Ansible. Using virtual
 environments to accomplish this simplifies library and binary executable
 management when testing multiple versions.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 (ansible263)[ec2-user@devbox login]$ ansible-playbook login.yml -i inv.yml -v
 Using /etc/ansible/ansible.cfg as config file
 

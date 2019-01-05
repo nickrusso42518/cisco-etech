@@ -1,10 +1,850 @@
 \subsection{Configuration management tools and version control systems}
-CM and VCS stuff
+This section discussions a variety of configuration management tools, typically
+ones that enable ``infrastructure as code''. It also contains specific
+version control systems with a high level comparison to help coders decide
+which is best for them.
 
 % CM tools
-\subsubsection{Agent-based}
+\subsubsection{Agent-based Summary}
+Management agents are typically on-box, add-on software components that allow
+an automation, orchestration, or monitoring tool to communicate with the
+managed device. The agent exposes an API that would have otherwise not been
+available. On the topic of monitoring, the agents allow the device to report
+traffic conditions back to the controller (telemetry). Given this information,
+the controller can sense (or, with analytics, predict) congestion, route
+around failures, and perform all manner of fancy traffic-engineering as
+required by the business applications. Many of these agents perform the same
+general function as SNMP yet offer increased flexibility and granularity as
+they are programmable. \\
+
+Agents could also be used for non-management purposes. Interface to the
+Routing System (I2RS) is an SDN technique where a specific control-plane agent
+is required on every data-plane forwarder. This agent is effectively the
+control-plane client that communicates northbound towards the controller. This
+is the channel by which the controller consults its RIB and populates the FIB
+of the forwarding devices. The same is true for OpenFlow (OF) which is a fully
+centralized SDN model. The agent can be considered an interface to a
+data-plane forwarder for a control-plane SDN controller. \\
+
+A simple categorization method is to quantify management strategies as ``agent
+based'' or ``agent-less based''. Agent is pull-based, which means the agent
+connects with master. Changes made on master are pulled down when agent is
+``ready''. This can be significant since if a network device is currently
+experiencing a microburst, the management agent can wait until the contention
+abates before passing telemetry data to the master. Agent-less is push-based
+like SNMP traps, where the triggering of an event on a network device creates
+a message for the controller in unsolicited fashion. The other direction also
+holds true; a master can use SSH to access a device for programming whenever
+the master is ``ready''. \\
+
+Although not specific to ``agents'', there are several common
+applications/frameworks that are used for automation. Some of them rely on
+agents while others do not. Three of them are discussed briefly below as these
+are found in Cisco’s NX-OS DevNet Network Automation Guide. Note that subsets
+of the exact definitions are added here. Since these are third-party products,
+the author does not want to misrepresent the facts or capabilities as
+understood by Cisco.
+
+\begin{enumerate}
+  \item \textbf{Puppet (by Puppet Labs):} The Puppet software package is an
+  open source automation toolset for managing servers and other resources by
+  enforcing device states, such as configuration settings. Puppet components
+  include a puppet agent which runs on the managed device (client) and a
+  puppet master (server) that typically runs on a separate dedicated server
+  and serves multiple devices. The Puppet master compiles and sends a
+  configuration manifest to the agent. The agent reconciles this manifest with
+  the current state of the node and updates state based on differences. A
+  puppet manifest is a collection of property definitions for setting the
+  state on the device. Manifests are commonly used for defining configuration
+  settings, but they can also be used to install software packages, copy
+  files, and start services. \\
+  
+  In summary, Puppet is agent-based (requiring software installed on the
+  client) and pushes complex data structures to managed nodes from the master
+  server. Puppet manifests are used as data structures to track node state and
+  display this state to the network operators. Puppet is not commonly used for
+  managing Cisco devices as most Cisco products, at the time of this writing,
+  do not support the Puppet agent. The follow products support Puppet today:
+
+  \begin{enumerate}
+    \item Cisco Nexus 7000 and 7700 switches running NX-OS 7.3(0)D1(1) or later
+    \item Cisco Nexus 9300, 9500, 3100, and 300 switches running NX-OS
+ 	7.3(0)I2(1) or later
+    \item Cisco Network Convergence System (NCS) 5500 running IOS-XR 6.0 or later
+    \item Cisco ASR9000 routers running IOS-XR 6.0 or later
+  \end{enumerate}
+
+  \item \textbf{Chef (by Chef Software):} Chef is a systems and cloud
+  infrastructure automation framework that deploys servers and applications to
+  any physical, virtual, or cloud location, no matter the size of the
+  infrastructure. Each organization is comprised of one or more workstations,
+  a single server, and every node that will be configured and maintained by
+  the chef-client. A cookbook defines a scenario and contains everything that
+  is required to support that scenario, including libraries, recipes, files,
+  and more. A Chef recipe is a collection of property definitions for setting
+  state on the device. While recipes are commonly used for defining
+  configuration settings, they can also be used to install software packages,
+  copy files, start services, and more. \\
+
+  In summary, Chef is very similar to Puppet in that it requires agents and
+  manages devices using complex data structures. The concepts of cookbooks and
+  recipes are specific to Chef (hence the name) which contribute to a
+  hierarchical data structure management system. A Chef cookbook is loosely
+  equivalent to a Puppet manifest. Like Puppet, Chef is not commonly used to
+  manage Cisco devices due to requiring the installation of an agent. Below is
+  a list of supported platforms that support being managed by Chef:
+
+  \begin{enumerate}
+    \item Cisco Nexus 7000 and 7700 switches running NX-OS 7.3(0)D1(1) or later
+    \item Cisco Nexus 9300, 9500, 3100, and 300 switches running NX-OS
+	7.3(0)I2(1) or later
+    \item Cisco Network Convergence System (NCS) 5500 running IOS-XR 6.0 or later
+    \item Cisco ASR9000 routers running IOS-XR 6.0 or later
+  \end{enumerate}
+\end{enumerate}
+
+\subsubsection{Agent-less Summary}
+The concept of agent-less software was briefly discussed in the previous
+section. Simply put, no special client-side software is needed on the managed
+entity. This typically makes agent-less solutions faster to deploy and easier
+to learn. The main drawback is their limited power and often lack of
+visibility, but since many network devices deployed in production today do not
+support modern APIs (especially in small/medium businesses), agent-less
+solutions can be quite popular. This section focuses on Ansible, a common task
+execution engine for network devices.
+
+\begin{enumerate}
+  \item \textbf{Ansible (by Red Hat):} Ansible is an open source IT
+  configuration management and automation tool. Unlike Puppet and Chef,
+  Ansible is agent-less, and does not require a software agent to be installed
+  on the target node (server or switch) in order to automate the device. By
+  default, Ansible requires SSH and Python support on the target node, but
+  Ansible can also be easily extended to use any API.
+\end{enumerate}
+
+In summary, Ansible is lighter-weight than Puppet or Chef given that
+management is agent-less. No custom software needs to be installed on any
+device provided that it supports SSH. This can be a drawback since individual
+device CLIs must be exposed to network operators (or, at best, the Ansible
+automation engine) instead of using a more abstract API design. Ansible is
+very commonly used to manage Cisco network devices as it requires no agent
+installation on the managed devices. Any Cisco device that can be accessed
+using SSH can be managed by Ansible. This includes Cisco ASA firewalls, older
+Cisco ISRs, and older Cisco Catalyst switches.
+
 \subsubsection{Agent-less Demonstration with Ansible}
+The author has deployed Ansible in production and is most familiar with
+Ansible when compared against Puppet or Chef. This section will illustrate the
+value of automation using a simple but powerful playbook. These tests were
+conducted on a Linux machine in Amazon Web Services (AWS) which was targeting
+a Cisco CSR1000v. Before beginning, all of the relevant version information is
+shown below for reference.
+
+\begin{minted}{text}
+RTR_CSR1#show version | include RELEASE  
+Cisco IOS Software, CSR1000V Software (X86_64_LINUX_IOSD-UNIVERSALK9-M),
+  Version 15.5(3)S4a, RELEASE SOFTWARE (fc1)
+
+[ec2-user@devbox ansible]# uname -a
+Linux ip-10-125-0-100.ec2.internal 3.10.0-514.16.1.el7.x86_64 #1 SMP
+  Fri Mar 10 13:12:32 EST 2017 x86_64 x86_64 x86_64 GNU/Linux
+
+[ec2-user@devbox ansible]# ansible-playbook --version
+ansible-playbook 2.3.0.0
+  config file = /etc/ansible/ansible.cfg
+  configured module search path = Default w/o overrides
+  python version = 2.7.5 (default, Aug  2 2016, 04:20:16) [GCC 4.8.5 20150623 (Red Hat 4.8.5-4)]
+\end{minted}
+
+Ansible playbooks are collections of plays. Each play targets a specific set
+of hosts and contains a list of tasks. In YAML, arrays/lists are denoted with
+a hyphen (-) character. The first play in the playbook begins with a hyphen
+since it’s the first element in the array of plays. The play has a name,
+target hosts, and some other minor options. Gathering facts can provide basic
+information like time and date, which are used in this script. When
+connection: local is used, the python commands used with Ansible are executed
+on the control machine (Linux) and not on the target. This is required for
+many Cisco devices being managed by the CLI. \\
+
+The first task defines a credentials dictionary. This contains transport
+information like SSH port (default is 22), target host, username, and
+password. The \verb|ios_config| and \verb|ios_command| modules, for example,
+require this to log into the device. The second task uses the
+\verb|ios_config| module to issue specific commands. The commands will specify
+the SNMPv3 user/group and update the auth/priv passwords for that user. For
+accountability reasons, a timestamp is written to the configuration as well
+using the ``facts'' gathered earlier in the play. Minor options to the
+\verb|ios_config| module, such as \verb|save_when: always| and match: none are
+optional. The first option saves the configuration after the commands are
+issued while the second does not care about what the router already has in its
+configuration. The commands in the task will forcibly overwrite whatever is
+already configured; this is not typically done in production, but is done to
+illustrate a simple example. The \verb|changed_when: false| option tells
+Ansible to always report a status of \verb|ok| rather than \verb|changed|
+which makes the script ``succeed' from an operations perspective. The \verb|>|
+operator is used in YAML to denote folded text for readability, and the input
+is assumed to always be a string. This particular example is not idempotent.
+\textbf{Idempotent} is a term used to describe the behavior of only making the
+necessary changes. This implies that when no changes need to be made, the tool
+does nothing. Although considered a best practice, achieving idempotence is
+not a prerequisite for creating effective Ansible playbooks.
+
+\begin{minted}{text}
+[ec2-user@devbox ansible]# cat snmp.yml 
+\end{minted}
+
+\begin{minted}{yaml}
+---
+- name: "Updating SNMPv3 pre-shared keys"
+  hosts: csr1
+  gather_facts: true
+  connection: local
+  tasks:
+    - name: "SYS >> Define router credentials"
+      set_fact:
+        CREDENTIALS:
+          host: "{{ inventory_hostname }}" 
+          username: "ansible"
+          password: "ansible"
+
+    - name: "IOS >> Issue commands to update SNMPv3 passwords, save config"
+      ios_config:
+        provider: "{{ CREDENTIALS }}"
+        commands:
+          - >
+            snmp-server user {{ snmp.user }} {{ snmp.group }} v3 auth
+            sha {{ snmp.authpass }} priv aes 256 {{ snmp.privpass }}
+          - >
+            snmp-server contact PASSWORDS UPDATED
+            {{ ansible_date_time.date }} at {{ ansible_date_time.time }}
+        save_when: always
+        match: none
+      changed_when: false
+...
+\end{minted}
+
+The playbook above makes a number of assumptions that have not been reconciled
+yet. First, one should verify that \verb|csr1| is defined and reachable. It is
+configured as a static hostname-to-IP mapping in the system hosts file.
+Additionally, it is defined in the Ansible hosts file as a valid host. Last,
+it is valuable to ping the host to ensure that it is powered on and responding
+over the network. The verification for all aforementioned steps is below.
+
+\begin{minted}{text}
+[ec2-user@devbox ansible]# grep csr1 /etc/hosts
+10.125.1.11 csr1
+
+[ec2-user@devbox ansible]# grep csr1 /etc/ansible/hosts
+csr1
+
+[ec2-user@devbox ansible]# ping csr1 -c 3
+PING csr1 (10.125.1.11) 56(84) bytes of data.
+64 bytes from csr1 (10.125.1.11): icmp_seq=1 ttl=255 time=3.41 ms
+64 bytes from csr1 (10.125.1.11): icmp_seq=2 ttl=255 time=2.85 ms
+64 bytes from csr1 (10.125.1.11): icmp_seq=3 ttl=255 time=2.82 ms
+
+--- csr1 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 2.821/3.028/3.411/0.278 ms
+\end{minted}
+
+Next, Ansible needs to populate variables for things like snmp.user and
+snmp.group. Ansible is smart enough to look for file names matching the target
+hosts in a folder called \verb|host_vars/| and automatically add all variables
+to the play. These files are in YAML format and items can be nested as shown
+below. This makes it easier to organize variables for different features. Some
+miscellaneous BGP variables are shown in the file below even though our script
+doesn't care about them. Note that if groups are used in the Ansible hosts
+file, variable files can contain the names of those groups inside the
+\verb|group_vars/| directly for similar treatment. Note that there are secure
+ways to deal with plain-text passwords with Ansible, such as Ansible Vault.
+This feature is not demonstrated in this document.
+
+\begin{minted}{text}
+[ec2-user@devbox ansible]# cat host_vars/csr1.yml
+\end{minted}
+
+\begin{minted}{yaml}
+---
+# Host variables for csr1
+snmp:
+  user: USERV3
+  group: GROUPV3
+  authpass: ABC123
+  privpass: DEF456
+bgp:
+  asn: 65021  
+  rid: 192.0.2.1
+...
+\end{minted}
+
+The final step is to execute the playbook. Debugging is enabled so that the
+generated commands are shown in the output below, which normally does not
+happen. Note that the variable substitution, as well as the Ansible timestamp,
+appears to be working. The play contained three tasks, all of which succeed.
+Although \verb|gather_facts| didn't look like a task in the playbook, behind the
+scenes the \verb|setup| module was executed on the control machine, which
+counts as a task.
+
+\begin{minted}{text}
+[ec2-user@devbox ansible]# ansible-playbook snmp.yml -v
+Using /etc/ansible/ansible.cfg as config file
+
+PLAY [Updating SNMPv3 pre-shared keys] **************************************
+
+TASK [Gathering Facts] ******************************************************
+ok: [csr1]
+
+TASK [SYS >> Define router credentials] *************************************
+ok: [csr1] => {"ansible_facts": {"provider": {"host": "csr1",
+"password": "ansible", "username": "ansible"}}, "changed": false}
+
+TASK [IOS >> Issue commands to update SNMPv3 passwords, save config] ********
+ok: [csr1] =>
+{
+ "banners": {}, "changed": false, "commands":
+ [
+  "snmp-server user USERV3 GROUPV3 v3 auth sha ABC123 priv aes 256 DEF456",
+  "snmp-server contact PASSWORDS UPDATED 2017-05-07 at 18:05:27"
+ ],
+ "updates":
+ [
+  "snmp-server user USERV3 GROUPV3 v3 auth sha ABC123 priv aes 256 DEF456",
+  "snmp-server contact PASSWORDS UPDATED 2017-05-07 at 18:05:27"
+ ]
+}
+
+PLAY RECAP ******************************************************************
+csr1                       : ok=3    changed=0    unreachable=0    failed=0
+\end{minted}
+
+To verify that the configuration was successfully applied, log into the target
+router to manually verify the configuration. To confirm that the configuration
+was saved, check the startup-configuration manually as well. The verification
+is shown below.
+
+\begin{minted}{text}
+RTR_CSR1#show snmp contact
+PASSWORDS UPDATED 2017-05-07 at 18:05:27
+
+RTR_CSR1#show snmp user USERV3
+User name: USERV3
+Engine ID: 800000090300126BF529F95A
+storage-type: nonvolatile	 active
+Authentication Protocol: SHA
+Privacy Protocol: AES256
+Group-name: GROUPV3
+
+RTR_CSR1#show startup-config | include contact
+snmp-server contact PASSWORDS UPDATED 2017-05-07 at 18:05:27
+\end{minted}
+
+This simple example only scratches the surface of Ansible. The author has
+written a comprehensive OSPF troubleshooting playbook which is simple to set
+up, executes quickly, and is 100\% free. The link to the Github repository
+where this playbook is hosted is provided below, and in the references
+section. There are many other, unrelated Ansible playbooks available at the
+author's Github page as well. \\
+
+Nick's OSPF TroubleShooter (nots) - \url{https://github.com/nickrusso42518/nots}
+
 \subsubsection{Agent-less Demonstration with Nornir}
+Nornir is an open source project created by
+\href{https://twitter.com/dbarrosop/}{David Barroso} and is maintained by
+several well-known network programmability experts. Nornir uses many common,
+open-source projects under the hood, such as textfsm, NAPALM, and netmiko.
+This makes it easily consumable by organizations already using these libraries
+for other purposes.  Nornir was formerly known as Brigade and is a task
+execution engine, like Ansible, with a few key differences:
+
+\begin{enumerate}
+  \item	No domain specific language (DSL). Yes, Nornir makes you write Python,
+  while Ansible lets you write simpler YAML. Doing simple things is easy in
+  DSL, but complex hard things is extremely challenging. Even moderately
+  complex nested iteration requires multiple files in Ansible, but doing so in
+  Python is trivial. With Nornir, you get pure Python without complex integrations via DSL.
+  \item	Python debugger (\verb|pdb|) works natively, simplifying debugging. In
+  Ansible, your best tools are verbosity options from the shell (i.e.,
+  \verb|ansible-playbook test.yml -vvv|) or the \verb|debug| module, neither
+  of which have the power of \verb|pdb|.
+  \item	The number of supplemental Python support tools (such as
+  \verb|pylint|, \verb|bandit|, and \verb|black|) is enormous. These can
+  easily be leveraged for Nornir runbook maintenance, typically within CI/CD pipelines.
+  \item	Nornir tends to be faster than Ansible, given that it does not need to
+  serialize/deserialize between YAML/JSON and Python continuously. More data
+  referenced within Ansible means more processing time, and thus slower execution.
+\end{enumerate}
+
+Because the author has extensive experience with Ansible across a variety of
+production use cases, comparisons between Nornir and Ansible are common
+throughout this section. Given Ansible's popularity and market penetration at
+the time of this writing, it is likely that readers will be able to compare
+and contrast, too. \\
+
+Installing Nornir is simple using pip. The author recommends using Python 3.6
+or newer and Nornir 2.0.0 or newer. The Linux and Cisco CSR1000v versions are
+the same as those shown in the previous Ansible demonstration, and thus are not repeated.
+
+\begin{minted}{text}
+[ec2-user@devbox ~]$ python3 --version
+Python 3.6.5
+
+[ec2-user@devbox ~]$ python3 -m pip install nornir
+[snip, installation output]
+
+[ec2-user@devbox nornir-test]$ python3 -m pip list | grep nornir
+nornir (2.0.0)
+\end{minted}
+
+Nornir is comprised of several main components. First, an optional
+configuration file is used to specify global parameters, typically default
+settings for the execution of Nornir runbooks, which can simplify Nornir
+coding later. The same concept exists in Ansible. Exploring the configuration
+file is not terribly important to understanding Nornir basics and is not
+covered in this demonstration. \\
+
+Also like Ansible, Nornir supports robust options for managing inventory,
+which is a collection of hosts and groups. Nornir can even consume existing
+Ansible inventories for those looking to migrate from Ansible to Nornir. The
+inventory file is called \verb|hosts.yaml| and is required when using Nornir's
+default inventory plugin. The groups file is called \verb|groups.yaml| and is
+optional, though often used. Many more advanced inventory options exist, but
+this demonstration uses the ``simple'' inventory method, which is the default. \\
+
+The simplest possible hosts.yaml file is shown below. There are many other
+minor options for host fields, such as a site identifier, role, and group
+list. This demonstration uses only a single CSR1000v, named as such in the
+inventory as a top level key. The variables specific to this host are the
+subways listed under it.
+
+\begin{minted}{yaml}
+---
+# hosts.yaml
+csr1000v:
+  hostname: "csr1000v.lab.local"  # or IP address
+  username: "cisco"
+  password: "cisco"
+  platform: "ios"
+\end{minted}
+
+For the sake of a more interesting example, consider the case of multiple
+CSR1000v routers with the same login information. Copy/pasting host-level
+variables such as usernames and passwords is undesirable, especially at scale,
+so using group-level variables via \verb|groups.yaml| is a better design. Each
+CSR is assigned to group \verb|csr| which contains the common login
+information as group-level variables. While the format differs from Ansible's
+YAML inventory, the general logic of data inheritance is the same. More
+generic variable definitions, such as group variables, can be overridden on a
+per-host basis if necessary.
+
+\begin{minted}{yaml}
+---
+# hosts.yaml
+csr1000v_1:
+  hostname: "172.16.1.1"
+  groups: ["csr"]
+csr1000v_2:
+  hostname: "172.16.1.2"
+  groups: ["csr"]
+csr1000v_3:
+  hostname: "172.16.1.3"
+  groups: ["csr"]
+csr1000v_4:
+  hostname: "172.16.1.4"
+  groups: ["csr"]
+
+---
+# groups.yaml
+csr:
+  username: "cisco"
+  password: "cisco"
+  platform: "ios"
+\end{minted}
+
+The demonstration below is a simple runbook from
+\href{https://twitter.com/networklore}{Patrick Ogenstad}, one of the Nornir
+developers. The author has adapted it slightly to fit this book's format and
+added comments to briefly explain each step. The Python file below is
+named \verb|get_facts_ios.py|.
+
+\begin{minted}{python}
+from nornir.core import InitNornir
+from nornir.plugins.tasks.networking import napalm_get
+from nornir.plugins.functions.text import print_result
+
+# Initialize a Nornir object.
+nr = InitNornir()
+
+# Execute a task against the hosts defined in the inventory.
+# Specifically, gather basic router facts using NAPALM getters
+# behind the scenes, much like Ansible's "ios_facts" module.
+facts = nr.run(
+    napalm_get,
+    getters=['get_facts'])
+
+# Pretty-print the result to stdout in a colorful JSON-style format.
+print_result(facts)
+\end{minted}
+
+Running this code yields the following output. Like Ansible, individual tasks
+are printed in easy-to-delineate stanzas which contains specific output from
+that task. Here, the data returned by the device is printed, along with many
+of the dictionary keys needed to access individual fields, if necessary. This
+simple method is great for troubleshooting but often times, programmers will
+have to perform specific actions on specific pieces of data.
+
+\begin{minted}{text}
+[ec2-user@devbox nornir-test]$ python3 get_facts_ios.py 
+
+napalm_get**************************************************************
+* csr1000v ** changed : False ******************************************
+vvvv napalm_get ** changed : False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv INFO
+{ 'get_facts': { 'fqdn': 'CSR1000v.ec2.internal',
+                 'hostname': 'CSR1000v',
+                 'interface_list': ['GigabitEthernet1', 'VirtualPortGroup0'],
+                 'model': 'CSR1000V',
+                 'os_version': 'Virtual XE Software '
+                               '(X86_64_LINUX_IOSD-UNIVERSALK9-M), Version '
+                               '16.9.1, RELEASE SOFTWARE (fc2)',
+                 'serial_number': '9RJTDVAF3DP',
+                 'uptime': 5160,
+                 'vendor': 'Cisco'}}
+^^^^ END napalm_get ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+\end{minted}
+
+The \verb|result| object is a key component in Nornir, albeit a complex one.
+The general structure is as follows, shown in pseudo-YAML format with some
+minor technical inaccuracies intentionally. This quick visual indication can
+help those new to Nornir to understand the general structure of data returned
+by a Nornir run.
+
+\begin{minted}{yaml}
+result_from_nornir:
+  host1:
+    - task1:
+      other_stuff1: interesting values here
+      other_stuff2: ...
+        more_details_a: ...
+        more_details_b: ...
+    - task2: ...
+  host2:
+    - task1: ...
+    - task2: ...
+\end{minted}
+
+More accurately, the \verb|result_from_nornir| is not a pure dictionary but is
+a dict-like object called \verb|AggregatedResult|, which combines all of the
+results across all hosts. Each host is referenced by hostname as a dictionary
+key, which returns a \verb|MultiResult| object. This is a list-like structure
+which can be indexed by integer, iterated over, sliced, etc. The elements of
+these lists are \verb|Result| objects which contain extra interesting data
+that is be accessible from a given task. This extra interesting data is
+wrapped in a dictionary which is accessible through the \verb|result|
+attribute of the object, NOT indexable as a dictionary key. The pseudo-YAML
+below is slightly more accurate in showing the object structure used for
+Nornir results.
+
+\begin{minted}{yaml}
+AggregatedResult:
+  MultiResult:
+    - Result:
+        changed: !!bool
+        failed: !!bool
+        name: !!str
+        result:
+          specific_field1: ...
+          specific_field2: ...
+    - Result: ...
+  MultiResult:
+    - Result: ...
+    - Result: ...
+\end{minted}
+
+If this seems tricky, it is, and the demonstration below helps explain it.
+Without digging into the source code of these custom objects, one can use the
+Python debugger (\verb|pdb|) to do some basic discovery. This understanding
+makes programmatically accessing individual fields easier, which Nornir
+automatically parses and stores as structured data. Simply add this line of
+code to the end of the Python script above. This is the programming equivalent
+of setting a breakpoint; Python calls them traces.
+
+\begin{minted}{python}
+import pdb; pdb.set_trace()
+\end{minted}
+
+After running the code and seeing the pretty JSON output displayed, a \verb|(Pdb)|
+prompt waits for user input. Mastering pdb is outside the scope of this book
+and we will not be exploring pdb-specific commands in any depth. What pdb
+enables is a real-time Python command line environment, allowing us to inject
+arbitrary code at the trace. Let's just type \verb|facts| to start, the name
+of the object returned by the Nornir run. This alone reveals a fair amount of
+information.
+
+\begin{minted}{text}
+(Pdb) facts
+AggregatedResult (napalm_get): {'csr1000v': MultiResult: [Result: "napalm_get"]}
+\end{minted}
+
+First, the \verb|facts| object is an \verb|AggregatedResult|, a dict-like
+object as annotated by the {curly braces} with key:value mappings inside. It
+has one key called \verb|csr1000v|, the name of our test host. The value of
+this key is a \verb|MultiResult| object which is a list-like structure as
+annotated by the [square brackets]. Thus, pdb should indicate that
+\verb|facts['csr1000v']| returns a MultiResult object, which contains a
+\verb|Result| object named \verb|napalm_get|.
+
+\begin{minted}{text}
+(Pdb) facts['csr1000v']
+MultiResult: [Result: "napalm_get"]
+\end{minted}
+
+Since there was only 1 task that Nornir ran (getting the IOS facts), the
+length of this list-like object should be 1. Quickly test that using the
+Python \verb|len()| function.
+
+\begin{minted}{text}
+(Pdb) len(facts['csr1000v'])
+1
+\end{minted}
+
+Index the task results manually by using the [0] index method. This is yields
+a \verb|Result| object, which is neither list-like nor dict-like.
+
+\begin{minted}{text}
+(Pdb) facts['csr1000v'][0]
+Result: "napalm_get"
+\end{minted}
+
+The \verb|Result| object has some metadata fields, such as \verb|changed| and
+\verb|failed| (much like Ansible) to indicate what happened when a task was
+executed. The real meat of the results is buried in a field called
+\verb|result|. Using Python's \verb|dir()| function to explore these fields is
+useful, as shown below. For brevity, the author has manually removed some
+fields not relevant to this discovery exercise.
+
+\begin{minted}{text}
+(Pdb) dir(facts['csr1000v'][0])
+[..., 'changed', 'diff', 'exception', 'failed', 'host', 'name', 'result', 'severity_level']
+\end{minted}
+
+Feel free to casually explore some of these fields by simply referencing them.
+For example, since this was a read-only task that succeeded, both
+\verb|changed| and \verb|failed| fields should be false. If this were a task
+with configuration changes, \verb|changed| could potentially be true if actual
+changes were necessary. Also note that the name of this task was
+\verb|napalm_get|, the default name as our script did not specify one. Nornir
+can consume netmiko and NAPALM connection handlers, which provides expansive
+support for many network platforms, and this helps prove it.
+
+\begin{minted}{text}
+(Pdb) facts['csr1000v'][0].changed
+False
+(Pdb) facts['csr1000v'][0].failed
+False
+(Pdb) facts['csr1000v'][0].name
+'napalm_get'
+\end{minted}
+
+After digging through all of the custom objects, we can test the \verb|result|
+field for its type, which results in a basic dictionary with a top-level key
+of \verb|get_facts|. The value is another dictionary with a handful of keys
+containing device information. Simply printing out this field displays the
+dictionary that was pretty-printed by the \verb|print_result()| function shown earlier.
+The long \verb|get_facts| dict output is broken up to fit the screen.
+
+\begin{minted}{text}
+(Pdb) type(facts['csr1000v'][0].result)
+<class 'dict'>
+
+(Pdb) facts['csr1000v'][0].result
+{'get_facts': {'uptime': 2340, 'vendor': 'Cisco',
+  'os_version': 'Virtual XE Software (X86_64_LINUX_IOSD-UNIVERSALK9-M),
+  Version 16.9.1, RELEASE SOFTWARE (fc2)', 'serial_number': '9RJTDVAF3DP',
+  'model': 'CSR1000V', 'hostname': 'CSR1000v', 'fqdn': 'CSR1000v.ec2.internal',
+  'interface_list': ['GigabitEthernet1', 'VirtualPortGroup0']}}
+\end{minted}
+
+Using \verb|pdb| to reference individual fields, we can add some custom code
+to test our understanding. For example, suppose we want to create a string
+containing the hostname and serial number in a hyphenated string. Using the
+new f-string feature of Python 3.6, this is simple and clean.
+
+\begin{minted}{text}
+(Pdb) data = facts['csr1000v'][0].result['get_facts']
+(Pdb) important_info = f"{data['hostname']}-{data['serial_number']}"
+(Pdb) important_info
+'CSR1000v-9RJTDVAF3DP'
+\end{minted}
+
+Armed with this new understanding, we can add these exact lines to our
+existing runbook and continue development using the \verb|data| dictionary as
+a handy shortcut to access the IOS facts.
+
+It is worthwhile to explain Nornir's \verb|run()| function in greater depth. The
+\verb|run()| function takes in a task object, which is just another function. Because
+everything can be treated like an object in Python, passing functions as
+parameters into other functions to be executed later is easy. This parameter
+function is a task and contains the logic to perform some action, like run a
+command, gather facts, or make configuration changes. The remaining keyword
+arguments (kwargs) are the inputs for the parameter function passed into
+\verb|run()|. In short, \verb|run()| is a Nornir wrapper to execute the
+parameter function with its kwargs, but do so within the framework of Nornir. \\
+
+To group tasks together, one does not create a ``list of tasks'' as in
+Ansible. Instead, use a wrapper function that has many \verb|run()| invocations to
+sequence the tasks in the correct order. Nornir consumers can easily insert
+additional logic in between \verb|run()| calls, such as printing output, inserting
+pdb traces, writing to files, or whatever other things don't directly qualify
+as Nornir tasks. This wrapper function is passed into \verb|run()| from the calling
+function level as if it were a task itself. Be sure to include any kwargs
+needed for this wrapper to operate. The example below expands our previous
+Nornir runbook to both collect basic facts and apply configuration. For
+cleanliness, the author has added a \verb|main()| function to this runbook. \\
+
+The \verb|manage_router()| function sequences the tasks to be run. Using
+NAPALM to configure network devices introduces a rich feature set of providing
+a ``diff'', automatic rollback, and automatic configuration saving. Users
+should pass in a \verb|\n| delineated string, which can be assembled by joining a
+list of strengths via newline (or a variety of other techniques). Note that
+results from individual task calls are not saved inside the wrapper; Nornir
+aggregates these results at the calling function level. \\
+
+In the \verb|main()| function, the calling function in this case,
+\verb|manage_router()| is treated like a task and its \verb|config_lines|
+kwarg is populated with a list of service strings to apply. This task grouping
+wrapper is executed and its results are printed out. The Python file below
+is named \verb|manage_router_ios.py|.
+
+\begin{minted}{python}
+from nornir import InitNornir
+from nornir.plugins.tasks.networking import napalm_get
+from nornir.plugins.tasks.networking import napalm_configure
+from nornir.plugins.functions.text import print_result
+
+def manage_router(nr, config_lines):
+
+    # Task 1: Get basic information (same as before)
+    nr.run(task=napalm_get, getters=['get_facts'])
+
+    # Task 2: Use "napalm_configure" function along with kwargs
+    # representing the configuration as a newline-joined string.
+    nr.run(task=napalm_configure, configuration='\n'.join(config_lines))
+
+def main():
+
+    # Initialize a Nornir object.
+    nr = InitNornir()
+
+    # Define services as a list of strings
+    services = [
+        'service nagle',
+        'service sequence-numbers',
+        'no service pad'
+    ]
+
+    # Run the grouped task function to get facts and apply config.
+    from_tasks = nr.run(task=manage_router, config_lines=services)
+
+    # Pretty-print the result to stdout in a pretty JSON format.
+    print_result(from_tasks)
+
+if __name__ == '__main__':
+    main()
+\end{minted}
+
+Running this code yields the following output. Tasks are printed out in the
+sequence in which they were invoked. This particular router required Nagle and
+sequence-number services to be enabled, and needed to have the PAD service
+disabled, per the diff included in the output.
+
+\begin{minted}{text}
+[ec2-user@devbox nornir-test]$ python3 manage_router_ios.py
+
+manage_router***********************************************************
+* csr1000v ** changed : True ***************************************************
+vvvv manage_router ** changed : False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv INFO
+---- napalm_get ** changed : False ------------------------------------- INFO
+{ 'get_facts': { 'fqdn': 'CSR1000v.ec2.internal',
+                 'hostname': 'CSR1000v',
+                 'interface_list': ['GigabitEthernet1', 'VirtualPortGroup0'],
+                 'model': 'CSR1000V',
+                 'os_version': 'Virtual XE Software '
+                               '(X86_64_LINUX_IOSD-UNIVERSALK9-M), Version '
+                               '16.9.1, RELEASE SOFTWARE (fc2)',
+                 'serial_number': '9RJTDVAF3DP',
+                 'uptime': 1560,
+                 'vendor': 'Cisco'}}
+---- napalm_configure ** changed : True -------------------------------- INFO
++service nagle
++service sequence-numbers
+-no service pad
+^^^^ END manage_router ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+\end{minted}
+
+Because NAPALM is idempotent with respect to IOS configuration management,
+running the runbook again should yield no changes when the
+\verb|napalm_configure| task is executed. The \verb|changed| return value
+changes from \verb|True| in the previous output to \verb|False| below. No diff
+is supplied as a result.
+
+\begin{minted}{text}
+[ec2-user@devbox nornir-test]$ python3 manage_router_ios.py
+
+manage_router***********************************************************
+* csr1000v ** changed : False **************************************************
+vvvv manage_router ** changed : False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv INFO
+---- napalm_get ** changed : False ------------------------------------- INFO
+{ 'get_facts': { 'fqdn': 'CSR1000v.ec2.internal',
+                 'hostname': 'CSR1000v',
+                 'interface_list': ['GigabitEthernet1', 'VirtualPortGroup0'],
+                 'model': 'CSR1000V',
+                 'os_version': 'Virtual XE Software '
+                               '(X86_64_LINUX_IOSD-UNIVERSALK9-M), Version '
+                               '16.9.1, RELEASE SOFTWARE (fc2)',
+                 'serial_number': '9RJTDVAF3DP',
+                 'uptime': 2040,
+                 'vendor': 'Cisco'}}
+---- napalm_configure ** changed : False ------------------------------- INFO
+^^^^ END manage_router ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+\end{minted}
+
+Rerunning the code with a pdb trace applied at the end of the program allows
+Nornir users to explore the \verb|from_tasks| variable in more depth. For each
+host (in this case \verb|csr1000v|), there is a list of \verb|MultiResult| objects.
+This list includes results from the wrapper function, not just the inner tasks, so
+its length should be 3: the grouped function followed by the 2 tasks. For
+troubleshooting they can be indexed as shown below. Notice the empty-string
+diff returned by NAPALM from the second task, an indicator that our network
+hasn't experienced any changes since the last Nornir run.
+
+\begin{minted}{text}
+[ec2-user@devbox nornir-test]$ python3 manage_router_ios.py
+> /home/ec2-user/nornir-test/manage_router_ios.py(31)main()
+-> print_result(from_tasks)
+
+(Pdb) from_tasks
+AggregatedResult (manage_router): {'csr1000v': MultiResult:
+  [Result: "manage_router", Result: "napalm_get", Result: "napalm_configure"]}
+
+(Pdb) from_tasks['csr1000v']
+MultiResult: [Result: "manage_router", Result: "napalm_get",
+  Result: "napalm_configure"]
+
+(Pdb) len(from_tasks['csr1000v'])
+3
+
+(Pdb) from_tasks['csr1000v'][0]
+Result: "manage_router"
+
+(Pdb) from_tasks['csr1000v'][1]
+Result: "napalm_get"
+
+(Pdb) from_tasks['csr1000v'][2]
+Result: "napalm_configure"
+
+(Pdb) from_tasks['csr1000v'][2].diff
+''
+\end{minted}
 
 % VCS tools
 \subsubsection{Git with Github}

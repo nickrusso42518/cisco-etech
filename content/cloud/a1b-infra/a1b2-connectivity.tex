@@ -66,8 +66,8 @@ The term ``virtual switch'' has multiple meanings. As discussed in the previous
 section, the most generic interpretation of the term would be ``VLAN''. A VLAN
 is, quite literally, a virtual switch, which shares the same hardware as all
 the other VLANs next to it, but remains logically isolated. Along these lines,
-a VRF is a virtual router and a Cisco ASA context is a virtual firewall.
-\\ \\
+a VRF is a virtual router and a Cisco ASA context is a virtual firewall. \\
+
 However, it is likely that this section of the Evolving Technologies blueprint
 is more interested in discussing virtual switches in the context of
 hypervisors. Simply put, a virtual switch serves as a bridge between the
@@ -79,8 +79,8 @@ switch. Each port (or group of ports) can map to a single VLAN, providing
 VLAN-tagged transport to the physical network and untagged transport to the
 applications, as expected. Some engineers prefer to think about virtual
 switches as the true access switch in the network, with the top of rack (TOR)
-switch being an aggregation device of sorts.
-\\ \\
+switch being an aggregation device of sorts. \\
+
 There are many types of virtual switches:
 \begin{enumerate}
   \item \textbf{Standalone/basic:} As described above, these switches support
@@ -136,22 +136,21 @@ without directly exchanging any reachability/policy information. To provide
 high-scale network services, the Overlay Management Protocol (OMP) is a
 BGP-like protocol that carries a variety of attributes. These attributes
 include application/QoS specific routing policy, multicast routing
-information, IPsec keys, and more.
-\\ \\
+information, IPsec keys, and more. \\
+
 The solution supports both IPsec ESP and GRE data-plane encapsulations for its
 overlay networks. Because OMP carries IPsec keys within the system’s
 control-plane, Internet Key Exchange (IKE) between vEdge endpoints is
 unnecessary. This optimization obviates the need for IKE, reducing both vEdge
-device state and spoke-to-spoke tunnel setup
-time.
-\\ \\
+device state and spoke-to-spoke tunnel setup time. \\
+
 Like many SD-WAN solutions, Viptela can classify traffic based on traditional
 mechanisms such as ports, protocols, IP addresses, and DSCP values. It can
 also perform application-specific classification with policies tuned for each
 specific application. All policies are configured through the vManage
 interface which are then communicated to the controller. The controller then
-communicates this to the vEdge devices.
-\\ \\
+communicates this to the vEdge devices. \\
+
 Although the definitions are imperfect, it is mostly correct to say that the
 vManage-to-vSmart controller interface is a northbound interface (except that
 vManage is a management console, not a business application). Likewise, the
@@ -160,8 +159,8 @@ unlike truly centralized control planes, the failure of a vSmart controller or
 the path by which a vEdge uses to reach a vSmart controller results in the
 vEdge reverting back to the last applied policy. This means that the WAN can
 function like a distributed control-plane provided changes are not needed. As
-such, the Viptela solution can be generally classified as a hybrid SDN solution.
-\\ \\
+such, the Viptela solution can be generally classified as a hybrid SDN solution. \\
+
 ZTP relies on vBond, which is an orchestration process that allows vEdge
 devices to join the SD-WAN instance without any pre-configuration on the
 remote devices. Each device comes with an embedded SSL certificate stored
@@ -170,8 +169,8 @@ can trust or not trust this particular client device. Revoking trust for a
 device is useful for cases where the vEdge is lost or stolen, much like
 issuing a Certificate Revocation List (CRL). Once the trust settings are
 updated, vManage notifies the vSmart controllers so they can accept or reject
-the SSL sessions from vEdge devices.
-\\ \\
+the SSL sessions from vEdge devices. \\
+
 The Viptela SD-WAN solution also supports network-based multi-tenancy. A
 4-byte shim header called a label (not to be confused with MPLS labels) is
 added to each packet within a specific tenant’s overlay as a membership
@@ -267,8 +266,8 @@ includes Cisco NFVIS discussed later in this book).
 Cisco's SDA architecture is a holistic, intent-based networking solution
 designed for enterprises to operate, maintain, and secure their access layer
 networks. Campus Fabric is one of the core components of this design, and is
-of particular interest to network engineers.
-\\ \\
+of particular interest to network engineers. \\
+
 Cisco’s Campus Fabric is a main component of the Digital Network Architecture
 (DNA), a major Cisco networking initiative. Campus Fabric relies on a
 VXLAN-based data plane, encapsulating traffic at the edges of the fabric
@@ -276,8 +275,8 @@ inside IP packets to provide L2VPN and L3VPN service. Security Group Tags
 (SGT), Quality of Service (QoS) markings, and the VXLAN Virtual Network ID
 (VNI) are all carried in the VXLAN header, giving the underlay network some
 ability to apply policy to transit traffic. Campus Fabric was designed with
-mobility, scale, and performance in mind.
-\\ \\
+mobility, scale, and performance in mind. \\
+
 The solution uses Location/Identification Separation Protocol (LISP) as its
 control-plane. LISP is like a combination of DNS and NHRP as a mapping server
 binds endpoint IDs (EIDs) to routing locations (RLOCs) in a centralized
@@ -290,8 +289,8 @@ reply directly to LISP edge nodes as such a reply is not a guarantee that two
 edge nodes can actually communicate. The LISP mapping server forwards the
 request to the remote edge node authoritative for a given EID, which generates
 the response. This behavior is similar to how NHRP works in DMVPN phases 2 and
-3 when spoke-to-spoke tunnels are dynamically built.
-\\ \\
+3 when spoke-to-spoke tunnels are dynamically built. \\
+
 Campus Fabric offers separation using both policy-based segmentation via
 Security Group Tags (SGT) and network-based segmentation via VXLAN/LISP. These
 options are not mutually exclusive and can be deployed together for even
@@ -301,8 +300,8 @@ effectively extending the virtual networks without merging the control-planes.
 This architecture can be thought of like an SD-LAN although Cisco (and the
 industry in general) do not use this term. The IP routed underlay is kept
 simple with complex, tenant-specific overlays added on top according to the
-business needs.
-\\ \\
+business needs. \\
+
 Note that Campus Fabric is the LAN networking component of the overall SDA
 architecture. Fabric border nodes are similar to fabric edge nodes (access
 switches) except that they connect the fabric to upstream resources, such as
@@ -311,8 +310,8 @@ as WAN, data center, Internet edge, etc. DNA-C, ISE, Network Data Platform
 (NDP) analytics, and wireless LAN controllers (WLC) are typically locally in
 the data center and control the entire SDA architecture. Being able to express
 intent in human language through DNA-C, then have the system map this intent
-to device configuration automatically, is a major advantage of SDA.
-\\ \\
+to device configuration automatically, is a major advantage of SDA. \\
+
 At the time of this writing, the SDA solution is supported on most modern
 Cisco switch product lines. Some of the common ones include the Catalyst 9000,
 Catalyst 3650/3850, and Nexus 7000 lines. DNA-C within the SDA architecture is
@@ -330,8 +329,8 @@ support specific applications in automated fashion. Security within
 application components (e.g. front-end, application, and database containers)
 and between different applications (e.g. APIs) is inherent with any SD-DC
 solution. Resources are pooled and shared between resources for maximum cost
-effectiveness, flexibility, and ability to respond to changing market demands.
-\\ \\
+effectiveness, flexibility, and ability to respond to changing market demands. \\
+
 One example of an SD-DC solution is Cisco's Application Centric Infrastructure
 (ACI). As discussed earlier, ACI separates policy from reachability and could
 be considered a hybrid SDN solution, much like Cisco's original SD-WAN
@@ -341,8 +340,8 @@ Specifically, ACI is supported on the Cisco Nexus 9000 product line using a
 version of software specific to ACI. This differs from the original NX-OS
 which is considered a ``standalone'' or ``non-ACI'' deployment of the Nexus 9000.
 Unlike IWAN, ACI is positioned within the data center as a software defined
-data center (SDDC) solution.
-\\ \\
+data center (SDDC) solution. \\
+
 The creation of ACI, to include its complement of customized hardware, was
 driven by a number of factors (not a comprehensive list):
 
@@ -376,15 +375,17 @@ Packet forwarding continues in the distributed control-plane model as
 discussed before, but the APIC is able to configure any node in the network
 with specific policy, to include security policy, or to enhance/modify any
 given flow in the data center. Policy is retained in the nodes even in the
-event of a controller failure, but policy can only be modified by the APIC.
-\\ \\
+event of a controller failure, but policy can only be modified by the APIC. \\
+
 The ACI infrastructure is built on a leaf/spine network fabric which has a
 number of interesting characteristics:
 
 \begin{enumerate}
   \item Adding bandwidth is achieved by adding spines and linking the leaves to it.
-  \item Adding access density is achieved by adding leaves and linking them to the spines.
-  \item ``Border'' leaves are identified as the egress point from the fabric, not the spines.
+  \item Adding access density is achieved by adding leaves and linking them to
+  the spines.
+  \item ``Border'' leaves are identified as the egress point from the fabric,
+  not the spines.
   \item Nothing connects to the spines other than leaves (no services).
   \item Spines are never connected laterally.
 \end{enumerate}
@@ -401,8 +402,8 @@ applications absent input from the user (via APIC). That is to say, it is both
 cost prohibitive and error prone for the network to make such a classification
 when the business drivers (i.e. human input) are what drives the
 prioritization, security policy, and other treatment characteristics of a
-given application's traffic.
-\\ \\
+given application's traffic. \\
+
 Policy applied to the APIC is applied to the network using several constructs:
 
 \begin{enumerate}

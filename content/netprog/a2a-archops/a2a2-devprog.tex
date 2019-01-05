@@ -28,8 +28,8 @@ idea of recursive acronyms popular in the open source world. The RPC concept
 is not a new one; Distributed Component Object Model (DCOM) from Microsoft has
 long existed, among others. These RPC mechanisms are both highly complex and
 considered legacy today. gRPC is open source and free at the time of this
-writing.
-\\ \\
+writing. \\
+
 gRPC attempts to solve a number of shortcomings of REST-based APIs. For
 example, there is no formal machine definition of a REST API. Each API is
 custom-built following REST architectural principles. API consumers must
@@ -37,8 +37,8 @@ always read documents pertaining to the specific API in order to determine its
 usage specifications. Furthermore, streaming operations (sending a stream of
 messages in response to a client's request, or vice versa) are very difficult
 as HTTP 1.1, the specification upon which most REST-based APIs are built, does
-not support this. gRPC is based on HTTP/2 which supports this functionality.
-\\ \\
+not support this. gRPC is based on HTTP/2 which supports this functionality. \\
+
 The gRPC framework also solves the time-consuming and expensive problem of
 writing client libraries. With REST-based APIs, individual client libraries
 must be written in whatever language a developer needs for gRPC API
@@ -47,22 +47,21 @@ analogous to YANG, developers can identify both the service interface and the
 structure of the payload messages. Because IDL follows a standard format (it's
 a language after all), it can be compiled. The outputs from this compilation
 process include client libraries for many different languages, such as C, C\#,
-Java, and Python to name a few.
-\\ \\
+Java, and Python to name a few. \\
+
 Error reporting in gRPC is also improved when compared to REST-based APIs.
 Rather than relying on generic HTTP status codes, gRPC has a formalized set of
 errors specific to API usage, which is better suited to machine-based
 communications. gRPC forms a single TCP session with many API calls
-transported within; this allows multiple in-flight API calls concurrently.
-\\ \\
+transported within; this allows multiple in-flight API calls concurrently. \\
+
 Today, gRPC is supported on Cisco's IOS-XR platform. To follow this
 demonstration, any Linux development platform will work, assuming it has
 Python installed. Testing gRPC on IOS-XR is not particularly different than
 other APIs, but requires many setup steps. Each one is covered briefly before
 the demonstration begins. First, install the necessary underlying libraries
 needed to use gRPC. The "docopt" package helps with using CLI commands and is
-used by the Cisco IOS-XR \verb|cli.py| client.
-\\ \\
+used by the Cisco IOS-XR \verb|cli.py| client. \\
 
 \begin{minted}{text}
 [root@devbox ec2-user]# pip install grpcio docopt
@@ -673,13 +672,13 @@ service sequence-numbers
 YANG as a modeling language was discussed earlier in this document. This was
 lacking context because YANG by itself provides little value. There needs to
 be some mechanism to transport the data that conforms to these
-machine-friendly models. One of those transport options is NETCONF.
-\\ \\
+machine-friendly models. One of those transport options is NETCONF. \\
+
 This section explores a short NETCONF/YANG example using Cisco CSR1000v on
 modern \verb|Everest| software. This router is running as an EC2 instance inside
 AWS. Using the EIGRP YANG model explored earlier in this document, this
-section demonstrates configuration updates relating to EIGRP.
-\\ \\
+section demonstrates configuration updates relating to EIGRP. \\
+
 The simplest way to enable NETCONF/YANG is with the \verb|netconf-yang| global
 command with no additional arguments.
 
@@ -697,6 +696,9 @@ returned, including the EIGRP one of interest.
 \begin{minted}{text}
 Nicholass-MBP:ssh nicholasrusso$ ssh -p 830 nctest@netconf.njrusmc.net
 nctest@netconf.njrusmc.net's password:
+\end{minted}
+
+\begin{minted}{xml}
 <?xml version="1.0" encoding="UTF-8"?>
 <hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
 <capabilities>
@@ -718,7 +720,7 @@ line arguments, the author suggests editing these values in the Python code to
 avoid typos while testing. These options begin around line 540 of the
 \verb|netconf-console.py| file.
 
-\begin{minted}{text}
+\begin{minted}{python}
 parser.add_option("-u", "--user", dest="username", default="nctest",
                   help="username")
 parser.add_option("-p", "--password", dest="password", default="nctest",
@@ -726,8 +728,8 @@ parser.add_option("-p", "--password", dest="password", default="nctest",
 parser.add_option("--host", dest="host", default="netconf.njrusmc.net",
                   help="NETCONF agent hostname")
 parser.add_option("--port", dest="port", default=830, type="int",
-\end{minted}
                   help="NETCONF agent SSH port")
+\end{minted}
 
 Run the playbook using Python 2 (not Python 3, as the code is not
 syntactically compatible) with the \verb|--hello| option to collect the list of
@@ -737,6 +739,9 @@ it is handled through the \verb|netconf-console.py| tool.
 
 \begin{minted}{text}
 Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --hello
+\end{minted}
+
+\begin{minted}{xml}
 <?xml version="1.0" encoding="UTF-8"?>
 <hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
   <capabilities>
@@ -747,10 +752,9 @@ Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --hello
     <capability>urn:ietf:params:netconf:capability:validate:1.0</capability>
     <capability>urn:ietf:params:netconf:capability:validate:1.1</capability>
     <capability>urn:ietf:params:netconf:capability:rollback-on-error:1.0</capability>
-[snip]
+    <capability>[snip, many capabilities here]</capability>
     <capability>http://cisco.com/ns/yang/Cisco-IOS-XE-eigrp?module=Cisco-IOS-XE-eigrp&amp;
 	revision=2017-02-07</capability>
-[snip]
   </capabilities>
   <session-id>26801</session-id>
 </hello>
@@ -780,6 +784,9 @@ of the different CLI stanzas are.
 
 \begin{minted}{text}
 Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --get-config -x "native/router/eigrp"
+\end{minted}
+
+\begin{minted}{xml}
  <?xml version="1.0" encoding="UTF-8"?>
  <rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="1">
    <data>
@@ -817,6 +824,9 @@ can push to the device.
 
 \begin{minted}{text}
 Nicholass-MBP:YANG nicholasrusso$ cat eigrp-updates.xml
+\end{minted}
+
+\begin{minted}{xml}
 <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
   <router>
     <eigrp xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-eigrp">
@@ -840,10 +850,13 @@ Nicholass-MBP:YANG nicholasrusso$ cat eigrp-updates.xml
 \end{minted}
 
 Using the \verb|--edit-config| option, write these changes to the device. NETCONF
-will return an ``ok'' message when complete.
+will return an \verb|ok| message when complete.
 
 \begin{minted}{text}
 Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --edit-config=./eigrp-updates.xml
+\end{minted}
+
+\begin{minted}{xml}
 <?xml version="1.0" encoding="UTF-8"?>
 <rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="1">
   <ok/>
@@ -854,6 +867,9 @@ Perform the \verb|get| operation once more to ensure the value were updated corr
  
 \begin{minted}{text}
 Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --get-config -x "native/router/eigrp"
+\end{minted}
+
+\begin{minted}{xml}
 <?xml version="1.0" encoding="UTF-8"?>
 <rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="1">
   <data>
@@ -1450,7 +1466,9 @@ nested as there is only ever one description per interface.
 [root@ip-10-125-0-100 ~]# curl \
 >  http://denali/restconf/api/config/native/interface/Loopback/42518/ip/address \
 >  -u "username:password"
+\end{minted}
 
+\begin{minted}{xml}
 <address xmlns="http://cisco.com/ns/yang/ned/ios"
   xmlns:y="http://tail-f.com/ns/rest"
   xmlns:ios="http://cisco.com/ns/yang/ned/ios">
@@ -1459,11 +1477,15 @@ nested as there is only ever one description per interface.
     <mask>255.255.255.255</mask>
   </primary>
 </address>
+\end{minted}
 
+\begin{minted}{text}
 [root@ip-10-125-0-100 ~]# curl \
 >  http://denali/restconf/api/config/native/interface/Loopback/42518/description \
 >  -u "username:password"
+\end{minted}
 
+\begin{minted}{xml}
 <description xmlns="http://cisco.com/ns/yang/ned/ios"
   xmlns:y="http://tail-f.com/ns/rest"
   xmlns:ios="http://cisco.com/ns/yang/ned/ios">COOL INTERFACE

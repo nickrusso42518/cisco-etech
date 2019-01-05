@@ -25,3 +25,7 @@ pdf:
 clean:
 	@rm -f lint.log etech.*
 	@rm -rf _minted-etech/
+
+.PHONY: lexers
+lexers:
+	pygmentize -L lexers

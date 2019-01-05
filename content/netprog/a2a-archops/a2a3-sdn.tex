@@ -1,2 +1,227 @@
 \subsection{Controller based network design}
-sdn models stuff
+Software-Defined Networking (SDN) is a concept that networks can be both
+programmable and disaggregated concurrently, ultimately providing additional
+flexibility, intelligence, and customization for the network administrators.
+Because the definition of SDN varies so widely within the network community,
+it should be thought of as a continuum of different models rather than a
+single, prescriptive solution. \\
+
+There are four main SDN models as defined in
+\href{http://www.ciscopress.com/store/art-of-network-architecture-business-driven-design-9780133259230}{The Art of Network Architecture: Business-Driven Design} by
+\href{https://twitter.com/rtggeek}{Russ White} and
+\href{ihttps://twitter.com/LadyNetwkr}{Denise Donohue} (Cisco Press 2014).
+The models are discussed briefly below.
+
+\begin{enumerate}
+  \item \textbf{Distributed:} Although not really an ``SDN'' model at all, it
+  is important to understand the status quo. Network devices today each have
+  their own control-plane components which rely on distributed routing
+  protocols (such as OSPF, BGP, etc). These protocols form paths in the
+  network between all relevant endpoints (IP prefixes, etc). Devices typically
+  do not influence one another’s routing decisions individually as traffic is
+  routed hop-by-hop through the network without centralized oversight. This
+  model totally distributes the control-plane across all devices. Such
+  control-planes are also autonomous; with minimal administrative effort, they
+  often form neighborships and advertise topology and/or reachability
+  information. Some of the drawbacks include potential routing loops
+  (typically transient ones during periods of convergence) and complex routing
+  schemes in poorly designed/implemented networks. The diagram that follows depicts
+  several routers each with their own control-plane and no centralization.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath sdn-distributed.jpg}
+      \captionof{figure}{SDN Model - Distributed}
+    \end{minipage}
+
+  \item \textbf{Augmented:} This model relies on a fully distributed
+  control-plane by adding a centralized controller that can apply policy to
+  parts of the network at will. Such a controller could inject shorter-match
+  IP prefixes, policy-based routing (PBR), security features (ACL), or other
+  policy objects. This model is a good compromise between distributing
+  intelligence between nodes to prevent singles points of failure (which a
+  controller introduces) by using a known-good distributed control-plane
+  underneath. The policy injection only happens when it "needs to", such as
+  offloading traffic from an overloaded link in a DC fabric or traffic from a
+  long-haul fiber link between two points of presence (POPs) in an SP core.
+  Cisco’s Performance Routing (PfR) is an example of the augmented model which
+  uses the Master Controller (MC) to push policy onto remote forwarding nodes.
+  Another example includes offline path computation element (PCE) servers for
+  automated MPLS TE tunnel creation. In both cases, a small set of routers
+  (PfR border routers or TE tunnel head-ends) are modified, yet the remaining
+  routers are untouched. This model has a lower impact on the existing network
+  because the wholesale failure of the controller simply returns the network
+  to the distributed model, which is a viable solution for many businses
+  cases. The diagram that follows depicts the augmented SDN model.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath sdn-augmented.jpg}
+      \captionof{figure}{SDN Model - Augmented}
+    \end{minipage}
+
+  \item \textbf{Hybrid:} This model is very similar to the augmented model
+  except that controller-originated policy can be imposed anywhere in the
+  network. This gives additional granularity to network administrators; the
+  main benefit over the augmented model is that the hybrid model is always
+  topology-independent. The topological restrictions of which nodes the
+  controller can program/affect are not present in this model. Cisco’s
+  Application Centric Infrastructure (ACI) is a good example of this model.
+  ACI separates reachability from policy, which is critical from both
+  survivability and scalability perspectives. This solution uses the
+  Application Policy Infrastructure Controller (APIC) as the policy
+  application tool. The failure of the centralized controller in these models
+  has an identical effect to that of a controller in the augmented model; the
+  network falls back to a distributed model. The impact of a failed controller
+  is a more significant since more devices are affected by the controller’s
+  policy when compared to the augmented model. The diagram that follows
+  depicts the augmented SDN model.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath sdn-hybrid.jpg}
+      \captionof{figure}{SDN Model - Augmented}
+    \end{minipage}
+
+  \item \textbf{Centralized:} This is the model most commonly referenced when
+  the phrase ``SDN'' is used. It relies on a single controller, which hosts
+  the entire control-plane. Ultimately, this device commands all of the
+  devices in the forwarding-plane. These controllers push their forwarding
+  tables with the proper information (which doesn’t necessarily have to be an
+  IP-based table, it could be anything) to the forwarding hardware as
+  specified by the administrators. This offers very granular control, in many
+  cases, of individual flows in the network. The hardware forwarders can be
+  commoditized into white boxes (or branded white boxes, sometimes called
+  brite boxes) which are often inexpensive. Another value proposition of
+  centralizing the control-plane is that a ``device'' can be almost anything:
+  router, switch, firewall, load-balancer, etc. Emulating software functions
+  on generic hardware platforms can add flexibility to the business. \\
+  
+  The most significant drawback is the newly-introduced single point of
+  failure and the inability to create failure domains as a result. Some SDN
+  scaling architectures suggest simply adding additional controllers for fault
+  tolerance or to create a hierarchy of controllers for larger networks. While
+  this is a valid technique, it somewhat invalidates the ``centralized'' model
+  because with multiple controllers, the distributed control-plane is reborn.
+  The controllers still must synchronize their routing information using some
+  network-based protocol and the possibility of inconsistencies between the
+  controllers is real. When using this multi-controller architecture, the
+  network designer must understand that there is, in fact, a distributed
+  control-plane in the network; it has just been moved around. The failure of
+  all controllers means the entire failure domain supported by those
+  controllers will be inoperable. The failure of the communication paths
+  between controllers could likewise cause inconsistent/intermittent problems
+  with forwarding, just like a fully distributed control-plane. OpenFlow is a
+  good example of a fully-centralized model. Nodes colored gray in the diagram
+  that follows have no standalone control plane of their own, relying
+  entirely on the controller.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath sdn-centralized.jpg}
+      \captionof{figure}{SDN Model - Centralized}
+    \end{minipage}
+\end{enumerate}
+
+These SDN designs warrant additional discussion, specifically around the
+communications channels that allow them to function. An SDN controller sits
+``in the middle'' of the SDN notional architecture. It uses \textbf{northbound}
+and \textbf{southbound} communication paths to operate with other components
+of the architecture. \\
+
+The \textbf{northbound} interfaces are considered APIs which are interfaces to existing
+business applications. This is generally used so that applications can make
+requests of the network, which could include specific performance requirements
+(bandwidth, latency, etc). Because the controller ``knows'' this information
+by communicating with the infrastructure devices via management agents, it can
+determine the best paths through the network to satisfy these constraints.
+This is loosely analogous to the original intent of the Integrated Services
+QoS model using Resource Reservation Protocol (RSVP) where applications would
+reserve bandwidth on a per-flow basis. It is also similar to MPLS TE
+constrained SPF (CSPF) where a single device can source-route traffic through
+the network given a set of requirements. The logic is being extended to
+applications with a controller ``shim'' in between, ultimately providing a
+full network view for optimal routing. A REST API is an example of a
+northbound interface. \\
+
+The \textbf{southbound} interfaces include the control-plane protocol between the
+centralized controller and the network forwarding hardware. These are the less
+intelligent network devices used for forwarding only (assuming a centralized
+model). A common control-plane used for this purpose would be OpenFlow; the
+controller determines the forwarding tables per flow per network device,
+programs this information, and then the devices obey it. Note that OpenFlow is
+not synonymous with SDN; it is just an example of one southbound control-plane
+protocol. Because the SDN controller is sandwiched between the northbound and
+southbound interfaces, it can be considered ``middleware'' in a sense. The
+controller is effectively able to evaluate application constraints and produce
+forwarding-table outputs. \\
+
+The image that follows depicts a very high-level diagram of the SDN layers as
+it relates to interaction between components.
+
+remake sdn ppt pic
+
+There are many trade-offs between the different SDN models. The table that follows
+attempts to capture the most important ones. Looking at the SDN market at the
+time of this writing, many solutions seem to be either hybrid or augmented
+models. SD-WAN solutions, such as Cisco Viptela, only make changes at the edge
+of the network and use overlays/tunnels as the primary mechanism to implement policy.
+
+\begin{longtable}{LLLLL}
+\toprule
+% top left cell is blank
+&
+\textbf{Distributed}
+&
+\textbf{Augmented}
+&
+\textbf{Hybrid}
+&
+\textbf{Centralized}
+\\ \midrule
+\textbf{Availability}
+&
+Dependent on the protocol convergence times and redundancy in the network.
+Highly automonous and heals itself without a central brain
+&
+Dependent on the protocol convergence times and redundancy in the network.
+Doesnt matter how bad the SDN controller is its failure is tolerable
+&
+Dependent on the protocol convergence times and redundancy in the network.
+Doesnt matter how bad the SDN controller is  its failure is tolerable
+&
+Heavily reliant on a single SDN controller, unless one adds controllers to
+split failure domains or to make one failure domain resilient
+(both introduce a distributed control-plane)
+\\ \midrule
+\textbf{Granularity / control}
+&
+Generally low for IGPs but better for BGP. All devices generally need a common
+view of the network to prevent loops independently. MPLS TE helps somewhat.
+&
+Better than distributed since policy injection can happen at the network edge,
+or a small set of nodes. Can be combined with MPLS TE for more granular selection.
+&
+Moderately granular since SDN policy decisions are extended to all nodes. Can
+influence decisions based on any arbitrary information within a datagram
+&
+Very highly granular; complete control over all routing decisions based on any
+arbitrary information within a datagram
+\\ \midrule
+\textbf{Scalability}
+&
+Very high in a properly designed network (failure domain isolation, topology
+summarization, reachability aggregation, etc)
+&
+High, but gets worse with more policy injection. Policies are generally
+limited to key nodes (such as border routers)
+&
+Moderate, but gets worse with more policy injection. Policy is proliferated
+across the network to all nodes (exact quantity may vary per node)
+&
+Depends; all devices retain state for all transiting flows. Hardware-dependent
+on TCAM and whether it can use other tables such as L4 ports or IPv6 flow
+labels
+\\
+\bottomrule
+\end{longtable}

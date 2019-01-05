@@ -12,8 +12,8 @@ introduction of automation. Automation is discussed in detail elsewhere,
 but the trade-offs are discussed here as they directly influence the
 performance and reliability of a system. Note that this discussion is
 typically relevant for private and virtual private clouds, as a public cloud
-provider will always be large enough to warrant several automation tools.
-\\ \\
+provider will always be large enough to warrant several automation tools. \\
+
 Automation usually reduces the total cost of ownership (TCO), which is
 desirable for any business. This is the result of reducing the time (and labor
 wages) it takes for individuals to ``do things'': provision a new service,
@@ -32,8 +32,8 @@ software against the cost of not having it (in labor wages). Typically this
 becomes a simple choice as the network grows; automation often shines here.
 Automation is such a key component of cloud environments because the cost of
 dealing with software maintenance is almost always less than the cost of a
-large IT staff.
-\\ \\
+large IT staff. \\
+
 Automation can also be used for root cause analysis (RCA) whereby the tool can
 examine all the components of a system to test for faults. For example,
 suppose an eBGP session fails between two organizations. The script might test
@@ -43,20 +43,19 @@ also collect performance characteristics of the inter-AS link to check for
 packet loss. Last, it might check for fragmentation on the link by sending
 large pings with ``don’t fragment'' set. This information can feed into the RCA
 which is reviewed by the network staff and presented to management after an
-outage.
-\\ \\
+outage. \\
+
 The main takeaway is that automation should be deployed where it makes sense
 (TCO reduction) and where it can be maintained with a reasonable amount of
 effort. Failing to provide the maintenance resources needed to sustain an
 automation infrastructure can lead to disastrous results. With automation, the
 ``blast radius'', or potential scope of damage, can be very large. A real-life
 story from the author: when updating SNMPv3 credentials, the wrong privacy
-algorithm was configured, causing 100% of devices to be unmanageable via
+algorithm was configured, causing 100\% of devices to be unmanageable via
 SNMPv3 for a short time. Correcting the change was easily done using
 automation, and the business impact was minimal, but it negatively affected
-every router, switch, and firewall in the
-network.
-\\ \\
+every router, switch, and firewall in the network. \\
+
 Automation helps maximize the performance and reliability of a cloud
 environment. Another key aspect of cloud design is accessibility, which
 assumes sufficient network bandwidth to reach the cloud environment. A DC that
@@ -64,8 +63,8 @@ was once located at a corporate site with 2,000 employees was accessible to
 those employees over a company’s campus LAN architecture. Often times this
 included high-speed core and DC edge layers whereby accessing DC resources was
 fast and highly available. With public cloud, the Internet/private WAN becomes
-involved, so cloud access becomes an important consideration.
-\\ \\
+involved, so cloud access becomes an important consideration. \\
+
 Achieving cloud scalability is often reliant on many components supporting the
 cloud architecture. These components include the network fabric, the
 application design, the virtualization/segmentation design, and others. The
@@ -80,8 +79,8 @@ network/application hosting software (OpenStack is one example discussed later
 in this document). If the application is coded ``correctly'', APIs would be
 exposed so that additional provider-hosted applications can integrate with the
 in-house application. Too often, custom applications are written in a silo
-where no such APIs are presented.
-\\ \\
+where no such APIs are presented. \\
+
 The table that follows compares access methods, reliability, and other
 characteristics of the different cloud solutions.
 % \begin{longtable}{p{2cm}p{3cm}p{3cm}p{3cm}p{3cm}}
