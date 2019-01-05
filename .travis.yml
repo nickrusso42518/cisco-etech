@@ -4,19 +4,9 @@ python:
   - "3.6"
 
 # Install basic TexLive along with TL and Python packages.
-# Note: Everything after "minted" is a dependency of it, not directly
-# included by any tex source files in this project.
-# tar --strip-components avoids the install-tl-(date) directory creation
 install:
-  # - "sudo apt-get install chktex xzdec texlive-latex-base -y"
-  - "wget http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz"
-  - "tar -xzvf install-tl-unx.tar.gz --strip-components 1"
-  - "sudo ./install-tl -profile texlive.profile"
+  - "sudo ./texsetup.sh"
   - "PATH=$PATH:/usr/local/texlive/2018/bin/x86_64-linux"
-  - "tlmgr --version"
-  - "sudo tlmgr install booktabs caption chktex"
-  - "sudo tlmgr install minted fvextra etoolbox fancyvrb xcolor upquote"
-  - "sudo tlmgr install lineno ifplatform xstring framed float"
   - "pip install -r requirements.txt"
 
 # Execute linting tests before running the main playbook.
