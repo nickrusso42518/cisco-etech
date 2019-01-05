@@ -1,25 +1,24 @@
 \documentclass{article}
+% Sets 1 inch margins all around in a simple way
 \usepackage[margin=1in]{geometry}
-% \usepackage[dvipsnames]{xcolor}
 
 % Support for multi-page tables
 \usepackage{longtable}
 
-% Caption support
+% Caption support for figures and tables
 \usepackage{caption}
 
-% Gives graphic processing
+% Gives advanced graphic processing
 \usepackage{graphicx}
 
 % Gives syntax highlighting using Python "Pygments"
 % Enable smaller font and (currently off) line numbers
+% Must use -shell-escape with pdflatex
 \usepackage{minted}
-\AtBeginEnvironment{minted}{%
-  \renewcommand{\fcolorbox}[4][]{#4}}
 \setminted{fontsize=\small}
 % \setminted{linenos}
 
-% Gives \toprule \midrule \bottomrule
+% Gives \toprule \midrule \bottomrule for table lines
 \usepackage{booktabs}
 
 % Allows hyperlinks, including table of contents

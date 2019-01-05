@@ -6,7 +6,7 @@
 .DEFAULT_GOAL := all
 
 .PHONY: all
-all: clean lint pdf
+all: lint pdf
 
 .PHONY: lint
 lint:

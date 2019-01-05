@@ -6,20 +6,27 @@ python:
 # Install python packages for ansible and linters.
 # Install a minimal TexLive installation for LaTeX support.
 install:
-  - "sudo apt-get install chktex xzdec texlive-latex-base -y"
-  - "tlmgr init-usertree"
-  - "tlmgr option repository ftp://tug.org/historic/systems/texlive/2015/tlnet-final"
-  - "tlmgr update longtable minted booktabs graphicx caption array"
+  # - "sudo apt-get install chktex xzdec texlive-latex-base -y"
+  - "wget http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz"
+  - "tar -xzvf install-tl-unx.tar.gz"
+  - "cd install-tl-20*"
+  - "./install-tl -profile texlive.profile"
+  - "PATH=$PATH:/usr/local/texlive/2018/bin/x86_64-linux"
+  - "tlmgr --version"
+  - >-
+    tlmgr install
+    booktabs caption minted chktex
+	fvextra etoolbox fancyvrb xcolor upquote lineno ifplatform xstring framed float
   - "pip install -r requirements.txt"
 
 # Execute linting tests before running the main playbook.
-# lacheck and chktex apparently always return rc=0 
+# chktex apparently always returns rc=0 
+# draft-mode will not render images, and provides detailed fail log
 before_script:
   - "make lint"
   - "make draft"
-  - "make clean"
 
-# Make the PDF itself
+# Make the PDF itself, including images
 script:
   - "make pdf"
 ...
