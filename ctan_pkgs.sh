@@ -18,6 +18,7 @@ CTAN_PKGS=(
 
 echo setting up "tlmgr"
 tlmgr init-usertree
+tlmgr option repository ftp://tug.org/historic/systems/texlive/2015/tlnet-final
 # tlmgr update --self
 
 echo packages to install: ${CTAN_PKGS[@]}
