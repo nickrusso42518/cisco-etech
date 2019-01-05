@@ -1,9 +1,12 @@
-# @! grep line lint.log
-
+# File:    Makefile
+# Version: GNU Make 3.81
+# Author:  Nicholas Russo (njrusmc@gmail.com)
+# Purpose: Phony targets used for linting TeX and typesetting a PDF
+#          for some quick testing.
 .DEFAULT_GOAL := all
 
 .PHONY: all
-all: clean pdf
+all: clean lint pdf
 
 .PHONY: lint
 lint:
@@ -25,7 +28,3 @@ pdf:
 clean:
 	@rm -f lint.log etech.*
 	@rm -rf _minted-etech/
-
-.PHONY: lexers
-lexers:
-	pygmentize -L lexers

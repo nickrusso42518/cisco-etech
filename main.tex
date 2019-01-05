@@ -1,6 +1,6 @@
 \documentclass{article}
 \usepackage[margin=1in]{geometry}
-\usepackage[dvipsnames]{xcolor}
+% \usepackage[dvipsnames]{xcolor}
 
 % Support for multi-page tables
 \usepackage{longtable}
@@ -10,10 +10,9 @@
 
 % Gives graphic processing
 \usepackage{graphicx}
-% \usepackage{tikz}
 
 % Gives syntax highlighting using Python "Pygments"
-% Enable smaller font and line numbers
+% Enable smaller font and (currently off) line numbers
 \usepackage{minted}
 \AtBeginEnvironment{minted}{%
   \renewcommand{\fcolorbox}[4][]{#4}}
@@ -48,8 +47,6 @@
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
 
-% \graphicspath{{"Vv PBDT vV"}}
-
 \setlength\parindent{0pt}
 
 % Preamble
@@ -63,7 +60,7 @@
 % Front matter
 \newpage
 \begin{abstract}
-\input{misc/abstract.tex}
+\input{content/misc/abstract.tex}
 \end{abstract}
 
 % Reference tables
@@ -75,60 +72,60 @@
 % Cloud
 \newpage
 \section{Cloud}
-\newcommand{\imgpath}{cloud/a1a-design/img/}
+\newcommand{\imgpath}{content/cloud/a1a-design/img/}
 % \subsection{Compare and contrast public, private, hybrid, and multi-cloud design considerations}
-\input{cloud/a1a-design/a1a0-intro.tex}
-\input{cloud/a1a-design/a1a1-xaas.tex}
-\input{cloud/a1a-design/a1a2-perf.tex}
-\input{cloud/a1a-design/a1a3-security.tex}
-\input{cloud/a1a-design/a1a4-workload.tex}
+\input{content/cloud/a1a-design/a1a0-intro.tex}
+\input{content/cloud/a1a-design/a1a1-xaas.tex}
+\input{content/cloud/a1a-design/a1a2-perf.tex}
+\input{content/cloud/a1a-design/a1a3-security.tex}
+\input{content/cloud/a1a-design/a1a4-workload.tex}
 
-\renewcommand{\imgpath}{cloud/a1b-infra/img/}
+\renewcommand{\imgpath}{content/cloud/a1b-infra/img/}
 % \subsection{Describe cloud infrastructure and operations}
-\input{cloud/a1b-infra/a1b1-compute.tex}
-\input{cloud/a1b-infra/a1b2-connectivity.tex}
-\input{cloud/a1b-infra/a1b3-nfv.tex}
-\input{cloud/a1b-infra/a1b4-automate.tex}
-\input{cloud/a1-resources.tex}
+\input{content/cloud/a1b-infra/a1b1-compute.tex}
+\input{content/cloud/a1b-infra/a1b2-connectivity.tex}
+\input{content/cloud/a1b-infra/a1b3-nfv.tex}
+\input{content/cloud/a1b-infra/a1b4-automate.tex}
+\input{content/cloud/a1-resources.tex}
 
 % Network Programmability
 \newpage
 \section{Network Programmability}
-\renewcommand{\imgpath}{netprog/a2a-archops/img/}
+\renewcommand{\imgpath}{content/netprog/a2a-archops/img/}
 % \subsection{Describe architectural and operational considerations for a programmable network}
-\input{netprog/a2a-archops/a2a1-datamodel.tex}
-\input{netprog/a2a-archops/a2a2-devprog.tex}
-\input{netprog/a2a-archops/a2a3-sdn.tex}
-\input{netprog/a2a-archops/a2a4-cmtools.tex}
-\input{netprog/a2-resources.tex}
+\input{content/netprog/a2a-archops/a2a1-datamodel.tex}
+\input{content/netprog/a2a-archops/a2a2-devprog.tex}
+\input{content/netprog/a2a-archops/a2a3-sdn.tex}
+\input{content/netprog/a2a-archops/a2a4-cmtools.tex}
+\input{content/netprog/a2-resources.tex}
 
 % Internet of Things
 \newpage
 \section{Internet of Things}
-\renewcommand{\imgpath}{iot/a3a-archdeploy/img}
+\renewcommand{\imgpath}{content/iot/a3a-archdeploy/img}
 % \subsection{Describe architectural framework and deployment considerations for Internet of Things (IoT)}
-\input{iot/a3a-archdeploy/a3a1-stack.tex}
-\input{iot/a3a-archdeploy/a3a2-protocols.tex}
-\input{iot/a3a-archdeploy/a3a3-security.tex}
-\input{iot/a3a-archdeploy/a3a4-edgefog.tex}
-\input{iot/a3-resources.tex}
+\input{content/iot/a3a-archdeploy/a3a1-stack.tex}
+\input{content/iot/a3a-archdeploy/a3a2-protocols.tex}
+\input{content/iot/a3a-archdeploy/a3a3-security.tex}
+\input{content/iot/a3a-archdeploy/a3a4-edgefog.tex}
+\input{content/iot/a3-resources.tex}
 
 % Legacy content from the v1.0 blueprint
 \newpage
 \section{Blueprint v1.0 Legacy Topics}
-\renewcommand{\imgpath}{legacy/img/}
+\renewcommand{\imgpath}{content/legacy/img/}
 \subsection{Cloud}
-\input{legacy/old-cloud/tsmgmt.tex}
-\input{legacy/old-cloud/openstack.tex}
-\input{legacy/old-cloud/compare.tex}
+\input{content/legacy/old-cloud/tsmgmt.tex}
+\input{content/legacy/old-cloud/openstack.tex}
+\input{content/legacy/old-cloud/compare.tex}
 \subsection{Network Programmability}
-\input{legacy/old-netprog/controllers.tex}
+\input{content/legacy/old-netprog/controllers.tex}
 \subsection{Internet of Things}
-\input{legacy/old-iot/perf.tex}
+\input{content/legacy/old-iot/perf.tex}
 
 % Acronym table (glossary)
 \newpage
 \subsection{Glossary of Terms}
-\input{misc/acronyms.tex}
+\input{content/misc/acronyms.tex}
 
 \end{document}

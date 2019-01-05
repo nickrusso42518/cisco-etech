@@ -157,7 +157,7 @@ To build a custom image, one creates a Dockerfile. It is a plain text file
 that closely resembles a shell script and is designed to procedurally assemble
 the required components of a container image for use later. The author already
 created a Dockerfile using a CentOS7 image as a basic image and added some
-additional features to it. Every step has been commented for clarity.
+additional features to it. Every step has been commented for clarity. \\
 
 Dockerfiles are typically written to minimize the both number of ``layers'' and
 amount of build time. Each instruction generally qualifies as a layer. The
@@ -655,7 +655,7 @@ to this problem. \\
 
 First, create a new venv for Ansible 2.4.2 to demonstrate the now-deprecated
 provider dictionary method. The command below creates a new directory called
-ansible242 and populates it with many files needed to create a separate
+\verb|ansible242/| and populates it with many files needed to create a separate
 development environment. This book does not explore the inner workings of
 venv, but does include a link in the references section.
 
@@ -823,7 +823,7 @@ deactivate command only exists inside of the venv.
 
 To refactor this playbook from the old provider-style login to the new
 \verb|network_cli| login, create a second venv alongside the existing one. It is
-is named ansible263 which is the current version of Ansible at the time of
+is named \verb|ansible263| which is the current version of Ansible at the time of
 this writing. The steps are shown below but are not explained in detail as
 they were in the first example.
 
@@ -872,7 +872,7 @@ specify some values for the well-known Ansible login parameters. At the
 playbook, the connection changes from local to \verb|network_cli| and the inclusion
 of the provider key under \verb|ios_command| is no longer needed. Last, note that the
 Python interpreter path is updated for this specific venv using the directory
-ansible263.
+\verb|ansible263/|.
 
 \begin{minted}{yaml}
 (ansible263) [ec2-user@devbox login]$ cat group_vars/routers.yml

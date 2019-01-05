@@ -847,6 +847,851 @@ Result: "napalm_configure"
 \end{minted}
 
 % VCS tools
+\subsubsection{Version Control Overview}
+Automation in general is a fundamental topic of an effective automation
+design. In all case, a programmer needs to write the code in the first
+place, and like all pieces of code, it must be maintained, tested, versioned,
+and continuously monitored. Examples of popular repositories for text file
+configuration management include Github and Amazon Web Services (AWS) CodeCommit.
+The sections that follow include demonstrations using a variety of version
+control systems and remote repositories.
+
 \subsubsection{Git with Github}
+In the first example, a Google Codejam solution is shown on the following
+page. The challenge was finding the minimal scalar product between two vectors
+of equal length. The solution is to sort both vectors: one sorted
+greatest-to-least, and one sorted least-to-greatest. Then, performing the
+basic scalar product logic, the problem is solved. This code is not an
+exercise in absolute efficiency or optimization as it was written to be
+modular and readable. The example below was written in Python 3.5.2 and
+the name of the file is \verb|VectorPair.py|.
+
+\begin{minted}{text}
+Nicholass-MBP:min-scalar-prod nicholasrusso$ python3 --version
+Python 3.5.2
+\end{minted}
+
+\begin{minted}{python}
+class VectorPair:
+    """
+	Class defining a VectorPair object with helper methods.
+	"""
+
+    def __init__(self, v1, v2, n):
+        """
+        Constructor takes in two vectors and the vector length.
+        """
+        self.v1 = v1
+        self.v2 = v2
+        self.n = n
+
+    def _resolve_sp(self, v1, v2):
+        """
+        Given two vectors of equal length, the scalar product is pairwise
+        multiplication of values and the sum of all pairwise products.
+        """
+        sp = 0
+
+        # Iterate over elements in the array and compute
+        #  the scalar product
+        for i in range(self.n):
+            sp += v1[i] * v2[i]
+
+        return sp
+
+    def resolve_msp(self):
+        """
+        Given two vectors of equal length, the minimum scalar product is
+        the smallest number that exists given all permutations of
+        multiplying numbers between the two vectors.
+        """
+
+        # Sort v1 low->high and v2 high->low
+        # This ensures the smallest values of one list are
+        #  paired with the largest values of the other
+        v1sort = sorted(self.v1, reverse=False)
+        v2sort = sorted(self.v2, reverse=True)
+
+        # Invoke the internal method for resolution
+        return self._resolve_sp(v1sort, v2sort)
+\end{minted}
+
+The author maintains a Github page with personal code that is free from any
+copyright protection. This Github account is used to demonstrate a revision
+control example. Suppose that a change to the Python script above is required,
+and specifically, a trivial comment change. Checking the \verb|git status first|,
+the repository is up to date as no changes have been made. This demonstration
+begins on the following page. It explores git at a very basic level and does
+not include branches, forks, pull requests, etc.
+
+\begin{minted}{text}
+Nicholass-MBP:min-scalar-prod nicholasrusso$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+nothing to commit, working directory clean
+\end{minted}
+
+The verbiage of a comment relating to the constructor method is now changed.
+
+\begin{minted}{text}
+Nicholass-MBP:min-scalar-prod nicholasrusso$ grep Constructor VectorPair.py
+    Constructor takes in the vector length and two vectors.
+
+### OPEN THE TEXT EDITOR AND MAKE CHANGES (NOT SHOWN) ###
+
+Nicholass-MBP:min-scalar-prod nicholasrusso$ grep Constructor VectorPair.py
+    Constructor takes in two vectors and the vector length.
+\end{minted}
+
+\verb|git status| now reports that \verb|VectorPair.py| has been modified but
+not added to the set of files to be committed to the repository.
+The \verb|changes not staged for commit| indicates that the files are
+not currently in the staging area.
+
+\begin{minted}{text}
+Nicholass-MBP:min-scalar-prod nicholasrusso$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	modified:   VectorPair.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+\end{minted}
+
+Adding this file to the list of changed files effectively stages it for
+commitment to the repository. The \verb|changes to be committed| verbiage
+word from the terminal indicates this.
+
+\begin{minted}{text}
+Nicholass-MBP:min-scalar-prod nicholasrusso$ git add VectorPair.py
+
+Nicholass-MBP:min-scalar-prod nicholasrusso$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+	modified:   VectorPair.py
+\end{minted}
+
+Next, the file is committed with a comment explaining the change. This command
+does not update the Github repository, only the local one. Code contained in
+the local repository is, by definition, one programmer's local work. Other
+programmers may be contributing to the remote repository while another works
+locally for some time. This is why git is considered a ``distributed'' version
+control system.
+
+\begin{minted}{text}
+Nicholass-MBP:min-scalar-prod nicholasrusso$ git commit -m "evolving tech comment update"
+[master 74ed39a] evolving tech comment update
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+Nicholass-MBP:min-scalar-prod nicholasrusso$ git status
+On branch master
+Your branch is ahead of 'origin/master' by 1 commit.
+  (use "git push" to publish your local commits)
+nothing to commit, working directory clean
+\end{minted}
+
+To update the remote repository, the committed updates must be pushed. After
+this is complete, the \verb|git status| utility informs us that there are no
+longer any changes.
+
+\begin{minted}{text}
+Nicholass-MBP:min-scalar-prod nicholasrusso$ git push -u
+Counting objects: 4, done.
+Delta compression using up to 8 threads.
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 455 bytes | 0 bytes/s, done.
+Total 4 (delta 2), reused 0 (delta 0)
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+To https://github.com/nickrusso42518/google-codejam.git
+   e8d0c54..74ed39a  master -> master
+Branch master set up to track remote branch master from origin.
+
+Nicholass-MBP:min-scalar-prod nicholasrusso$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+nothing to commit, working directory clean
+\end{minted}
+
+Logging into the Github web page, one can verify the changes were successful. At
+the root directory containing all of the Google Codejam challenges, the
+comment added to the last commit is visible.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath github-folders.png}
+      \captionof{figure}{Github Changes - Summary}
+    \end{minipage}
+
+Looking into the min-scalar-prod directory and specifically the \verb|VectorPair.py|
+file, git clearly displays the additions/removals from the file. As such, git
+is a powerful tool that can be used for scripting, data files (YAML, JSON,
+XML, YANG, etc.) and any other text documents that need to be revision
+controlled. The screenshot is shown below.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath github-diff.png}
+      \captionof{figure}{Github Changes - Detailed Differences}
+    \end{minipage}
+
 \subsubsection{Git with AWS CodeCommit and CodeBuild}
+Although AWS services are not on the blueprint, a basic understanding of
+developer services available in public cloud (PaaS and SaaS options) is worth
+examining. This example uses the CodeCommit service, which is comparable to
+Github, acting as a remote Git repository. Additionally, CodeBuild CI services
+are integrated into the test repository, similar to Travis CI or Jenkins, for
+testing the code. \\
+
+This section does not walk through all of the detailed AWS setup as there are
+many tutorials and documents detailing it. However, some key points are worth
+mentioning. First, an Identity and Access Management (IAM) group should be
+created for any developers accessing the project. The author also created a
+user called \verb|nrusso| and added him to the \verb|Development| group. \\
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath aws-iam-devgroup.png}
+      \captionof{figure}{Creating a New AWS IAM User and Group}
+    \end{minipage}
+
+Note that the permissions of the Development group should include
+\verb|AWSCodeCommitFullAccess|.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath aws-iam-permissions.png}
+      \captionof{figure}{Assigning AWS IAM Permissions}
+    \end{minipage}
+
+Navigating to the CodeCommit service, create a new repository called
+\verb|awsgit| without selecting any other fancy options. This initializes and
+empty repository. This is the equivalent of creating a new repository in
+Github without having pushed any files to it.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath aws-create.png}
+      \captionof{figure}{Creating a New AWS CodeCommit Repository}
+    \end{minipage}
+
+Next, perform a clone operation from the AWS CodeCommit repository using
+HTTPS. While the repository is empty, this establishes successful connectivity
+with AWS CodeCommit.
+
+\begin{minted}{text}
+Nicholass-MBP:projects nicholasrusso$ git clone https://git-codecommit.us-east-1.amazonaws.com/v1/repos/awsgit
+Cloning into 'awsgit'...
+Username for 'https://git-codecommit.us-east-1.amazonaws.com': nrusso-at-043535020805
+Password for 'https://nrusso-at-043535020805@git-codecommit.us-east-1.amazonaws.com':
+warning: You appear to have cloned an empty repository.
+Checking connectivity... done.
+
+Nicholass-MBP:projects nicholasrusso$ ls -l awsgit/
+Nicholass-MBP:projects nicholasrusso$
+\end{minted}
+
+Change into the directory and check the Git remote repositories. The AWS
+CodeCommit repository named \verb|awsgit| has been added automatically after
+the clone operation. We can tell this is a Git repository since it contains
+the \verb|.git| hidden folder.
+
+\begin{minted}{text}
+Nicholass-MBP:projects nicholasrusso$ cd awsgit/
+Nicholass-MBP:awsgit nicholasrusso$ git remote -v
+origin https://git-codecommit.us-east-1.amazonaws.com/v1/repos/awsgit (fetch)
+origin https://git-codecommit.us-east-1.amazonaws.com/v1/repos/awsgit (push)
+
+Nicholass-MBP:awsgit nicholasrusso$ ls -la
+total 0
+drwxr-xr-x   3 nicholasrusso  staff  102 May  5 14:45 .
+drwxr-xr-x   8 nicholasrusso  staff  272 May  5 14:45 ..
+drwxr-xr-x  10 nicholasrusso  staff  340 May  5 14:46 .git
+\end{minted}
+
+Create a file. Below is an example of a silly \verb|README.md| file in markdown.
+Markdown is a simple way of writing HTML code that many repository systems can
+render nicely.
+
+\begin{minted}{md}
+# DevOps in Cloud
+This is pretty cool
+
+## Hopefully markdown works
+That would make this file look good
+
+> Note: Important message
+
+```
+code
+block
+```
+\end{minted}
+
+Following the basic git workflow, we add the file to the staging area, commit
+it to the local repository, then push it to AWS CodeCommit repository called
+\verb|awsgit|.
+
+\begin{minted}{text}
+Nicholass-MBP:awsgit nicholasrusso$ git add .
+
+Nicholass-MBP:awsgit nicholasrusso$ git commit -m "added readme"
+[master (root-commit) 99bfff2] added readme
+ 1 file changed, 12 insertions(+)
+ create mode 100644 README.md
+
+Nicholass-MBP:awsgit nicholasrusso$ git push -u origin master
+Counting objects: 3, done.
+Delta compression using up to 8 threads.
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 337 bytes | 0 bytes/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+To https://git-codecommit.us-east-1.amazonaws.com/v1/repos/awsgit
+ * [new branch]      master -> master
+Branch master set up to track remote branch master from origin.
+\end{minted}
+
+Check the AWS console to see if the file was correctly received by the
+repository. It was, and even better, CodeCommit supports Markdown rendering
+just like Github, Gitlab, and many other GUI-based systems.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath aws-readme.png}
+      \captionof{figure}{AWS CodeCommit README File}
+    \end{minipage}
+
+To build on this basic repository, we can enable continuous integration (CI)
+using AWS CodeBuild service. It ties in seamlessly to CodeCommit which, unlike
+other common integrations (Github + Jenkins) which require many manual steps.
+The author creates a sample project below based on Fibonacci numbers, which
+are numbers whereby the next number is the sum of the previous two. Some
+additional error-checking is added to check for non-integer inputs, which
+makes the test cases more interesting. The Python file below is called
+\verb|fibonacci.py|.
+
+\begin{minted}{python}
+#!/bin/python
+
+def fibonacci(n):
+    if not isinstance(n, int):
+        raise ValueError('Please use an integer')
+    elif n < 2:
+        return n
+    else:
+        return fibonacci(n-1) + fibonacci(n-2)
+\end{minted}
+
+Any good piece of software should come with unit tests. Some software
+development methodologies, such as Test Driven Development (TDD), even suggest
+writing the unit tests before the code itself! Below are the enumerated test
+cases used to test the Fibonacci function defined above. The three test cases
+evaluate zero/negative number inputs, bogus string inputs, and valid integer
+inputs. The test script below is called \verb|fibotest.py|.
+
+\begin{minted}{python}
+#!/bin/python
+
+import unittest
+from fibonacci import fibonacci
+
+class fibotest(unittest.TestCase):
+
+    def test_input_zero_neg(self):
+        self.assertEqual(fibonacci(0), 0)
+        self.assertEqual(fibonacci(-1), -1)
+        self.assertEqual(fibonacci(-42), -42)
+
+    def test_input_invalid(self):
+        try:
+            n = fibonacci('oops')
+            self.fail()
+        except ValueError:
+            pass
+        except:
+            self.fail()
+
+    def test_input_valid(self):
+        self.assertEqual(fibonacci(1), 1)
+        self.assertEqual(fibonacci(2), 1)
+        self.assertEqual(fibonacci(10), 55)
+        self.assertEqual(fibonacci(20), 6765)
+        self.assertEqual(fibonacci(30), 832040)
+\end{minted}
+
+The test cases above are executed using the unittest toolset which loads in
+all the test functions and executes them in a test environment. The file
+below is called \verb|runtest.py|.
+
+\begin{minted}{python}
+#!/bin/python
+
+import unittest
+import sys
+from fibotest import fibotest
+
+def runtest():
+    testRunner = unittest.TextTestRunner()
+    testSuite = unittest.TestLoader().loadTestsFromTestCase(fibotest)
+    testRunner.run(testSuite)
+
+runtest()
+\end{minted}
+
+To manually run the tests, simply execute the \verb|runtest.py| code. There
+are, of course, many different ways to test Python code. A simpler alternative
+could have been to use \verb|pytest| but using the \verb|unittest| strategy
+is just as effective.
+
+\begin{minted}{text}
+Nicholass-MBP:awsgit nicholasrusso$ python runtest.py
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.970s
+
+OK
+\end{minted}
+
+However, the goal of CodeBuild is to offload this testing to AWS based on
+triggers, which can be manual scheduling, commit-based, time-based, and more.
+In order to provide the build specifications for AWS so it knows what to test,
+the \verb|buildspec.yml| file can be defined. Below is simple, one-stage CI pipeline
+that just runs the test code we developed.
+
+\begin{minted}{yaml}
+# buildspec.yml
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - python runtest.py
+\end{minted}
+
+Add, commit, and push these new files to the repository (not shown). Note that
+the author also added a \verb|.gitignore| file so that the Python machine code
+(\verb|.pyc|) files would be ignored by git. Verify that the source code files
+appear in CodeCommit.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath aws-repo-files.png}
+      \captionof{figure}{AWS CodeCommit Repository with Files}
+    \end{minipage}
+
+Click on the \verb|fibonacci.py| file as a sanity check to ensure the text was
+transferred successfully. Notice that CodeCommit does some syntax highlighting
+to improve readability.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath aws-code.png}
+      \captionof{figure}{AWS CodeCommit Fibonacci Source Code}
+    \end{minipage}
+
+At this point, you can schedule a build in CodeBuild to test out your code.
+The author does not walk through setting up CodeBuild because there are many
+tutorials on it, and it is simple. A basic screenshot below shows the process
+at a high level. CodeBuild will automatically spin up a test instance of sorts
+(in this case, Ubuntu Linux with Python 3.5.2) to execute the buildspec.yml file.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath aws-ci-start.png}
+      \captionof{figure}{AWS CodeBuild Build Start}
+    \end{minipage}
+
+After the manual build (in our case, just a unit test, we didn't ``build''
+anything), the detailed results are displayed on the screen. The phases that
+were not defined in the \verb|buildspec.yml| file, such as \verb|INSTALL|,
+\verb|BUILD|, and \verb|POST_BUILD|, instantly succeed as they do not exist.
+Actually testing the code in the \verb|PRE_BUILD| phase only took 1 second.
+If you want to see this test take longer, define test cases use larger numbers
+for the Fibonacci function input, such as 50.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath aws-ci-success.png}
+      \captionof{figure}{AWS CodeBuild Build Progress}
+    \end{minipage}
+
+Below these results is the actual machine output, which matches the test
+output we generated when running the tests manually. This indicates a
+successful CI pipeline integration between CodeCommit and CodeBuild. Put
+another way, it is a fully integrated development environment without the
+manual setup of Github + Jenkins, Bitbucket + Travis CI, or whatever other
+combination of SCM + CI you can think of.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath aws-ci-log.png}
+      \captionof{figure}{AWS CodeBuild Build Log}
+    \end{minipage}
+
+Note that build history, as it is in every CI system, is also available. The
+author initially failed the first build test due to a configuration problem
+within buildspec.yml, which illustrates the value of maintaining build
+history.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath aws-ci-history.png}
+      \captionof{figure}{AWS CodeCommit Build History}
+    \end{minipage}
+
+The main drawback of these fully-integrated services is that they are specific
+to your cloud provider. Some would call this ``vendor lock-in'', since
+portability is limited. To move, you could clone your Git repositories and
+move elsewhere, but that may require retooling your CI environment. It may
+also be time consuming and risky for large projects with many developers and
+many branches, whereby any coordinated work stoppage would be challenging to execute.
+
 \subsubsection{Subversion (SVN) and comparison to Git}
+Subversion (SVN) is another version control system, though in the author's
+experience, is less commonly used today when compared to git. SVN is a
+centralized version control system whereby the \verb|commit| action pushes
+changes to the central repository. The \verb|checkout| action pulls changes
+down from the repository. In git, these two actions govern activity against
+the local repository with additional commands like push, pull (fetch and
+merge), and clone being available for interaction with remote repositories. \\
+
+This section assumes the reader has already set up a basic SVN server. A link
+in the references provides simple instructions for building a local SVN server
+on CentOS7. The author used this procedure, with some basic modifications for
+Amazon Linux, for hosting on AWS EC2. It's public URL is
+\verb|http://svn.njrusmc.net/| (the URL is dead at the time of this writing)
+for this demonstration. A repository called \verb|repo1| has been created on
+the server with a test user of \verb|nrusso| with full read/write permissions. \\
+
+The screenshots below show the basic username/password login and the blank
+repository. Do not continue until, at a minimum, you have achieved this
+functionality.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath svn-login.png}
+      \captionof{figure}{SVN Repository - Initial Login}
+    \end{minipage}
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath svn-empty.png}
+      \captionof{figure}{SVN Repository - Empty Project}
+    \end{minipage}
+
+The remainder of this section is focused on SVN client-side operations, where
+the author uses another Amazon Linux EC2 instance to represent a developer's
+workstation. \\
+
+First, SVN must be installed using the command below. Like git, it is a
+relatively small program with a few small dependencies. Last, ensure the
+\verb|svn| command is in your path, which should happen automatically.
+
+\begin{minted}{text}
+[root@devbox ec2-user]# yum install subversion
+Loaded plugins: amazon-id, rhui-lb, search-disabled-repos
+
+[snip]
+
+Installed:
+  subversion.x86_64 0:1.7.14-14.el7
+
+Complete!
+
+[root@devbox ec2-user]# which svn
+/bin/svn
+\end{minted}
+
+Use the command below to checkout (similar to git's pull or clone) the empty
+repository built on the SVN server. The author put little effort into securing
+this environment, as evidenced by using HTTP and without any data protection
+on the server itself. Production repositories would likely not see the
+authentication warning below.
+
+\begin{minted}{text}
+[root@devbox ~]# svn co --username nrusso http://svn.njrusmc.net/svn/repo1 repo1
+Authentication realm: <http://svn.njrusmc.net:80> SVN Repos
+Password for 'nrusso': 
+
+-----------------------------------------------------------------------
+ATTENTION!  Your password for authentication realm:
+[snip password warning]
+Checked out revision 0.
+
+The SVN system will automatically create a directory called "repo1" in the
+working directory where the SVN checkout was performed. There are no
+version-controlled files in it, since the repository has no code yet.
+
+[root@devbox ~]# ls -l repo1/
+total 0
+\end{minted}
+
+Next, change to this repository directory and look at the repository
+information. There is nothing particularly interesting, but it is handy in
+case you forget the URL or current revision.
+
+\begin{minted}{text}
+[root@devbox ~]# cd repo1/
+
+[root@devbox repo1]# svn info
+Path: .
+Working Copy Root Path: /root/repo1
+URL: http://svn.njrusmc.net/svn/repo1
+Repository Root: http://svn.njrusmc.net/svn/repo1
+Repository UUID: 26c9a9fa-97ad-4cdc-a0ad-9d84bf11e78a
+Revision: 0
+Node Kind: directory
+Schedule: normal
+Last Changed Rev: 0
+Last Changed Date: 2018-05-05 09:45:25 -0400 (Sat, 05 May 2018)
+\end{minted}
+
+Next, create a file. The author created a simple but highly suboptimal
+exponentiation function using recursion in Python. A few test cases are
+included at the end of the file. The name of the Python file below is
+\verb|svn_test.py|.
+
+\begin{minted}{python}
+#!/bin/python
+
+def pow(base, exponent):
+    if(exponent == 0):
+        return 1
+    else:
+        return base * pow(base, exponent - 1)
+
+print('2^4 is {}'.format(pow(2, 4)))
+print('3^5 is {}'.format(pow(3, 5)))
+print('4^6 is {}'.format(pow(4, 6)))
+print('5^7 is {}'.format(pow(5, 7)))
+\end{minted}
+
+Quickly test the code by executing it with the command below (not that the
+mathematical correctness matters for this demonstration).
+
+\begin{minted}{text}
+[root@devbox repo1]# python svn_test.py 
+2^4 is 16
+3^5 is 243
+4^6 is 4096
+5^7 is 78125
+\end{minted}
+
+Like git, SVN has a \verb|status| option. The question mark next to the new
+Python files suggests SVN does not know what this file is. In git terms, it is
+an untracked file that needs to be added to the version control system.
+
+\begin{minted}{text}
+[root@devbox repo1]# svn status
+?       svn_test.py
+\end{minted}
+
+The SVN \verb|add| command is somewhat similar to git \verb|add| with the
+exception that files are only added once. In git, \verb|add| moves files from
+the working directory to the staging area. In SVN, \verb|add| moves untracked
+files into a tracked status. The \verb|A| at the beginning of the line
+indicates the file was added.
+
+\begin{minted}{text}
+[root@devbox repo1]# svn add svn_test.py 
+A         svn_test.py
+\end{minted}
+
+In case you missed the output above, you can use the \verb|status| command
+(\verb|st| is a built-in alias) to verify that the file was added.
+
+\begin{minted}{text}
+[root@devbox repo1]# svn st
+A       svn_test.py
+\end{minted}
+
+The last step involves the \verb|commit| action to push changes to the SVN
+repository. The output indicates we are now on version 1.
+
+\begin{minted}{text}
+[root@devbox repo1]# svn commit svn_test.py -m"python recursive exponent function"
+Adding         svn_test.py
+Transmitting file data .
+Committed revision 1.
+\end{minted}
+
+The SVN status shows no changes. This similar to a git ``clean working
+directory'' but is implicit given the lack of output.
+
+\begin{minted}{text}
+[root@devbox repo1]# svn st
+[root@devbox repo1]#
+\end{minted}
+
+Below are screenshots of the repository as viewed from a web browser. Now, our
+new file is present.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath svn-hasfile.png}
+      \captionof{figure}{SVN Repository - Files Present}
+    \end{minipage}
+
+As in most git-based repository systems with GUIs, such as Github or Gitlab,
+you can click on the file to see its contents. While this version of SVN
+server is a simple Apache2-based, no-frills implementation, this feature still
+works. Clicking on the hyperlink reveals the source code contained in the file.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.8\textwidth]{\imgpath svn-code.png}
+      \captionof{figure}{SVN Repository - Viewing Code}
+    \end{minipage}
+
+Next, make some changes to the file. In this case, remove one test case and
+add a new one. Verify the changes were saved.
+
+\begin{minted}{text}
+[root@devbox repo1]# tail -4 svn_test.py
+print('2^4 is {}'.format(pow(2, 4)))
+print('4^6 is {}'.format(pow(4, 6)))
+print('5^7 is {}'.format(pow(5, 7)))
+print('6^8 is {}'.format(pow(6, 8)))
+\end{minted}
+
+SVN \verb|status| now reports the file as modified, similar to git. Use the
+\verb|diff| command to view the changes. Plus signs (+) and minus signs (-)
+are used to indicate additions and deletions, respectively.
+
+\begin{minted}{text}
+[root@devbox repo1]# svn status
+M       svn_test.py
+
+[root@devbox repo1]# svn diff
+Index: svn_test.py
+===================================================================
+--- svn_test.py	(revision 1)
++++ svn_test.py	(working copy)
+@@ -7,6 +7,6 @@
+         return base * pow(base, exponent - 1)
+
+ print('2^4 is {}'.format(pow(2, 4)))
+-print('3^5 is {}'.format(pow(3, 5)))
+ print('4^6 is {}'.format(pow(4, 6)))
+ print('5^7 is {}'.format(pow(5, 7)))
++print('6^8 is {}'.format(pow(6, 8)))
+\end{minted}
+
+Unlike git, there is no staging area, so the \verb|add| command used again
+fails. The file is already under version control and so can be directly
+committed to the repository.
+
+\begin{minted}{text}
+[root@devbox repo1]# svn add svn_test.py
+svn: warning: W150002: '/root/repo1/svn_test.py' is already under version control
+svn: E200009: Could not add all targets because some targets are already versioned
+svn: E200009: Illegal target for the requested operation
+\end{minted}
+
+Using the built-in \verb|ci| alias for \verb|commit|, push the changes to the
+repository. The current code version is incremented to 2.
+
+\begin{minted}{text}
+[root@devbox repo1]# svn ci svn_test.py -m"different numbers"
+Sending        svn_test.py
+Transmitting file data .
+Committed revision 2.
+ \end{minted}
+
+To view log entries, use the \verb|update| command first to bring changes from
+the remote repository into our workspace. This ensures that the subsequent
+\verb|log| command works correctly, similar to git's \verb|log| command. Using
+the verbose option, one can see all of the relevant history for these code
+modifications.
+
+\begin{minted}{text}
+[root@devbox repo1]# svn update
+Updating '.':
+At revision 2.
+
+[root@devbox repo1]# svn log -v
+------------------------------------------------------------------------
+r2 | nrusso | 2018-05-05 10:52:37 -0400 (Sat, 05 May 2018) | 1 line
+Changed paths:
+   M /svn_test.py
+
+different numbers
+------------------------------------------------------------------------
+r1 | nrusso | 2018-05-05 10:47:03 -0400 (Sat, 05 May 2018) | 1 line
+Changed paths:
+   A /svn_test.py
+
+python recursive exponent function
+------------------------------------------------------------------------
+\end{minted}
+
+The following page contains a table that briefly compares git to SVN. One is
+not better than the other; they are simply different. Tools like git is best
+suited for highly technical, distributed teams where local version control and
+frequent offline development occurs. SVN is generally simpler and it is easier
+to do simple tasks, such as manager a single-branch repository with
+\verb|checkout| and \verb|commit| actions.
+
+\begin{longtable}{lll}
+\toprule
+% top left cell is blank
+&
+\textbf{Git}
+&
+\textbf{Subversion (SVN)}
+\\ \midrule
+\textbf{General design}
+&
+Distributed; local and remote repo
+&
+Centralized; central repo only
+\\ \midrule
+\textbf{Staging area?}
+&
+Yes; can split work across commits
+&
+No, commit means push
+\\ \midrule
+\textbf{Learning curve}
+&
+Hard; many commands to learn
+&
+Easy; fewer moving pieces
+\\ \midrule
+\textbf{Branching and merging}
+&
+Easy, simple, and fast
+&
+Complex and laborious
+\\ \midrule
+\textbf{Revisions}
+&
+None; SHA1 commit IDs instead
+&
+Simple numbers; easy for non-techs
+\\ \midrule
+\textbf{Directory support}
+&
+Tracks only files, not directories
+&
+Tracks directories (empty ones too)
+\\ \midrule
+\textbf{Data tracked}
+&
+Content of the files
+&
+Files themselves
+\\ \midrule
+\textbf{Windows support}
+&
+Generally poor
+&
+Tortoise SVN plugin is a good option
+\\
+\bottomrule
+\end{longtable}

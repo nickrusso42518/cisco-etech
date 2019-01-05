@@ -1,0 +1,23 @@
+---
+language: python
+python:
+  - "3.6"
+
+# Install python packages for ansible and linters.
+# Install a minimal TexLive installation for LaTeX support.
+install:
+  - "sudo apt-get install texlive-latex-base -y"
+  - "./ctan_pkgs.sh"
+  - "pip install -r requirements.txt"
+
+# Execute linting tests before running the main playbook.
+# lacheck and chktex apparently always return rc=0 
+before_script:
+  - "make lint"
+  - "make draft"
+  - "make clean"
+
+# Make the PDF itself
+script:
+  - "make pdf"
+...
