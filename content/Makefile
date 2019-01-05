@@ -3,13 +3,17 @@
 .DEFAULT_GOAL := all
 
 .PHONY: all
-all: clean lint pdf
+all: clean pdf
 
 .PHONY: lint
 lint:
 	@date > lint.log
 	@lacheck main.tex | tee -a lint.log
 	@chktex main.tex | tee -a lint.log
+
+.PHONY: draft
+draft:
+	@pdflatex -shell-escape -jobname etech --interaction=batchmode --halt-on-error -draftmode main.tex
 
 .PHONY: pdf
 pdf:

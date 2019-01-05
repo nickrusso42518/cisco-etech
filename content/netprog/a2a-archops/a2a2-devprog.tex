@@ -1,10 +1,1475 @@
 \subsection{Device programmability}
-programmability stuff
+An Application Programmability Interface (API) is meant to define a standard
+way of interfacing with a software application or operating system. It may
+consist of functions (methods, routines, etc), protocols, system call
+constructs, and other ``hooks'' for integration. Both the controllers and
+business applications would need the appropriate APIs revealed for integration
+between the two. This makes up the northbound communication path as discussed
+in section 2.1.5. By creating a common API for communications between
+controllers and business applications, either one can be changed at any time
+without significantly impacting the overall architecture.
+
+A common API that is discussed within the networking world is the
+Representational State Transfer (REST) API. REST represents an ``architectural
+style'' of transferring information between clients and servers. In essence, it
+is a way of defining attributes or characteristics of how data is moved. REST
+is commonly used with HTTP by combining traditional HTTP methods (GET, POST,
+PUT, DELETE, etc) and Universal Resource Identifiers (URI). The end result is
+that API requests look like URIs and are used to fetch/write specific pieces
+of data to a target machine. This simplification helps promote automation,
+especially for web-based applications or services. Note that HTTP is stateless
+which means the server does not store session information for individual
+flows; REST API calls retain this stateless functionality as well. This allows
+for seamless REST operation across HTTP proxies and gateways.
 
 \subsubsection{Google Remote Procedure Call (gRPC) on IOS-XR}
+Google defined gRPC as gRPC Remote Procedure Call framework, borrowing the
+idea of recursive acronyms popular in the open source world. The RPC concept
+is not a new one; Distributed Component Object Model (DCOM) from Microsoft has
+long existed, among others. These RPC mechanisms are both highly complex and
+considered legacy today. gRPC is open source and free at the time of this
+writing.
+\\ \\
+gRPC attempts to solve a number of shortcomings of REST-based APIs. For
+example, there is no formal machine definition of a REST API. Each API is
+custom-built following REST architectural principles. API consumers must
+always read documents pertaining to the specific API in order to determine its
+usage specifications. Furthermore, streaming operations (sending a stream of
+messages in response to a client's request, or vice versa) are very difficult
+as HTTP 1.1, the specification upon which most REST-based APIs are built, does
+not support this. gRPC is based on HTTP/2 which supports this functionality.
+\\ \\
+The gRPC framework also solves the time-consuming and expensive problem of
+writing client libraries. With REST-based APIs, individual client libraries
+must be written in whatever language a developer needs for gRPC API
+invocations. Using the Interface Definition Language (IDL), which is loosely
+analogous to YANG, developers can identify both the service interface and the
+structure of the payload messages. Because IDL follows a standard format (it's
+a language after all), it can be compiled. The outputs from this compilation
+process include client libraries for many different languages, such as C, C\#,
+Java, and Python to name a few.
+\\ \\
+Error reporting in gRPC is also improved when compared to REST-based APIs.
+Rather than relying on generic HTTP status codes, gRPC has a formalized set of
+errors specific to API usage, which is better suited to machine-based
+communications. gRPC forms a single TCP session with many API calls
+transported within; this allows multiple in-flight API calls concurrently.
+\\ \\
+Today, gRPC is supported on Cisco's IOS-XR platform. To follow this
+demonstration, any Linux development platform will work, assuming it has
+Python installed. Testing gRPC on IOS-XR is not particularly different than
+other APIs, but requires many setup steps. Each one is covered briefly before
+the demonstration begins. First, install the necessary underlying libraries
+needed to use gRPC. The "docopt" package helps with using CLI commands and is
+used by the Cisco IOS-XR \verb|cli.py| client.
+\\ \\
+
+\begin{minted}{text}
+[root@devbox ec2-user]# pip install grpcio docopt
+Collecting grpcio
+  Downloading
+[snip]
+Collecting docopt
+  Downloading
+[snip]
+\end{minted}
+
+Next, install the Cisco IOS-XR specific libraries needed to communicate using
+gRPC. This could be bundled into the previous step, but was separated in this
+document for cleanliness.
+
+\begin{minted}{text}
+[root@devbox ec2-user]# pip install iosxr_grpc
+Collecting iosxr_grpc
+[snip]
+\end{minted}
+
+Clone this useful gRPC client library, written by Karthik Kumaravel. It
+contains a number of wrapper functions to simplify using gRPC for both
+production and learning purposes. Using the \verb|ls| command, ensure the
+\verb|ios-xr-grpc-python/| directory has files in it. This indicates a successful
+clone. More skilled developers may skip this step and write custom Python code
+using the \verb|iosxr_grpc| library directly.
+
+\begin{minted}{text}
+[root@devbox ec2-user]# git clone https://github.com/cisco-grpc-connection-libs/ios-xr-grpc-python.git
+Cloning into 'ios-xr-grpc-python'...
+remote: Counting objects: 419, done.
+remote: Total 419 (delta 0), reused 0 (delta 0), pack-reused 419
+Receiving objects: 100% (419/419), 99.68 KiB | 0 bytes/s, done.
+Resolving deltas: 100% (219/219), done.
+
+[root@devbox ec2-user]# ls ios-xr-grpc-python/
+examples  iosxr_grpc  LICENSE  README.md  requirements.txt  setup.py  tests
+\end{minted}
+
+To better understand how the data modeling works, clone the YANG models
+repository. To save download time and disk space, one could specify a more
+targeted clone. Use \verb|ls| again to ensure the clone operation succeeded.
+
+\begin{minted}{text}
+[root@devbox ec2-user]# git clone https://github.com/YangModels/yang.git
+Cloning into 'yang'...
+remote: Counting objects: 13479, done.
+remote: Total 13479 (delta 0), reused 0 (delta 0), pack-reused 13478
+Receiving objects: 100% (13479/13479), 22.93 MiB | 20.26 MiB/s, done.
+Resolving deltas: 100% (9244/9244), done.
+Checking out files: 100% (12393/12393), done.
+
+[root@devbox ec2-user]# ls yang/
+experimental  ieee802-dot1ab-lldp.yang  README.md  setup.py  [snip]
+\end{minted}
+
+Install the pyang tool, which is a Python utility for managing YANG models.
+This same tool is used to examine YANG models in conjunction with NETCONF on
+IOS-XE elsewhere in this book.
+
+\begin{minted}{text}
+[root@devbox ec2-user]# pip install pyang
+Collecting pyang
+  Downloading
+[snip]
+[root@devbox ec2-user]# which pyang
+/bin/pyang
+\end{minted}
+
+Using pyang, examine the YANG model on IOS-XR for OSPFv3, which is the topic
+of this demonstration. This tree structure defines the JSON representation of
+the device configuration that gRPC requires. NETCONF uses XML encoding and
+gRPC uses JSON encoding, but both are the exact same representation of the
+data structure.
+
+\begin{minted}{text}
+[root@devbox ec2-user]# cd yang/vendor/cisco/xr/631/
+[root@devbox 631]# pyang -f tree Cisco-IOS-XR-ipv6-ospfv3-cfg.yang
+module: Cisco-IOS-XR-ipv6-ospfv3-cfg
+  +--rw ospfv3
+     +--rw processes
+     |  +--rw process* [process-name]
+     |     +--rw default-vrf
+     |     |  +--rw ldp-sync?                      boolean
+     |     |  +--rw prefix-suppression?            boolean
+     |     |  +--rw spf-prefix-priority-disable?   empty
+     |     |  +--rw area-addresses
+     |     |  |  +--rw area-address* [address]
+     |     |  |  |  +--rw address                inet:ipv4-address-no-zone
+     |     |  |  |  +--rw authentication
+     |     |  |  |  |  +--rw enable?      boolean
+[snip]
+\end{minted}
+
+Before continuing, ensure you have a functional IOS-XR platform running
+version 6.0 or later. Log into the IOS-XR platform via SSH and enable gRPC.
+It's very simple and only requires identifying a TCP port on which to listen.
+Additionally, TLS-based security options are available but omitted for this
+demonstration. This IOS-XR platform is an XRv9000 running in AWS on version 6.3.1.
+
+\begin{minted}{text}
+RP/0/RP0/CPU0:XRv_gRPC#show version                  
+Cisco IOS XR Software, Version 6.3.1
+Copyright (c) 2013-2017 by Cisco Systems, Inc.
+
+Build Information:
+ Built By     : ahoang
+ Built On     : Wed Sep 13 18:30:01 PDT 2017
+ Build Host   : iox-ucs-028
+ Workspace    : /auto/srcarchive11/production/6.3.1/xrv9k/workspace
+ Version      : 6.3.1
+ Location     : /opt/cisco/XR/packages/
+
+cisco IOS-XRv 9000 () processor 
+System uptime is 21 minutes
+
+RP/0/RP0/CPU0:XRv_gRPC#show running-config grpc 
+grpc
+ port 10033
+!
+\end{minted}
+
+Once enabled, check the gRPC status and statistics, respectively, to ensure it
+is running. The TCP port is 10033 and TLS is disabled for this test. The
+statistics do not show any gRPC activity yet. This makes sense since no API
+calls have been executed.
+
+\begin{minted}{text}
+RP/0/RP0/CPU0:XRv_gRPC#show grpc status
+*************************show gRPC status**********************
+---------------------------------------------------------------
+transport                       :     grpc
+access-family                   :     tcp4
+TLS                             :     disabled
+trustpoint                      :     NotSet
+listening-port                  :     10033
+max-request-per-user            :     10
+max-request-total               :     128
+vrf-socket-ns-path              :     global-vrf
+_______________________________________________________________
+*************************End of showing status*****************
+
+RP/0/RP0/CPU0:XRv_gRPC#show grpc statistics 
+*************************show gRPC statistics******************
+---------------------------------------------------------------
+show-cmd-txt-request-recv       :     0
+show-cmd-txt-response-sent      :     0
+get-config-request-recv         :     0
+get-config-response-sent        :     0
+cli-config-request-recv         :     0
+cli-config-response-sent        :     0
+get-oper-request-recv           :     0
+get-oper-response-sent          :     0
+merge-config-request-recv       :     0
+merge-config-response-sent      :     0
+commit-replace-request-recv     :     0
+commit-replace-response-sent    :     0
+delete-config-request-recv      :     0
+delete-config-response-sent     :     0
+replace-config-request-recv     :     0
+replace-config-response-sent    :     0
+total-current-sessions          :     0
+commit-config-request-recv      :     0
+commit-config-response-sent     :     0
+action-json-request-recv        :     0
+action-json-response-sent       :     0
+_______________________________________________________________
+*************************End of showing statistics*************
+\end{minted}
+
+Manually configure some OSPFv3 parameters via CLI to start. Below is a
+configuration snippet from the IOS-XRv platform running gRPC.
+
+\begin{minted}{text}
+RP/0/RP0/CPU0:XRv_gRPC#show running-config router ospfv3
+router ospfv3 42518
+ router-id 10.10.10.2
+ log adjacency changes detail
+ area 0
+  interface Loopback0
+   passive
+  !
+  interface GigabitEthernet0/0/0/0
+   cost 1000
+   network point-to-point
+   hello-interval 1
+  !
+ !
+ address-family ipv6 unicast
+\end{minted}
+
+Navigate to the \verb|examples/| directory inside of the cloned IOS-XR gRPC client
+utility. The \verb|cli.py| utility can be run directly from the shell with a
+handful of CLI arguments to specify the username/password, TCP port, and gRPC
+operation. Performing a \verb|get-config| operation first will return the
+properly-structured JSON of the entire configuration. Because it is so long,
+the author redirects this into a file for further processing.
+
+\begin{minted}{text}
+[root@devbox ec2-user]# cd ios-xr-grpc-python/examples/
+[root@devbox examples]# ./cli.py -i xrv_grpc -p 10033 -u root -pw grpctest \
+>  -r get-config | tee json/ospfv3.json
+{
+ "data": {
+  "Cisco-IOS-XR-ip-static-cfg:router-static": {
+   "default-vrf": {
+    "address-family": {
+     "vrfipv4": {
+      "vrf-unicast": {
+       "vrf-prefixes": {
+        "vrf-prefix": [
+[snip]
+\end{minted}
+
+Using the popular \verb|jq| (JSON query) utility, one can pull out the OSPFv3
+configuration from the file.
+
+\begin{minted}{text}
+[root@devbox examples]# jq '.data."Cisco-IOS-XR-ipv6-ospfv3-cfg:ospfv3"' json/ospfv3.json 
+{
+  "processes": {
+    "process": [
+      {
+        "process-name": 42518,
+        "default-vrf": {
+          "router-id": "10.10.10.2",
+          "log-adjacency-changes": "detail",
+          "area-addresses": {
+            "area-area-id": [
+              {
+                "area-id": 0,
+                "enable": [
+                  null
+                ],
+                "interfaces": {
+                  "interface": [
+                    {
+                      "interface-name": "Loopback0",
+                      "enable": [
+                        null
+                      ],
+                      "passive": true
+                    },
+                    {
+                      "interface-name": "GigabitEthernet0/0/0/0",
+                      "enable": [
+                        null
+                      ],
+                      "cost": 1000,
+                      "network": "point-to-point",
+                      "hello-interval": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "af": {
+          "af-name": "ipv6",
+          "saf-name": "unicast"
+        },
+        "enable": [
+          null
+        ]
+      }
+    ]
+  }
+}
+\end{minted}
+
+Run the \verb|jq| command again except redirect the output to a new file. This new
+file represents the configuration updates to be pushed via gRPC.
+
+\begin{minted}{text}
+[root@devbox examples]# jq '.data."Cisco-IOS-XR-ipv6-ospfv3-cfg:ospfv3"' \
+>  json/ospfv3.json >> json/merge.json
+\end{minted}
+
+Using a text editor, manually update the \verb|merge.json| file by adding the
+top-level key of ``Cisco-IOS-XR-ipv6-ospfv3-cfg:ospfv3'' and changing some
+minor parameters. In the example below, the author updates Gig0/0/0 cost,
+network type, and hello interval. Don't forget the trailing \verb|}| after
+adding the top-level key discussed above or else the JSON data will be
+syntactically incorrect.
+
+\begin{minted}{text}
+[root@devbox examples]# cat json/merge.json 
+{
+  "Cisco-IOS-XR-ipv6-ospfv3-cfg:ospfv3": {
+    "processes": {
+      "process": [
+        {
+          [snip]
+                  "interfaces": {
+                    "interface": [
+                      [snip]
+                      {
+                        [snip]
+                        "cost": 123,
+                        "network": "broadcast",
+                        "hello-interval": 17
+                      }
+[snip]
+\end{minted}
+
+Use the \verb|cli.py| utility again except with the \verb|merge-config|
+option. Specify the \verb|merge.json| file as the configuration delta to merge
+with the existing configuration. This API call does not return any output, but
+checking the return code indicates it succeeded.
+
+\begin{minted}{text}
+[root@devbox examples]# ./cli.py -i xrv_grpc -p 10033 -u root -pw grpctest \
+>  -r merge-config --file json/merge.json
+
+\begin{minted}{text}
+[root@devbox examples]# echo $?
+0
+\end{minted}
+
+Log into the IOS-XR platform again and confirm via CLI that the configuration was updated.
+
+\begin{minted}{text}
+RP/0/RP0/CPU0:XRv_gRPC#sh run router ospfv3
+router ospfv3 42518
+ router-id 10.10.10.2
+ log adjacency changes detail
+ area 0
+  interface Loopback0
+   passive
+  !
+  interface GigabitEthernet0/0/0/0
+   cost 123
+   network broadcast
+   hello-interval 17
+  !
+ !
+ address-family ipv6 unicast
+\end{minted}
+
+The gRPC statistics are updated as well. The first \verb|get-config| request came
+from the devbox and the response was sent from the router. The same
+transactional communication is true for \verb|merge-config|.
+
+\begin{minted}{text}
+RP/0/RP0/CPU0:XRv_gRPC#show grpc statistics 
+*************************show gRPC statistics******************
+---------------------------------------------------------------
+show-cmd-txt-request-recv       :     0
+show-cmd-txt-response-sent      :     0
+get-config-request-recv         :     1
+get-config-response-sent        :     1
+cli-config-request-recv         :     0
+cli-config-response-sent        :     0
+get-oper-request-recv           :     0
+get-oper-response-sent          :     0
+merge-config-request-recv       :     1
+merge-config-response-sent      :     1
+commit-replace-request-recv     :     0
+commit-replace-response-sent    :     0
+delete-config-request-recv      :     0
+delete-config-response-sent     :     0
+replace-config-request-recv     :     0
+replace-config-response-sent    :     0
+total-current-sessions          :     0
+commit-config-request-recv      :     0
+commit-config-response-sent     :     0
+action-json-request-recv        :     0
+action-json-response-sent       :     0
+_______________________________________________________________
+*************************End of showing statistics*************
+\end{minted}
+
 \subsubsection{Python paramiko Library on IOS-XE}
+Many of the traditional scripts that network engineers have written to
+interact with devices have used Python's paramiko library. Before simplified
+wrapper tools like Ansible, networkers could interact with a network device
+shell by sending raw commands and receiving byte strings in return. The
+mechanics are generally simple but less elegant than modern tools. This brief
+demonstration uses paramiko to both collect information from, and push
+information to, a Cisco CSR1000v running in AWS. The relevant version and
+package information is listed below. You may need to use pip to install paramiko.
+
+\begin{minted}{text}
+[ec2-user@devbox ~]$ python3 --version
+Python 3.6.5
+
+[ec2-user@devbox ~]$ python3 -m pip list | grep paramiko
+paramiko (2.4.2)
+\end{minted}
+
+Below is the code for the demonstration. The comments included in-line help
+explain what is happening at a basic level. The file is \verb|cisco_paramiko.py|.
+
+\begin{minted}{python}
+import time
+import paramiko
+
+def send_cmd(conn, command):
+    """
+    Given an open connection and a command, issue the command and wait
+    500 ms for the command to be processed.
+    """
+    conn.send(command + '\n')
+    time.sleep(0.5)
+
+def get_output(conn):
+    """
+    Given an open connection, read all the data from the buffer and
+    decode the byte string as UTF-8.
+    """
+    return conn.recv(65535).decode('utf-8')
+
+def main():
+    """
+    Execution starts here by creating an SSHClient object, assigning login
+    parameters, and opening a new shell via SSH.
+    """
+    conn_params = paramiko.SSHClient()
+    conn_params.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    conn_params.connect(hostname='172.31.31.144', port=22,
+                        username='python', password='python',
+                        look_for_keys=False, allow_agent=False)
+
+    conn = conn_params.invoke_shell()
+    print(f'Logged into {get_output(conn).strip()} successfully')
+
+    # Run some exec commands and print the output, including
+    # prompt returns and newlines.
+    commands = ['terminal length 0', 'show version', 'show inventory']
+    for command in commands:
+        send_cmd(conn, command)
+        print(get_output(conn))
+
+    # Run some configuration commands after issuing "conf t" and
+    # discard the output. Issue "end" afterwards
+    services = ['service nagle', 'service sequence-numbers', 'service dhcp']
+    send_cmd(conn, 'configure terminal')
+    for service in services:
+        send_cmd(conn, service)
+    send_cmd(conn, 'end')
+
+if __name__ == '__main__':
+    main()
+\end{minted}
+
+Before running this code, examine the configuration of the router's services.
+Notice that DHCP is explicitly disabled while nagle and sequence-numbers are
+disabled by default.
+
+\begin{minted}{text}
+CSR1000V#show running-config | include service
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service dhcp
+\end{minted}
+
+Run the script using the command below, which logs into the router, gathers
+some basic information, and applies some configuration updates.
+
+\begin{minted}{text}
+[ec2-user@devbox ~]$ python3 cisco_paramiko.py
+Logged into CSR1000V# successfully
+terminal length 0
+CSR1000V#
+show version
+Cisco IOS XE Software, Version 16.09.01
+Cisco IOS Software [Fuji], Virtual XE Software (X86_64_LINUX_IOSD-UNIVERSALK9-M),
+  Version 16.9.1, RELEASE SOFTWARE (fc2)
+[version output truncated]
+Configuration register is 0x2102
+
+CSR1000V#
+show inventory
+NAME: "Chassis", DESCR: "Cisco CSR1000V Chassis"
+PID: CSR1000V          , VID: V00  , SN: 9CZ120O2S1L
+
+NAME: "module R0", DESCR: "Cisco CSR1000V Route Processor"
+PID: CSR1000V          , VID: V00  , SN: JAB1303001C
+
+NAME: "module F0", DESCR: "Cisco CSR1000V Embedded Services Processor"
+PID: CSR1000V          , VID:      , SN:
+
+CSR1000V#
+\end{minted}
+
+After running this code, all three specified services are enabled. DHCP does
+not show up because it is enabled by default, but \verb|no service dhcp| is
+absent, implying \verb|service dhcp| is enabled.
+ 
+\begin{minted}{text}
+CSR1000V#show running-config | include service
+service nagle
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service sequence-numbers
+\end{minted}
+
 \subsubsection{Python netmiko Library on IOS-XE}
+While paramiko is relatively easy to use, especially with simple wrapper
+functions for sending commands and reading output, it has some weaknesses.
+First, it is unlikely that network engineers care about seeing the exec shell
+prompt, the echoed command, and flurry of whitespace that accompanies much of
+the data written to the receive buffer. Additionally, specifying a buffer read
+size, measured in bytes, to pull data from the shell session is a low-level
+operation that could be abstracted. The netmiko library expands on the
+capabilities of paramiko specifically for network engineers. This library was
+created and is currently maintained by
+\href{https://pynet.twb-tech.com/blog/automation/netmiko.html}{Kirk Byers}.
+It serves as the base networking library for
+\href{https://github.com/networktocode/ntc-ansible}{Network To Code (NTC) Ansible modules}
+and is popular in the network automation community, even for traditional Python
+coders. The version and package information is below. The netmiko package can
+be installed using pip.
+
+\begin{minted}{text}
+[ec2-user@devbox ~]$ python3 --version
+Python 3.6.5
+
+[ec2-user@devbox ~]$ python3 -m pip list | grep netmiko
+netmiko (2.3.0)
+\end{minted}
+
+Below is the code for the demonstration. Like the paramiko example, comments
+included in-line help explain the steps. Notice that there is significantly
+less code, and the code that does exist is relatively simple and abstract. The
+code accomplishes the same general tasks as the paramiko code. The file is
+\verb|cisco_netmiko.py|.
+
+\begin{minted}{python}
+from netmiko import ConnectHandler
+
+def main():
+    """
+    Execution starts here by creating a new connection with several
+    keyword arguments to log into the device.
+    """
+    conn = ConnectHandler(device_type='cisco_ios', ip='172.31.31.144',
+                          username='python', password='python')
+
+    print(f'Logged into {conn.find_prompt()} successfully')
+
+    # Run some exec commands and print the output, but don't need
+    # to define a custom function to send commands cleanly
+    commands = ['terminal length 0', 'show version', 'show inventory']
+    for command in commands:
+        print(conn.send_command(command))
+
+    # Run some configuration commands, don't need "conf t" anymore
+    # and don't need to build our own for loop
+    services = ['service nagle', 'service sequence-numbers', 'service dhcp']
+    conn.send_config_set(services)
+
+if __name__ == '__main__':
+    main()
+\end{minted}
+
+For completeness, below is a snippet of the services currently enabled. Just
+like in the paramiko example, the three services we want to enable (DHCP,
+nagle, and sequence-numbers) are currently disabled.
+
+\begin{minted}{text}
+CSR1000V#show running-config | include service
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service dhcp
+\end{minted}
+
+Running the code, there is far less output since netmiko cleanly masks the
+shell prompt from being returned with each command output, instead only
+returning the relevant/useful data.
+
+\begin{minted}{text}
+[ec2-user@devbox ~]$ python3 cisco_netmiko.py
+Logged into CSR1000V# successfully
+
+Cisco IOS XE Software, Version 16.09.01
+Cisco IOS Software [Fuji], Virtual XE Software (X86_64_LINUX_IOSD-UNIVERSALK9-M),
+  Version 16.9.1, RELEASE SOFTWARE (fc2)
+[snip]
+
+Configuration register is 0x2102
+
+NAME: "Chassis", DESCR: "Cisco CSR1000V Chassis"
+PID: CSR1000V          , VID: V00  , SN: 9CZ120O2S1L
+
+NAME: "module R0", DESCR: "Cisco CSR1000V Route Processor"
+PID: CSR1000V          , VID: V00  , SN: JAB1303001C
+
+NAME: "module F0", DESCR: "Cisco CSR1000V Embedded Services Processor"
+PID: CSR1000V          , VID:      , SN:
+\end{minted}
+
+After running this code, all three specified services in the services list are
+automatically configured with minimal effort. Recall that \verb|service dhcp|
+is enabled by default.
+
+\begin{minted}{text}
+CSR1000V#show running-config | include service
+service nagle
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service sequence-numbers
+\end{minted}
+
 \subsubsection{NETCONF using netconf-console on IOS-XE}
+YANG as a modeling language was discussed earlier in this document. This was
+lacking context because YANG by itself provides little value. There needs to
+be some mechanism to transport the data that conforms to these
+machine-friendly models. One of those transport options is NETCONF.
+\\ \\
+This section explores a short NETCONF/YANG example using Cisco CSR1000v on
+modern \verb|Everest| software. This router is running as an EC2 instance inside
+AWS. Using the EIGRP YANG model explored earlier in this document, this
+section demonstrates configuration updates relating to EIGRP.
+\\ \\
+The simplest way to enable NETCONF/YANG is with the \verb|netconf-yang| global
+command with no additional arguments.
+
+\begin{minted}{text}
+NETCONF_TEST#show running-config | include netconf
+netconf-yang
+\end{minted}
+
+RFC6242 describes NETCONF over SSH and TCP port 830 has been assigned for this
+service. A quick test of the \verb|ssh| shell command on port 830 shows a
+successful connection with several lines of XML being returned. Without
+understanding what this data means, the names of several YANG modules are
+returned, including the EIGRP one of interest.
+
+\begin{minted}{text}
+Nicholass-MBP:ssh nicholasrusso$ ssh -p 830 nctest@netconf.njrusmc.net
+nctest@netconf.njrusmc.net's password:
+<?xml version="1.0" encoding="UTF-8"?>
+<hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+<capabilities>
+<capability>urn:ietf:params:netconf:base:1.0</capability>
+<capability>urn:ietf:params:netconf:base:1.1</capability>
+<capability>urn:ietf:params:netconf:capability:writable-running:1.0</capability>
+<capability>urn:ietf:params:netconf:capability:xpath:1.0</capability>
+<capability>urn:ietf:params:netconf:capability:validate:1.0</capability>
+[snip]
+<capability>http://cisco.com/ns/yang/Cisco-IOS-XE-eigrp?module=Cisco-IOS-XE-eigrp&amp;
+revision=2017-02-07</capability>
+[snip]
+\end{minted}
+
+The \verb|netconf-console.py| tool is a simple way to interface with network
+devices that use NETCONF. This is the same tool used in the Cisco blog post
+mentioned earlier. Rather than specify basic SSH login information as command
+line arguments, the author suggests editing these values in the Python code to
+avoid typos while testing. These options begin around line 540 of the
+\verb|netconf-console.py| file.
+
+\begin{minted}{text}
+parser.add_option("-u", "--user", dest="username", default="nctest",
+                  help="username")
+parser.add_option("-p", "--password", dest="password", default="nctest",
+                  help="password")
+parser.add_option("--host", dest="host", default="netconf.njrusmc.net",
+                  help="NETCONF agent hostname")
+parser.add_option("--port", dest="port", default=830, type="int",
+\end{minted}
+                  help="NETCONF agent SSH port")
+
+Run the playbook using Python 2 (not Python 3, as the code is not
+syntactically compatible) with the \verb|--hello| option to collect the list of
+supported capabilities from the router. Verify that the EIGRP module is
+present. This output is similar to the native SSH shell test from above except
+it is handled through the \verb|netconf-console.py| tool.
+
+\begin{minted}{text}
+Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --hello
+<?xml version="1.0" encoding="UTF-8"?>
+<hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <capabilities>
+    <capability>urn:ietf:params:netconf:base:1.0</capability>
+    <capability>urn:ietf:params:netconf:base:1.1</capability>
+    <capability>urn:ietf:params:netconf:capability:writable-running:1.0</capability>
+    <capability>urn:ietf:params:netconf:capability:xpath:1.0</capability>
+    <capability>urn:ietf:params:netconf:capability:validate:1.0</capability>
+    <capability>urn:ietf:params:netconf:capability:validate:1.1</capability>
+    <capability>urn:ietf:params:netconf:capability:rollback-on-error:1.0</capability>
+[snip]
+    <capability>http://cisco.com/ns/yang/Cisco-IOS-XE-eigrp?module=Cisco-IOS-XE-eigrp&amp;
+	revision=2017-02-07</capability>
+[snip]
+  </capabilities>
+  <session-id>26801</session-id>
+</hello>
+\end{minted}
+
+This device claims to support EIGRP configuration via NETCONF as verified
+above. To simplify the initial configuration, an EIGRP snippet is provided
+below which adjusts the variables in scope for this test. These are CLI
+commands and are unrelated to NETCONF.
+
+\begin{minted}{text}
+# Applied to NETCONF_TEST router
+router eigrp NCTEST
+ address-family ipv4 unicast autonomous-system 65001
+  af-interface GigabitEthernet1
+   bandwidth-percent 9
+   hello-interval 7
+   hold-time 8
+\end{minted}
+
+When querying the router for this data, start at the topmost layer under the
+data field and drill down to the interesting facts. The text below shows the
+current \verb|router eigrp| configuration on the device using the \verb|--get-config -x|
+option set. Omitting any options and simply using \verb|--get-config| will provide
+the entire configuration, which is useful for finding out what the structure
+of the different CLI stanzas are.
+
+\begin{minted}{text}
+Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --get-config -x "native/router/eigrp"
+ <?xml version="1.0" encoding="UTF-8"?>
+ <rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="1">
+   <data>
+     <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+       <router>
+         <eigrp xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-eigrp">
+           <id>NCTEST</id>
+           <address-family>
+             <type>ipv4</type>
+             <af-ip-list>
+               <unicast-multicast>unicast</unicast-multicast>
+               <autonomous-system>65001</autonomous-system>
+               <af-interface>
+                 <name>GigabitEthernet1</name>
+                 <bandwidth-percent>9</bandwidth-percent>
+                 <hello-interval>7</hello-interval>
+                 <hold-time>8</hold-time>
+               </af-interface>
+             </af-ip-list>
+           </address-family>
+         </eigrp>
+       </router>
+     </native>
+   </data>
+ </rpc-reply>
+\end{minted}
+
+Next, a small change will be applied using NETCONF. Each of the three
+variables will be incremented by 10. Simply copy the \verb|eigrp| data field from
+the remote procedure call (RPC) feedback, save it to a file (eigrp-updates.xml
+for example), and hand-modify the variable values. Correcting the indentation
+by removing leading whitespace is not strictly required but is recommended for
+readability. Below is an example of the configuration parameters that NETCONF
+can push to the device.
+
+\begin{minted}{text}
+Nicholass-MBP:YANG nicholasrusso$ cat eigrp-updates.xml
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <router>
+    <eigrp xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-eigrp">
+      <id>NCTEST</id>
+      <address-family>
+        <type>ipv4</type>
+        <af-ip-list>
+          <unicast-multicast>unicast</unicast-multicast>
+          <autonomous-system>65001</autonomous-system>
+          <af-interface>
+            <name>GigabitEthernet1</name>
+            <bandwidth-percent>19</bandwidth-percent>
+            <hello-interval>17</hello-interval>
+            <hold-time>18</hold-time>
+          </af-interface>
+        </af-ip-list>
+      </address-family>
+    </eigrp>
+  </router>
+</native>
+\end{minted}
+
+Using the \verb|--edit-config| option, write these changes to the device. NETCONF
+will return an ``ok'' message when complete.
+
+\begin{minted}{text}
+Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --edit-config=./eigrp-updates.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="1">
+  <ok/>
+</rpc-reply>
+\end{minted}
+
+Perform the \verb|get| operation once more to ensure the value were updated correctly by NETCONF.
+ 
+\begin{minted}{text}
+Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --get-config -x "native/router/eigrp"
+<?xml version="1.0" encoding="UTF-8"?>
+<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="1">
+  <data>
+    <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+      <router>
+        <eigrp xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-eigrp">
+          <id>NCTEST</id>
+          <address-family>
+            <type>ipv4</type>
+            <af-ip-list>
+              <unicast-multicast>unicast</unicast-multicast>
+              <autonomous-system>65001</autonomous-system>
+              <af-interface>
+                <name>GigabitEthernet1</name>
+                <bandwidth-percent>19</bandwidth-percent>
+                <hello-interval>17</hello-interval>
+                <hold-time>18</hold-time>
+              </af-interface>
+            </af-ip-list>
+          </address-family>
+        </eigrp>
+      </router>
+    </native>
+  </data>
+</rpc-reply>
+\end{minted}
+
+Logging into the router's shell via SSH as a final check, the configuration
+changes made by NETCONF were retained. Additionally, a syslog message suggests
+that the configuration was updated by NETCONF, which helps differentiate it
+from regular CLI changes.
+
+\begin{minted}{text}
+%DMI-5-CONFIG_I:  F0: nesd:  Configured from NETCONF/RESTCONF by nctest, transaction-id 81647
+
+NETCONF_TEST#show running-config | section eigrp
+router eigrp NCTEST
+ !
+ address-family ipv4 unicast autonomous-system 65001
+  !
+  af-interface GigabitEthernet1
+   bandwidth-percent 19
+   hello-interval 17
+   hold-time 18
+\end{minted}
+
 \subsubsection{NETCONF using Python and jinja2 on IOS-XE}
-\subsubsection{RESTCONF on IOS-XE}
+While the netconf-console.py utility is an easy way to explore using NETCONF,
+a more realistic application of the technology includes custom programming.
+The Python library ncclient, or NETCONF client for short, provides an
+easily-consumable NETCONF API for Python programmers. The following program
+was written by \href{https://twitter.com/dmfigol}{Dmitry Figol} and was
+slightly modified by the author to fit this book's format and style. Comments
+are included throughout the code to provide high-level explanations of the
+process. In a sentence, the code collects the running configuration and prints
+some basic system data, then adds some new loopbacks to the router. The file
+is called \verb|pynetconf.py|.
+
+\begin{minted}{python}
+#!/usr/bin/python3
+import jinja2
+import xmltodict
+from ncclient import manager
+
+def get_config(connection_params):
+    # Open connection using the parameter dictionary
+    with manager.connect(**connection_params) as connection:
+        config_xml = connection.get_config(source='running').data_xml
+        config = xmltodict.parse(config_xml)['data']
+    return config
+
+def configure_device(connection_params, config_data, template_name):
+    # Load the jinja2 templates and process the template to build XML config
+    j2_tmp = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(searchpath='./'))
+    template = j2_tmp.get_template(template_name)
+    config = template.render(config_data)
+
+    # Push XML configuration to network device
+    with manager.connect(**connection_params) as connection:
+        response = connection.edit_config(target='running', config=config)
+
+def main():
+    # Login information for the router
+    connection_params = {
+        'host': '172.31.55.203',
+        'username': 'cisco',
+        'password': 'cisco',
+        'hostkey_verify': False,
+    }
+
+    # The data we want to push. We can define this structure
+    # however it makes sense for our environment.
+    config_data = {
+        'loopbacks': [
+            {
+                'number': '42518',
+                'description': 'No IP on this one yet!'
+            },
+            {
+                'number': '53592',
+                'ipv4_address': '192.0.2.1',
+                'ipv4_mask': '255.255.255.0'
+            }
+        ]
+    }
+
+    # Get the configuration before making changes
+    config = get_config(connection_params)
+
+    # Print a subset of available configuration information
+    sw_version = config['native']['version']
+    hostname = config['native']['hostname']
+    top_keys = list(config['native'].keys())
+    print(f'SW version: {sw_version}')
+    print(f'Hostname: {hostname}')
+    print(f'top level keys: {top_keys}')
+
+    # Configure the device using parameters defined above
+    configure_device(connection_params=connection_params,
+        config_data=config_data, template_name='loopbacks.j2')
+
+if __name__ == '__main__':
+    main()
+\end{minted}
+
+The file below is a jinja2 template file. Jinja2 is a text templating language
+commonly used with Python applications and their derivative products, such as
+Ansible. It contains basic programming logic such as conditionals, iteration,
+and variable substitution. By substituting variables into an XML template, the
+output is a data structure that NETCONF can push to the devices. The variable
+fields have been highlighted to show the relevant logic.
+
+\begin{minted}{xml}
+<config>
+  <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <interface>
+      {% for loopback in loopbacks %}
+      <Loopback>
+          <name>{{ loopback.number }}</name>
+          {% if loopback.description is defined %}
+          <description>{{ loopback.description }}</description>
+          {% endif %}
+          {% if loopback.ipv4_address is defined %}
+          <ip>
+            <address>
+                <primary>
+                  <address>{{ loopback.ipv4_address }}</address>
+                  <mask>{{ loopback.ipv4_mask }}</mask>
+                </primary>
+            </address>
+          </ip>
+          {% endif %}
+      </Loopback>
+      {% endfor %}
+    </interface>
+  </native>
+</config>
+\end{minted}
+
+Before running the code, verify that \verb|netconf-yang| is configured as
+explained during the NETCONF console demonstration, along with a privilege 15
+user. The code above reveals that the demo username/password is cisco/cisco.
+After running the code, the output below is printed to standard output. The
+author has included the ``top level keys'' just to show a few other high level
+options available. Collecting information via NETCONF is far superior to
+CLI-based screen scraping via regular expressions for text parsing.
+
+\begin{minted}{text}
+[ec2-user@devbox]$ python3 pynetconf.py 
+SW version: 16.9
+Hostname: CSR1000v
+top level keys: ['@xmlns', 'version', 'boot-start-marker', 'boot-end-marker',
+'service', 'platform', 'hostname', 'username', 'vrf', 'ip', 'interface',
+'control-plane', 'logging', 'multilink', 'redundancy', 'spanning-tree',
+'subscriber', 'crypto', 'license', 'line', 'iox', 'diagnostic']
+\end{minted}
+
+For those who are also logged into the router via SSH, the log message below
+will be generated when the NETCONF client accesses the device. This can be
+useful for troubleshooting unexpected changes or rogue NETCONF logins.
+
+\begin{minted}{text}
+%DMI-5-AUTH_PASSED: R0/0: dmiauthd: User 'cisco' authenticated successfully
+from 172.31.61.35:47284 and was authorized for netconf over ssh. External groups: PRIV15
+\end{minted}
+
+Using basic show commands, verify that the two loopbacks were added
+successfully. The nested dictionary above indicates that Loopback 42518 has a
+description defined by no IP addresses. Likewise, Loopback 53592 has an IPv4
+address and subnet mask defined, but no description. The Jinja2 template
+supplied, which generates the XML configuration to be pushed to the router,
+makes both of these parameters optional.
+
+\begin{minted}{text}
+CSR1000v#show running-config interface Loopback42518
+interface Loopback42518
+ description No IP on this one yet!
+ no ip address
+
+CSR1000v#show running-config interface Loopback53592
+interface Loopback53592
+ ip address 192.0.2.1 255.255.255.0
+\end{minted}
+
+Last, check the statistics to see the incoming NETCONF sessions and
+corresponding incoming remote procedure calls (RPCs). This indicates that
+everything is working correctly.
+
+\begin{minted}{text}
+CSR1000v#show netconf-yang statistics 
+netconf-start-time  : 2018-12-09T01:04:44+00:00
+in-rpcs             : 8
+in-bad-rpcs         : 0
+out-rpc-errors      : 0
+out-notifications   : 0
+in-sessions         : 4
+dropped-sessions    : 0
+in-bad-hellos       : 0
+\end{minted}
+
 \subsubsection{REST API on IOS-XE}
+This section will detail a basic IOS XE REST API call to a Cisco router. While
+there are more powerful GUIs to interact with the REST API on IOS XE devices,
+this demonstration will use the \verb|curl| CLI utility, which is supported on
+Linux, Mac, and Windows operating systems. These tests were conducted on a
+Linux machine in Amazon Web Services (AWS) which was targeting a Cisco
+CSR1000v. Before beginning, all of the relevant version information is shown
+on the follow page for reference.
+
+\begin{minted}{text}
+RTR_CSR1#show version | include RELEASE  
+Cisco IOS Software, CSR1000V Software (X86_64_LINUX_IOSD-UNIVERSALK9-M),
+  Version 15.5(3)S4a, RELEASE SOFTWARE (fc1)
+
+[root@ip-10-125-0-100 restapi]# uname -a
+Linux ip-10-125-0-100.ec2.internal 3.10.0-514.16.1.el7.x86_64 #1 SMP
+Fri Mar 10 13:12:32 EST 2017 x86_64 x86_64 x86_64 GNU/Linux
+
+[root@ip-10-125-0-100 restapi]# curl -V
+curl 7.29.0 (x86_64-redhat-linux-gnu) libcurl/7.29.0 NSS/3.21 [snip]
+Protocols: dict file ftp ftps gopher http https [snip]
+Features: AsynchDNS GSS-Negotiate IDN NTLM NTLM_WB SSL libz unix-sockets
+\end{minted}
+
+First, the basic configuration to enable the REST API feature on IOS XE
+devices is shown below. A brief verification shows that the feature is enabled
+and uses TCP port 55443 by default. This port number is important later as the
+curl command will need to know it.
+
+\begin{minted}{text}
+interface GigabitEthernet1
+ description MGMT INTERFACE
+ ip address dhcp
+ ! or a static IP address
+
+virtual-service csr_mgmt
+ ip shared host-interface GigabitEthernet1
+ activate
+
+ip http secure-server
+transport-map type persistent webui HTTPS_WEBUI
+ secure-server
+transport type persistent webui input HTTPS_WEBUI
+
+remote-management
+ restful-api
+
+RTR_CSR1#show virtual-service detail | section ^Proc|^Feat|estful  
+Process               Status            Uptime           # of restarts
+restful_api            UP         0Y 0W 0D  0:49: 7        0
+Feature         Status                 Configuration
+Restful API   Enabled, UP             port: 55443
+                                      auto-save-timer: 30 seconds
+                                      socket: unix:/usr/local/nginx/[snip]
+                                      single-session: Disabled
+\end{minted}
+
+Using \verb|curl| for IOS XE REST API invocations requires a number of options. Those
+options are summarized on the following page. They are also described in the
+manual pages for \verb|curl| (use the \verb|man curl| shell command). This specific
+demonstration will be limited to obtaining an authentication token, posting a
+QoS class-map configuration, and verifying that it was written.
+
+\begin{minted}{text}
+Main argument: /api/v1/qos/class-map
+
+X: custom request is forthcoming
+
+v: verbose. Prints all debugging output which is useful for troubleshooting and learning.
+
+u: username:password for device login
+
+H: Extra header needed to specify that JSON is being used. Every new POST
+request must contain JSON in the body of the request. It is also used with
+GET, POST, PUT, and DELETE requests after an authentication token has been obtained.
+
+d: sends the specified data in an HTTP POST request
+
+k: insecure. This allows curl to accept certificates not signed by a trusted
+CA. For testing purposes, this is required to accept the router’s self-signed
+certificate. It is not a good idea to use it in production networks.
+
+3: force curl to use SSLv3 for the transport to the managed device. This can
+be detrimental and should be used cautiously (discussed later).
+\end{minted}
+
+The first step is obtaining an authentication token. This allows the HTTPS
+client to supply authentication credentials once, such as username/password,
+and then can use the token for authentication for all future API calls. The
+initial attempt at obtaining this token fails. This is a common error so the
+troubleshooting to resolve this issue is described in this document. The two
+HTTPS endpoints cannot communicate due to not supporting the same cipher
+suites. Note that it is critical to specify the REST API port number (55443)
+in the URL, otherwise the standard HTTPS server will respond on port 443 and
+the request will fail.
+
+\begin{minted}{text}
+[root@ip-10-125-0-100 restapi]# curl -v \
+>  -X POST https://csr1:55443/api/v1/auth/token-services \
+>  -H "Accept:application/json" -u "ansible:ansible" -d "" -k -3
+
+* About to connect() to csr1 port 55443 (#0)
+*   Trying 10.125.1.11...
+* Connected to csr1 (10.125.1.11) port 55443 (#0)
+* Initializing NSS with certpath: sql:/etc/pki/nssdb
+* NSS error -12286 (SSL_ERROR_NO_CYPHER_OVERLAP)
+* Cannot communicate securely with peer: no common encryption algorithm(s).
+* Closing connection 0
+curl: (35) Cannot communicate securely with peer: no common encryption algorithm(s).
+\end{minted}
+
+Sometimes installing/update the following packages can solve the issue. In
+this case, these updates did not help.
+
+\begin{minted}{text}
+[root@ip-10-125-0-100 restapi]# yum install -y nss nss-util nss-sysinit nss-tools
+Loaded plugins: amazon-id, rhui-lb, search-disabled-repos
+Package nss-3.28.4-1.0.el7_3.x86_64 already installed and latest version
+Package nss-util-3.28.4-1.0.el7_3.x86_64 already installed and latest version
+Package nss-sysinit-3.28.4-1.0.el7_3.x86_64 already installed and latest version
+Package nss-tools-3.28.4-1.0.el7_3.x86_64 already installed and latest version
+Nothing to do
+\end{minted}
+
+If that fails, curl the following website. It will return a JSON listing of
+all ciphers supported by your current HTTPS client. Piping the output into
+\verb|jq|, a popular utility for querying JSON structures, pretty-prints the JSON
+output for human readability.
+
+\begin{minted}{text}
+[root@ip-10-125-0-100 restapi]# curl https://www.howsmyssl.com/a/check | jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  1417  100  1417    0     0   9572      0 --:--:-- --:--:-- --:--:--  9639
+{
+  "given_cipher_suites": [
+    "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+    "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+    "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+    "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
+    "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+    "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+    "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+    "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+    "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
+    "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+    "TLS_DHE_DSS_WITH_AES_256_CBC_SHA",
+    "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256",
+    "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
+    "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+    "TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
+    "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
+    "TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA",
+    "TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA",
+    "TLS_RSA_WITH_AES_256_GCM_SHA384",
+    "TLS_RSA_WITH_AES_256_CBC_SHA",
+    "TLS_RSA_WITH_AES_256_CBC_SHA256",
+    "TLS_RSA_WITH_AES_128_GCM_SHA256",
+    "TLS_RSA_WITH_AES_128_CBC_SHA",
+    "TLS_RSA_WITH_AES_128_CBC_SHA256",
+    "TLS_RSA_WITH_3DES_EDE_CBC_SHA",
+    "TLS_RSA_WITH_RC4_128_SHA",
+    "TLS_RSA_WITH_RC4_128_MD5"
+  ],
+  "ephemeral_keys_supported": true,
+  "session_ticket_supported": false,
+  "tls_compression_supported": false,
+  "unknown_cipher_suite_supported": false,
+  "beast_vuln": false,
+  "able_to_detect_n_minus_one_splitting": false,
+  "insecure_cipher_suites": {
+    "TLS_RSA_WITH_RC4_128_MD5": [
+      "uses RC4 which has insecure biases in its output"
+    ],
+    "TLS_RSA_WITH_RC4_128_SHA": [
+      "uses RC4 which has insecure biases in its output"
+    ]
+  },
+  "tls_version": "TLS 1.2",
+  "rating": "Bad"
+}
+\end{minted}
+
+The utility \verb|sslscan| can help find the problem. The issue is that the
+CSR1000v only supports the TLSv1 versions of the ciphers, not the SSLv3
+version. The curl command issued above forced curl to use SSLv3 with the
+\verb|-3| option as prescribed by the documentation. This is a minor error in
+the documentation which has been reported and may be fixed at the time of your
+reading. This troubleshooting excursion is likely to have value for those
+learning about REST APIs on IOS XE devices in a general sense, since
+establishing HTTPS transport is a prerequisite. 
+
+\begin{minted}{text}
+[root@ip-10-125-0-100 ansible]# sslscan --version
+		sslscan version 1.10.2 
+		OpenSSL 1.0.1e-fips 11 Feb 2013
+
+[root@ip-10-125-0-100 restapi]# sslscan csr1 | grep " RC4-SHA"
+    RC4-SHA
+    RC4-SHA
+    RC4-SHA
+    RC4-SHA
+    Rejected  SSLv3  112 bits  RC4-SHA
+    Accepted  TLSv1  112 bits  RC4-SHA
+    Failed    TLS11  112 bits  RC4-SHA
+    Failed    TLS12  112 bits  RC4-SHA
+\end{minted}
+
+Removing the \verb|-3| option will fix the issue. Using \verb|sslscan| was still
+useful because, ignoring the RC4 cipher itself used with grep, one can note
+that the TLSv1 variant was accepted while the SSLv3 variant was rejected,
+which would suggest a lack of support for SSLv3 ciphers. It appears that the
+\verb|TLS_DHE_RSA_WITH_AES_256_CBC_SHA| cipher was chosen for the connection
+when the curl command is issued again. Below is the correct output from a
+successful \verb|curl|.
+
+\begin{minted}{text}
+[root@ip-10-125-0-100 restapi]# curl -v -X \
+>  POST https://csr1:55443/api/v1/auth/token-services \
+>  -H "Accept:application/json" -u "ansible:ansible" -d "" -k
+
+* About to connect() to csr1 port 55443 (#0)
+*   Trying 10.125.1.11...
+* Connected to csr1 (10.125.1.11) port 55443 (#0)
+* Initializing NSS with certpath: sql:/etc/pki/nssdb
+* skipping SSL peer certificate verification
+* SSL connection using TLS_DHE_RSA_WITH_AES_256_CBC_SHA
+* Server certificate:
+* 	subject: CN=restful_api,ST=California,O=Cisco,C=US
+* 	start date: May 26 05:32:46 2013 GMT
+* 	expire date: May 24 05:32:46 2023 GMT
+* 	common name: restful_api
+* 	issuer: CN=restful_api,ST=California,O=Cisco,C=US
+* Server auth using Basic with user 'ansible'
+> POST /api/v1/auth/token-services HTTP/1.1
+[snip]
+> 
+< HTTP/1.1 200 OK
+< Server: nginx/1.4.2
+< Date: Sun, 07 May 2017 16:35:18 GMT
+< Content-Type: application/json
+< Content-Length: 200
+< Connection: keep-alive
+< 
+* Connection #0 to host csr1 left intact
+{"kind": "object#auth-token", "expiry-time": "Sun May  7 16:50:18 2017",
+"token-id": "YGSBUtzTpfK2QumIEk8dt9rXhHjZfAJSZXYXDXg162Q=",
+"link": "https://csr1:55443/api/v1/auth/token-services/6430558689"}
+\end{minted}
+
+The final step is using an HTTPS POST request to write new data to the router.
+One can embed the JSON text as a single line into the curl command using the
+-d option. The command appears intimidating at a glance. Note the single
+quotes ('') surrounding the JSON data with the -d option; these are required
+since the keys and values inside the JSON structure have double quotes (``'').
+Additionally, the username/password is omitted from the request, and
+additional headers (-H) are applied to include the authentication token string and the JSON content type.
+
+\begin{minted}{text}
+[root@ip-10-125-0-100 restapi]# curl -v -H "Accept:application/json" \
+>  -H "X-Auth-Token: YGSBUtzTpfK2QumIEk8dt9rXhHjZfAJSZXYXDXg162Q=" \
+>  -H "content-type: application/json" -X POST https://csr1:55443/api/v1/qos/class-map
+>  -d '{"cmap-name": "CMAP_AF11","description": "QOS CLASS MAP FROM REST API CALL", \
+>  "match-criteria": {"dscp": [{"value": "af11","ip": false}]}}' -k
+
+* About to connect() to csr1 port 55443 (#0)
+*   Trying 10.125.1.11...
+* Connected to csr1 (10.125.1.11) port 55443 (#0)
+* Initializing NSS with certpath: sql:/etc/pki/nssdb
+* skipping SSL peer certificate verification
+* SSL connection using TLS_DHE_RSA_WITH_AES_256_CBC_SHA
+* Server certificate:
+* 	subject: CN=restful_api,ST=California,O=Cisco,C=US
+* 	start date: May 26 05:32:46 2013 GMT
+* 	expire date: May 24 05:32:46 2023 GMT
+* 	common name: restful_api
+* 	issuer: CN=restful_api,ST=California,O=Cisco,C=US
+> POST /api/v1/qos/class-map HTTP/1.1
+> User-Agent: curl/7.29.0
+[snip]
+< HTTP/1.1 201 CREATED
+< Server: nginx/1.4.2
+< Date: Sun, 07 May 2017 16:48:05 GMT
+< Content-Type: text/html; charset=utf-8
+< Content-Length: 0
+< Connection: keep-alive
+< Location: https://csr1:55443/api/v1/qos/class-map/CMAP_AF11
+< 
+* Connection #0 to host csr1 left intact
+\end{minted}
+
+This newly-configured class-map can be verified using an HTTPS GET request.
+The data field is stripped to the empty string, POST is changed to GET, and
+the class-map name is appended to the URL. The verbose option (-v) is omitted
+for brevity. Writing this output to a file and using the jq utility can be a
+good way to query for specific fields. Piping the output to \verb|tee| allows
+it to be written to the screen and redirected to a file.
+
+\begin{minted}{text}
+[root@ip-10-125-0-100 restapi]# curl -H "Accept:application/json" \
+>  -H "X-Auth-Token: YGSBUtzTpfK2QumIEk8dt9rXhHjZfAJSZXYXDXg162Q="
+>  -H "content-type: application/json" \
+>  -X GET https://csr1:55443/api/v1/qos/class-map/CMAP_AF11
+>  -d "" -k | tee cmap_af11.json
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   195  100   195    0     0    792      0 --:--:-- --:--:-- --:--:--   792
+{"cmap-name": "CMAP_AF11", "kind": "object#class-map", "match-criteria":
+{"dscp": [{"ip": false, "value": "af11"}]}, "match-type": "match-all",
+"description": " QOS CLASS MAP FROM REST API CALL"}
+\end{minted}
+
+\begin{minted}{text}
+[root@ip-10-125-0-100 restapi]# jq '.description' cmap_af11.json 
+" QOS CLASS MAP FROM REST API CALL"
+\end{minted}
+
+Logging into the router to verify the request via CLI is a good idea while
+learning, although using HTTPS GET verified the same thing.
+
+\begin{minted}{text}
+RTR_CSR1#show running-config class-map
+[snip]
+class-map match-all CMAP_AF11
+  description QOS CLASS MAP FROM REST API CALL
+ match dscp af11 
+end
+\end{minted}
+
+\subsubsection{RESTCONF on IOS-XE}
+RESTCONF is a relatively new API offered by Cisco IOS XE. RESTCONF is a new
+API introduced into Cisco IOS XE 16.3.1 which has some characteristics of
+NETCONF and the classic REST API. It uses HTTP/HTTPS for transport much like
+the REST API, but appears to be simpler. It is like NETCONF in terms of its
+usefulness for configuring devices using data modeled in YANG; it supports
+JSON and XML formats for retrieved data. The version of the router is shown
+below as it differs from the router used in other tests.
+
+\begin{minted}{text}
+DENALI#show version | include RELEASE
+Cisco IOS Software [Denali], CSR1000V Software (X86_64_LINUX_IOSD-UNIVERSALK9-M),
+Version 16.3.1a, RELEASE SOFTWARE (fc4)
+\end{minted}
+
+Enabling RESTCONF requires a single hidden command in global configuration,
+shown below as simply \verb|restconf|. This feature is not TAC supported at
+the time of this writing and should be used for experimentation only.
+Additionally, a loopback interface with an IP address and description is
+configured. For simplicity, RESTCONF testing will be limited to insecure HTTP
+to demonstrate the capability without dealing with SSL/TLS ciphers.
+
+\begin{minted}{text}
+DENALI#show running-config | include restconf
+restconf
+
+DENALI#show running-config interface loopback 42518
+interface Loopback42518
+ description COOL INTERFACE
+ ip address 172.16.192.168 255.255.255.255
+\end{minted}
+
+The \verb|curl| utility is useful with RESTCONF as it was with the class REST
+API. The difference is that the data retrieval process is more intuitive.
+First, we query the interface IP address, then the description. Both of the
+URLs are simple and the overall curl command syntax is easy to understand. The
+output comes back in easy-to-read XML which is convenient for machines that
+will use this information. Some data is nested, like the IP address, as there
+could be multiple IP addresses. Other data, like the description, need not be
+nested as there is only ever one description per interface.
+
+\begin{minted}{text}
+[root@ip-10-125-0-100 ~]# curl \
+>  http://denali/restconf/api/config/native/interface/Loopback/42518/ip/address \
+>  -u "username:password"
+
+<address xmlns="http://cisco.com/ns/yang/ned/ios"
+  xmlns:y="http://tail-f.com/ns/rest"
+  xmlns:ios="http://cisco.com/ns/yang/ned/ios">
+  <primary>
+    <address>172.16.192.168</address>
+    <mask>255.255.255.255</mask>
+  </primary>
+</address>
+
+[root@ip-10-125-0-100 ~]# curl \
+>  http://denali/restconf/api/config/native/interface/Loopback/42518/description \
+>  -u "username:password"
+
+<description xmlns="http://cisco.com/ns/yang/ned/ios"
+  xmlns:y="http://tail-f.com/ns/rest"
+  xmlns:ios="http://cisco.com/ns/yang/ned/ios">COOL INTERFACE
+</description>
+\end{minted}
+
+This section does not detail other HTTP operations such as POST, PUT, and
+DELETE using RESTCONF. The feature is still very new and is tightly integrated
+with postman, a tool that generates HTTP requests automatically.

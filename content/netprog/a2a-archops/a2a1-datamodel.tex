@@ -1,7 +1,426 @@
 \subsection{Data models and structures}
-data models stuff
+Other protocols and languages, such as NETCONF and YANG, also help
+automate/simplify network management indirectly. NETCONF (RFC6241) is the
+protocol by which configurations are installed and changed. YANG (RFC6020) is
+the modeling language used to represent device configuration and state, much
+like eXtensible Markup Language (XML). Put simply, NETCONF is a transport
+vessel for YANG information to be transferred from a network management system
+(NMS) to a network device. Although YANG can be quite complex to humans, it is
+similar to SNMP; it is simple for machines. YANG is an abstraction away from
+network device CLIs which promotes simplified management in cloud environments
+and a progressive migration toward one of the SDN models discussed later in
+this document. Devices that implement NETCONF/YANG provide a uniform
+manageability interface which means vendor hardware/software can be swapped in
+a network without affecting the management architecture, operations, or strategy.
+\\ \\
+Previous revisions of this document claimed that NETCONF is to YANG as HTTP is
+to HTML. This is not technically accurate, as NETCONF serializes data using
+XML. In HTML, Document Type Definitions (DTDs) describe the building blocks of
+how the data is structured. This is the same role played by YANG as it relates
+to XML. It would be more correct to say that DTD is to HTML over HTTP as YANG
+is to XML over NETCONF. YANG can also be considered to be a successor to
+Simple Network Management Protocol (SNMP) Management Information Base (MIB)
+definitions. These MIBs define how data is structured and SNMP itself provides
+a transport, similar to NETCONF.
 
 \subsubsection{YANG}
+YANG defines how data is structured/modeled rather than containing data
+itself. Below is snippet from RFC 6020 which defines YANG (section 4.2.2.1).
+The YANG model defines a "host-name" field as a string (array of characters)
+with a human-readable description. Pairing YANG with NETCONF, the XML syntax
+references the data field by its name to set a value.
+\\ \\
+YANG Example:
+
+\begin{minted}{text}
+leaf host-name {
+    type string;
+    description "Hostname for this system";
+}
+\end{minted}
+
+NETCONF XML Example:
+\begin{minted}{text}
+<host-name>my.example.com</host-name>
+\end{minted}
+
+This section explores a YANG validation example using Cisco CSR1000v on modern
+``Everest'' software. This router is running as an EC2 instance inside AWS.
+Although the NETCONF router is not used until later, it is imported to check
+the software version to ensure we clone the right YANG models.
+
+\begin{minted}{text}
+NETCONF_TEST#show version | include IOS_Software
+Cisco IOS Software [Everest], Virtual XE Software (X86_64_LINUX_IOSD-UNIVERSALK9-M),
+  Version 16.6.1, RELEASE SOFTWARE (fc2)
+\end{minted}
+
+YANG models for this particular version are publicly available on
+\href{https://github.com/YangModels/yang/}{Github}. Below, the repository is
+cloned using SSH which captures all of the YANG models for all supported
+products, across all versions. The repository is not particularly large, so
+cloning the entire thing is beneficial for future testing.
+
+\begin{minted}{text}
+Nicholas-MBP:YANG nicholasrusso$ git clone git@github.com:YangModels/yang.git
+Cloning into 'yang'...
+remote: Counting objects: 10372, done.
+remote: Compressing objects: 100% (241/241), done.
+remote: Total 10372 (delta 74), reused 292 (delta 69), pack-reused 10062
+Receiving objects: 100% (10372/10372), 19.95 MiB | 4.81 MiB/s, done.
+Resolving deltas: 100% (6556/6556), done.
+Checking connectivity... done.
+Checking out files: 100% (9212/9212), done.
+\end{minted}
+
+Changing into the directory specific to the current IOS-XE version, verify
+that the EIGRP YANG model used for this test is present. There are 245 total
+files in this directory which are the YANG models for many other Cisco
+features, but are outside the scope of this demonstration.
+
+\begin{minted}{text}
+Nicholass-MBP:~ nicholasrusso$ cd yang/vendor/cisco/xe/1661/
+Nicholass-MBP:1661 nicholasrusso$ ls -1 | grep eigrp
+Cisco-IOS-XE-eigrp.yang
+Nicholass-MBP:1661 nicholasrusso$ ls -1 | wc
+     245    2198   20770
+\end{minted}
+
+The YANG model itself is a C-style declaration of how data should be
+structured. The file is very long, and the text below focuses on a few key
+EIGRP parameters. Specifically, the bandwidth-percent, hello-interval, and
+hold-time. These are configured under the af-interface stanza within EIGRP
+named-mode. The af-interface declaration is a list element with many leaf
+elements beneath it, which correspond to individual configuration parameters.
+
+\begin{minted}{text}
+Nicholass-MBP:1661 nicholasrusso$ cat Cisco-IOS-XE-eigrp.yang
+module Cisco-IOS-XE-eigrp {
+  namespace "http://cisco.com/ns/yang/Cisco-IOS-XE-eigrp";
+  prefix ios-eigrp;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+
+  import Cisco-IOS-XE-types {
+    prefix ios-types;
+  }
+
+  import Cisco-IOS-XE-interface-common {
+    prefix ios-ifc;
+  }
+[snip]
+ // router eigrp address-family
+  grouping eigrp-address-family-grouping {
+    list af-interface {
+      description
+        "Enter Address Family interface configuration";
+      key "name";
+      leaf name {
+        type string;
+      }
+      leaf bandwidth-percent {
+        description
+          "Set percentage of bandwidth percentage limit";
+        type uint32 {
+          range "1..999999";
+        }
+      }
+      leaf hello-interval {
+        description
+          "Configures hello interval";
+        type uint16;
+      }
+      leaf hold-time {
+        description
+          "Configures hold time";
+        type uint16;
+}
+[snip]
+\end{minted}
+
+Before exploring NETCONF, which will use this model to get/set configuration
+data on the router, this demonstration explores the \verb|pyang| tool. This is a
+conversion tool to change YANG into different formats. The pyang tool is
+available \href{https://pypi.python.org/pypi/pyang}{here}. After extracting the
+archive, the tool is easily installed.
+
+\begin{minted}{text}
+Nicholass-MBP:pyang-1.7.3 nicholasrusso$ python3 setup.py install
+running install
+running bdist_egg
+running egg_info
+writing top-level names to pyang.egg-info/top_level.txt
+writing pyang.egg-info/PKG-INFO
+writing dependency_links to pyang.egg-info/dependency_links.txt
+[snip]
+
+Nicholass-MBP:pyang-1.7.3 nicholasrusso$ which pyang
+/Library/Frameworks/Python.framework/Versions/3.5/bin/pyang
+\end{minted}
+
+The most basic usage of the pyang tool is to validate valid YANG syntax.
+Beware that running the tool against a YANG model in a different directory
+means that pyang considers the local directory (not the one containing the
+YANG model) for the search point for any YANG module dependencies. Below, an
+error occurs since pyang cannot find imported modules relevant for the EIGRP
+YANG model.
+
+\begin{minted}{text}
+Nicholass-MBP:YANG nicholasrusso$ pyang yang/vendor/cisco/xe/1661/Cisco-IOS-XE-eigrp.yang 
+yang/vendor/cisco/xe/1661/Cisco-IOS-XE-eigrp.yang:5: error: module "ietf-inet-types" not found in search path
+yang/vendor/cisco/xe/1661/Cisco-IOS-XE-eigrp.yang:10: error: module "Cisco-IOS-XE-types" not found in search path
+[snip]
+
+Nicholass-MBP:YANG nicholasrusso$ echo $?
+1
+\end{minted}
+
+One could specify the module path using the \verb|--path option|, but it is
+simpler to just navigate to the directory. This allows pyang to see the
+imported data types such as those contained within ``ietf-inet-types''. When
+using pyang from this location, no output is returned, and the program exits
+successfully. It is usually a good idea to validate YANG models before doing
+anything with them, especially committing them to a repository.
+
+\begin{minted}{text}
+Nicholass-MBP:YANG nicholasrusso$ cd yang/vendor/cisco/xe/1661/
+Nicholass-MBP:1661 nicholasrusso$ pyang Cisco-IOS-XE-eigrp.yang
+Nicholass-MBP:1661 nicholasrusso$ echo $?
+0
+\end{minted}
+
+This confirms that the model has valid syntax. The pyang tool can also convert
+between different formats. Below is a simple and lossless conversion of YANG
+syntax into XML. This YANG-to-XML format is known as YIN, and pyang can
+generate pretty XML output based on the YANG model. This is an alternative way
+to view, edit, or create data models. YIN format might be useful for Microsoft
+Powershell users. Powershell makes XML parsing easy, and may not be as
+friendly to the YANG syntax.
+
+\begin{minted}{text}
+Nicholass-MBP:1661 nicholasrusso$ pyang Cisco-IOS-XE-eigrp.yang \
+>  --format=yin --yin-pretty-strings
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="Cisco-IOS-XE-eigrp"
+     xmlns="urn:ietf:params:xml:ns:yang:yin:1"
+     xmlns:ios-eigrp="http://cisco.com/ns/yang/Cisco-IOS-XE-eigrp"
+     xmlns:inet="urn:ietf:params:xml:ns:yang:ietf-inet-types"
+     xmlns:ios-types="http://cisco.com/ns/yang/Cisco-IOS-XE-types"
+     xmlns:ios-ifc="http://cisco.com/ns/yang/Cisco-IOS-XE-interface-common"
+     xmlns:ios="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <namespace uri="http://cisco.com/ns/yang/Cisco-IOS-XE-eigrp"/>
+  <prefix value="ios-eigrp"/>
+  <import module="ietf-inet-types">
+    <prefix value="inet"/>
+  </import>
+  <import module="Cisco-IOS-XE-types">
+    <prefix value="ios-types"/>
+  </import>
+  <import module="Cisco-IOS-XE-interface-common">
+    <prefix value="ios-ifc"/>
+  </import>
+[snip]
+  <grouping name="eigrp-address-family-grouping">
+    <list name="af-interface">
+      <description>
+        <text>
+          Enter Address Family interface configuration
+        </text>
+      </description>
+      <key value="name"/>
+      <leaf name="name">
+        <type name="string"/>
+      </leaf>
+      <leaf name="bandwidth-percent">
+        <description>
+          <text>
+            Set percentage of bandwidth percentage limit
+          </text>
+        </description>
+        <type name="uint32">
+          <range value="1..999999"/>
+        </type>
+      </leaf>
+      <leaf name="hello-interval">
+        <description>
+          <text>
+            Configures hello interval
+          </text>
+        </description>
+        <type name="uint16"/>
+      </leaf>
+      <leaf name="hold-time">
+        <description>
+          <text>
+            Configures hold time
+          </text>
+        </description>
+        <type name="uint16"/>
+      </leaf>   
+[snip]
+\end{minted}
+
+Everything shown above is unrelated to the NETCONF/YANG testing on the Cisco
+CSR1000v and is more focused on viewing, validating, and converting YANG
+models between different formats. These YANG models are already loaded into
+the Cisco IOS-XE images and do not need to be present on the management
+station's disks. Please see the NETCONF section for more information.
+
 \subsubsection{YAML}
+There are many options for storing data, as opposed to modeling it or defining
+its composition. One such option is YAML Ain’t Markup Language (YAML). It
+solves a similar problem as XML since it is primarily used for configuration
+files, but contains a subset of XML's functionality as it was specifically
+designed to be simpler. Below is an example of a YAML configuration, most
+likely some input for a provisioning script or something similar. Note that
+YAML files typically begin with \verb|---| and end with \verb|...| as a best practice.
+
+\begin{minted}{yaml}
+---
+- process: "update static routes"
+  vrf: "customer1"
+  nexthop: "10.0.0.1"
+  devices:
+    - net: "192.168.0.0"
+      mask: "255.255.0.0"
+      state: "present"
+    - net: "172.16.0.0"
+      mask: "255.240.0.0"
+      state: "absent"
+...
+\end{minted}
+
+Note that YAML is technically not in the blueprint but the author is certain
+it is a critical skill for anyone working with any form of network programmability.
+
 \subsubsection{JSON}
+JavaScript Object Notation (JSON) is another data modeling language that is
+similar to YAML in concept. It was designed to be simpler than traditional
+markup languages and uses key/value pairs to store information. The "value" of
+a given pair can be another key/value pair, which enables hierarchical data
+nesting. The key/value pair structure and syntax is very similar to the
+"dictionary" data type in Python. JSON is even lighter than YAML and is also
+commonly used for maintaining configuration files. The next page displays a
+syntax example of JSON which represents the same data and same structure as
+the YAML example.
+
+\begin{minted}{json}
+[
+  {
+    "process": "update static routes",
+    "vrf": "customer1",
+    "nexthop": "10.0.0.1",
+    "devices": [
+      {
+        "net": "192.168.0.0",
+        "mask": "255.255.0.0",
+        "state": "present"
+      },
+      {
+        "net": "172.16.0.0",
+        "mask": "255.240.0.0",
+        "state": "absent"
+      }
+    ]
+  }
+]
+\end{minted}
+
+More discussion around YAML and JSON is warranted since these two formats are
+very commonly used today. YAML is considered to be a strict (or proper)
+superset of JSON. That is, any JSON data can be represented in YAML, but not
+vice versa. This is important to know when converting back and forth;
+converting JSON to YAML should always succeed, but converting YAML to JSON may
+fail or yield unintended results. Below is a straightforward conversion
+between YAML and JSON without any hidden surprises.
+
+\begin{minted}{yaml}
+---
+mylist:
+  - item: "pizza"
+    quantity: 1
+  - item: "wings"
+    quantity: 12
+...
+\end{minted}
+
+\begin{minted}{json}
+{
+  "mylist": [
+    {
+      "item": "pizza",
+      "quantity": 1
+    },
+    {
+      "item": "wings",
+      "quantity": 12
+    }
+  ]
+}
+\end{minted}
+
+Next, observe an example of some potentially unexpected conversion results.
+While the JSON result is technically correct, it lacks the shorthand
+``anchoring'' technique available in YAML. The anchor, for example, creates
+information that can be inherited by other dictionaries later. While the
+information is identical between these two blocks and has no functional
+difference, some of these YAML shortcuts are advantageous for encouraging
+code/data reuse. Another difference is that YAML natively supports comments
+using the hash symbol \verb|#| while JSON does not natively support comments.
+
+\begin{minted}{yaml}
+---
+anchor: anchor&
+  name: "Nick"
+  age: 31
+
+clone:
+  <<: *anchor
+...
+\end{minted}
+
+\begin{minted}{json}
+{
+  "anchor": {
+    "name": "Nick",
+    "age": 31
+  },
+  "clone": {
+    "name": "Nick",
+    "age": 31
+  }
+}
+\end{minted}
+
+YANG isn’t directly comparable with YAML, JSON, and XML because it solves a
+different problem. If any one of these languages solved all of the problems,
+then the others would not exist. Understanding the business drivers and the
+problems to be solved using these tools is the key to choosing to right one.
+
 \subsubsection{XML}
+Data structured in XML is very common and has been popular for decades. XML is
+very verbose and explicit, relying on starting and ending tags to identify the
+size/scope of specific data fields. The next page shows an example of XML code
+resembling a similar structure as the previous YAML and JSON examples. Note
+that the topmost ``root'' wrapper key is needed in XML but not for YAML or JSON.
+
+\begin{minted}{xml}
+<?xml version="1.0" encoding="UTF-8" ?>
+	<root>
+		<process>update static routes</process>
+		<vrf>customer1</vrf>
+		<nexthop>10.0.0.1</nexthop>
+		<devices>
+			<net>192.168.0.0</net>
+			<mask>255.255.0.0</mask>
+			<state>present</state>
+		</devices>
+		<devices>
+			<net>172.16.0.0</net>
+			<mask>255.240.0.0</mask>
+			<state>absent</state>
+		</devices>
+	</root>
+\end{minted}
