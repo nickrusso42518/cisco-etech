@@ -1,2 +1,239 @@
 \subsection{IoT standards and protocols}
-IoT protocols stuff
+Several new protocols have been introduced specifically for IoT, some of which
+are standardized:
+
+\begin{enumerate}
+  \item \textbf{RPL - IPv6 Routing Protocol for LLNs (RFC 6550):} RPL is a
+  distance-vector routing protocol specifically designed to support IoT. At a
+  high-level, RPL is a combination of control-plane and forwarding logic of
+  three other technologies: regular IP routing, multi-topology routing (MTR),
+  and MPLS traffic-engineering (MPLS TE). RPL is similar to regular IP routing
+  in that directed acyclic graphs (DAG) are created through the network. This
+  is a fancy way of saying ``loop-free shortest path'' between two points.
+  These DAGs can be ``colored'' into different topologies which represent
+  different network characteristics, such as high bandwidth or low latency.
+  This forwarding paradigm is similar to MTR in concept. Last, traffic can be
+  assigned to a colored DAG based on administratively-defined constraints,
+  including node state, node energy, hop count, throughput, latency,
+  reliability, and color (administrative preference). This is similar to MPLS
+  TE’s constrained shortest path first (CSPF) process which is used for
+  defining administrator-defined paths through a network based on a set of
+  constraints, which might have technical and/or business drivers behind them.
+  \item \textbf{6LoWPAN - IPv6 over Low Power WPANs (RFC 4944):} This
+  technology was specifically developed to be an adaptation layer for IPv6 for
+  IEEE 802.15.4 wireless networks. Specifically, it ``adapts'' IPv6 to work
+  over LLNs which encompasses many functions:
+
+  \begin{enumerate}
+    \item \textbf{MTU correction:} The minimum MTU for IPv6 across a link, as
+	defined in RFC2460, is 1280 bytes. The maximum MTU for IEEE 802.15.4 networks
+	is 127 bytes. Clearly, no value can mathematically satisfy both conditions
+	concurrently. 6LoWPAN performs fragmentation and reassembly by breaking the
+	large IPv6 packets into IEEE 802.15.4 frames for transmission across the
+	wireless network.
+    \item \textbf{Header compression:} Many compression techniques are
+	stateful and CPU-hungry. This strategy would not be appropriate for low-cost
+	LLNs, so 6LoWPAN utilizes an algorithmic (stateless) mechanism to reduce the
+	size of the IPv6 header and, if present, the UDP header. RFC4944 defines some
+	common assumptions:
+
+    \begin{enumerate}
+      \item	The version is always IPv6.
+      \item	Both source and destination addresses are link-local.
+      \item	The low-order 64-bits of the link-local addresses can be derived
+	  from the layer-2 network addressing in an IEEE 802.15.4 wireless network.
+      \item	The packet length can be derived from the layer-2 header.
+      \item	Next header is always ICMP, TCP, or UDP.
+      \item	Flow label and traffic class are always zero.
+      \item As an example, an IPv6 header (40 bytes) and a UDP header (8
+	  bytes) are 48 bytes long when concatenated. This can be compressed down to
+	  7 bytes by 6LoWPAN.
+    \end{enumerate}
+
+    \item \textbf{Mesh routing:} Somewhat similar to Wi-Fi, mesh networking is
+	possible, but requires up to 4 unique addresses. The original
+	source/destination addresses can be retained in a new ``mesh header'' while
+	the per-hop source/destination addresses are written to the MAC header.
+    \item \textbf{MAC level retransmissions:} IP was designed to be fully
+	stateless and any retransmission or flow control was the responsibility of
+	upper-layer protocols, such as TCP. When using 6LoWPAN, retransmissions can
+	occur at layer-2.
+
+  \end{enumerate}
+  \item \textbf{CoAP - Constrained Application Protocol (RFC7252):} At a
+  high-level, CoAP is very similar to HTTP in terms of the capabilities it
+  provides. It is used to support the transfer of application data using
+  common methods such as GET, POST, PUT, and DELETE. CoAP runs over UDP port
+  5683 by default (5684 for secure CoAP) and was specifically designed to be
+  lighter weight and faster than HTTP. Like the other IoT protocols, CoAP is
+  designed for LLNs, and more specifically, to support machine-to-machine
+  communications. Despite CoAP being designed for maximum efficiency, it is
+  not a general replacement for HTTP. It only supports a subset of HTTP
+  capabilities and should only be used within IoT environments. To interwork
+  with HTTP, one can deploy an HTTP/CoAP proxy as a ``gateway'' device between
+  the multi-service edge and smart device networks. CoAP has a number of useful
+  features and characteristics:
+
+  \begin{enumerate}
+    \item \textbf{Supports multicast:} Because it is UDP-based, IP multicast
+	is possible. This can be used both for application discovery (in lieu of DNS)
+	or efficient data transfer.
+    \item \textbf{Built-in security:} CoAP supports using datagram TLS (DTLS)
+	with both pre-shared key and digital certificate support. As mentioned
+	earlier, CoAP DTLS uses UDP port 5684.
+    \item \textbf{Small header:} The CoAP overhead adds only 4 bytes.
+    \item \textbf{Fast response:} When a client sends a CoAP GET to a server,
+	the requested data is immediately returned in an ACK message, which is the
+	fastest possible data exchange.
+  \end{enumerate}
+
+  \item \textbf{Message Queuing Telemetry Transport (ISO/IEC 20922:2016):}
+  MQTT is, in a sense, the predecessor of CoAP in that it was created in 1999
+  and was specifically designed for lightweight, web-based, machine-to-machine
+  communications. Like HTTP, it relies on TCP, except uses ports 1883 and 8883
+  for plain-text and TLS communications, respectively. Being based on TCP also
+  implies a client/server model, similar to HTTP, but not necessary like CoAP.
+  Compared to CoAP, MQTT is losing traction given the additional benefits
+  specific to modern IoT networks that CoAP offers.
+\end{enumerate}
+
+The table that follows briefly compares CoAP, MQTT, and HTTP.
+
+\begin{longtable}{llll}
+\toprule
+% top left cell is blank
+&
+\textbf{CoAP}
+&
+\textbf{MQTT}
+&
+\textbf{HTTP}
+\\ \midrule
+\textbf{Transport and ports}
+&
+UDP 5683/5684
+&
+TCP 1883/1889
+&
+TCP 80/443
+\\ \midrule
+\textbf{Security support}
+&
+DTLS via PSK/PKI
+&
+TLS via PSK/PKI
+&
+TLS via PSK/PKI
+\\ \midrule
+\textbf{Multicast support}
+&
+Yes, but no encryption support yet
+&
+No
+&
+No
+\\ \midrule
+\textbf{Lightweight}
+&
+Yes
+&
+Yes
+&
+No
+\\ \midrule
+\textbf{Standardized}
+&
+Yes
+&
+No; in progress
+&
+Yes
+\\ \midrule
+\textbf{Rich feature set}
+&
+No
+&
+No
+&
+Yes
+\\
+\bottomrule
+\caption{IoT Transport Protocol Comparison}
+\end{longtable}
+
+Because IoT is so different than traditional networking, it is worth examining
+some of the layer-1 and layer-2 protocols relevant to IoT. One common set of
+physical layer enhancements that found traction in the IoT space are power
+line communication (PLC) technologies. PLCs enable data communications
+transfer over power lines and other electrical infrastructure devices. Two
+examples of PLC standards are discussed below:
+
+\begin{enumerate}
+  \item \textbf{IEEE 1901.2-2013:} This specification allows for up to 500
+  kbps of data transfer across alternating current, direct current, and
+
+  non-energized electric power lines. Smart grid applications used to operate
+  and maintain municipal electrical delivery systems can rely on the existing
+  power line infrastructure for limited data communications.
+  \item \textbf{HomePlug GreenPHY:} This technology is designed for home
+  appliances such as refrigerators, stoves (aka ranges), microwaves, and even
+  plug-in electric vehicles (PEV). The technology allows devices to be
+  integrated with existing smart grid applications, similar to IEEE
+  1901.2-2013 discussed above. The creator of this technology says that
+  GreenPHY is a ``manufacturer's profile'' of the IEEE specification, and
+  suggests that interworking is seamless.
+\end{enumerate}
+
+Ethernet has become ubiquitous in most networks. Originally designed for LAN
+communications, it is spreading into the WAN via ``Carrier Ethernet'' and into
+data center storage network via ``Fiber Channel over Ethernet'', to name a few
+examples. In IoT, new ``Industrial Ethernet'' standards are challenging older
+``field bus'' standards. The author describes some of the trade-offs between
+these two technology sets below.
+
+\begin{enumerate}
+  \item	\textbf{Field bus:} Seen as a legacy family of technologies by some,
+  field bus networks are still widely deployed in industrial environments.
+  This is partially due to its incumbency and the fact that many endpoints on
+  the network have interfaces that support various field bus protocols
+  (MODBUS, CANBUS, etc). Field bus networks are economical as transmitting
+  power over them is easier than power over Ethernet. Field bus technologies
+  are less sensitive to electrical noise, have greater physical range without
+  repeaters (copper Ethernet is limited to about 100 meters), and provide
+  determinism to help keep machine communications synchronized.
+  \item	\textbf{Industrial Ethernet:} To overcome the lack of deterministic
+  and reliable transport of traditional Ethernet within the industrial sector,
+  a variety of Ethernet-like protocols have been created. Two examples include
+  EtherCAT and PROFINET. While speeds of industrial Ethernet are much slower
+  than modern Ethernet (10 Mbps to 1 Gbps), these technologies introduce
+  deterministic data transfer. In summary, these differences allow for
+  accurate and timely delivery of traffic at slower speeds, compared to
+  accurate and fast delivery at indeterminate times. Last, the physical
+  connectors are typically ruggedized to further protect them in industrial
+  environments.
+\end{enumerate}
+
+Standardization must also consider Government regulation. Controlling access
+and identifying areas of responsibility can be challenging with IoT. Cisco
+provides the following example:  For example, \textit{Smart Traffic Lights}
+where there are several interested parties such as \textit{Emergency Services
+(User), Municipality (owner), Manufacturer (Vendor)}. Who has provisioning
+access? Who accepts Liability? \\
+
+There is more than meets the eye with respect to standards and compliance for
+street lights. Most municipalities (such as counties or townships within the
+United States) have ordinances that dictate how street lighting works. The
+light must be a certain color, must not ``trespass'' into adjacent streets,
+must not negatively affect homeowners on that street, etc. This complicates
+the question above because the lines become blurred between organizations
+rather quickly. In cases like this, the discussions must occur between all
+stakeholders, generally chaired by a Government/company representative
+(depending on the consumer/customer), to draw clear boundaries between
+responsibilities. \\
+
+Radio frequency (RF) spectrum is a critical point as well. While Wi-Fi can
+operate in the 2.4 GHz and 5.0 GHz bands without a license, there are no
+unlicensed 4G LTE bands at the time of this writing. Deploying 4G LTE capable
+devices on an existing carrier’s network within a developed country may not be
+a problem. Deploying 4G LTE in developing or undeveloped countries, especially
+if 4G LTE spectrum is tightly regulated but poorly accessible, can be a challenge.

@@ -1,2 +1,85 @@
 \subsubsection{SDN Controllers}
-old controller stuff here
+Controllers are components that are responsible for programming forwarding
+tables of data-plane devices. Controllers themselves could even be routers,
+like Cisco’s PfR operating as a master controller (MC), or they could be
+software-only appliances, as seen with OpenFlow networks or Cisco’s
+Application Policy Infrastructure Controller (APIC) used with ACI. The models
+discussed above help detail the significance of the controller; this is
+entirely dependent on the deployment model. The more involved a controller is,
+the more flexibility the network administrator gains. This must be weighed
+against the increased reliance on the controller itself. \\
+
+A well-known example of an SDN controller is Open DayLight (ODL). ODL is
+commonly used as the SDN controller for OpenFlow deployments. OpenFlow is the
+communications protocol between ODL and the data-plane devices responsible for
+forwarding packets (southbound). ODL communicates with business applications
+via APIs so that the network can be programmed to meet the requirements of the
+applications (northbound). \\
+
+It is worth discussing a few of Cisco’s solutions in this section as they are
+both popular with customers and relevant to Cisco’s vision of the future of
+networking. Cisco’s Intelligent WAN (IWAN) is an evolutionary strategy to
+bring policy abstraction to the WAN to meet modern design requirements, such
+as path optimization, cost reduction via commodity transport, and transport
+independence. IWAN has several key components:
+
+\begin{enumerate}
+  \item \textbf{Dynamic Multipoint Virtual Private Network (DMVPN):} This
+  feature is a multipoint IP tunneling mechanism that allows sites to
+  communicate to a central hub site without the hub needing to configure every
+  remote spoke. Some variants of DMVPN allow for direct spoke-to-spoke traffic
+  exchange using a reactive control-plane used to map overlay and underlay
+  addresses into pairs. DMVPN can provide transport independence as it can be
+  used as an overlay atop the public Internet, private WANs (MPLS), or any
+  other transport that carries IP.
+  \item \textbf{IP Service Level Agreement (IP SLA):} This feature is used to
+  synthesize traffic to match application flows on the network. By sending
+  probes that look like specific applications, IWAN can test application
+  performance and make adjustments. This is called ``active monitoring''. The
+  newest version of PfR (version 3) used within IWAN 2.0 no longer uses IP
+  SLA. Instead, it uses Cisco-specific ``Smart Probes'' which provide some
+  additional monitoring capabilities.
+  \item \textbf{Netflow:} Like probes, Netflow is used to measure the
+  performance of specific applications across an IWAN deployment, but does so
+  without sending traffic. These measurements can be used to estimate
+  bandwidth utilization, among other things. This is called ``passive monitoring''.
+  \item \textbf{IP Routing:} Although not a new feature, some kind of overlay
+  routing protocol is still needed. One of IWAN’s greatest strengths is that
+  it can still rely on IP routing for a subset of flows, while choosing to
+  optimize others. A total failure of the IWAN ``intelligence'' constructs
+  will allow the WAN to fall back to classic IP routing, which is a known-good
+  design and guaranteed to work. For this reason, existing design best
+  practices and requirements gathering cannot be skipped when IWAN is deployed
+  as these decisions can have significant business impacts.
+  \item \textbf{Performance Routing (PfR):} PfR is the glue of IWAN that
+  combines all of the aforementioned features into a comprehensive and
+  functional system. It enhances IP routing in a number of ways:
+
+  \begin{enumerate}
+    \item Adjusting routing attributes, such as BGP local-preference, to
+	prefer certain paths
+    \item Injecting longer matches to prefer certain paths
+    \item Installing dynamic route-maps for policy-routing when application
+	packets are to be forwarded based on something other than their destination IP address
+  \end{enumerate}
+
+\end{enumerate}
+
+When PfR is deployed, PfR speakers are classified as master controllers (MC)
+or border routers (BR). MCs are the SDN ``controllers'' where policy is
+configured and distributed. The BRs are relatively unintelligent in that they
+consume commands from the MC and apply the proper policy. There can be a
+hierarchy of MC/BR as well to provide greater availability for remote sites
+that lose WAN connectivity. MCs are typically deployed in a stateless HA pair
+using loopback addresses with variable lengths; the MCs typically exist in or
+near the corporate data centers. \\
+
+The following page depicts a high-level drawing of how IWAN works (from
+Cisco’s IWAN wiki page). IWAN is generally positioned as an SD-WAN solution as
+a way to connect branch offices to HQ locations, such as data centers.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.6\textwidth]{\imgpath iwan-overview.png}
+      \captionof{figure}{Cisco IWAN High Level Architecture}
+    \end{minipage}

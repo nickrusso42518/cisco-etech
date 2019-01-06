@@ -1,5 +1,367 @@
 \subsection{IoT Edge and Fog Computing}
-IoT edge/fog stuff
+A new term which is becoming more popular in the IoT space is ``fog''
+computing. It is sometimes referred to as ``edge'' computing outside of Cisco
+environments, which is a more self-explanatory term. Fog computing distributes
+storage, compute, and networking from a centralized cloud environment closer
+to the users where a given service is being consumed. The drivers for edge
+computing typically revolve around performance, notably latency reduction, as
+content is closer to users. The concept is somewhat similar to Content
+Distribution Networking (CDN) in that users should not need to reach back to a
+small number of remote, central sites to consume a service. \\
+
+Cisco defines fog computing as an architecture that \textit{extends the Compute,
+Networking, and Storage capabilities from the Cloud to the Edge of IoT
+networks.} The existence of fog computing is driven, in large part, by the
+shift in dominant endpoints. Consumer products such as laptops, phones, and
+tablets are designed primarily for human-to-human or human-to-machine
+interactions. Enterprise and OT products such as sensors, smart objects, and
+clustered systems primarily use machine-to-machine communications between one
+another and/or their controllers, such as an MRP system. As such, many of
+these OT products deployed far away from the cloud need to communicate
+directly, and in a timely, secure, and reliable fashion. Having compute,
+network, and storage resources closer to these lines of communication helps
+achieve these goals. \\
+
+Fog computing is popular in IoT environments not just for performance reasons,
+but consumer convenience. Wearing devices that are managed/tethered to other
+personally owned devices are a good example. Some examples might be smart
+watches, smart calorie trackers, smart heart monitors, and other wearable
+devices that ``register'' to a user’s cell phone or laptop rather than a large
+aggregation machine in the cloud. \\
+
+With respect to cost reduction when deploying a new service, comparing
+``cloud'' versus ``fog'' can be challenging and should be evaluated on a
+case-by-case basis. If the cost of backbone bandwidth from the edge to the
+cloud is expensive, then fog computing might be affordable despite needing a
+capital investment in distributed compute, storage, and networking. If transit
+bandwidth and cloud services are cheap while distributed compute/storage
+resources are expensive, then fog computing is likely a poor choice. That is
+to say, fog computing will typically be more expensive that cloud
+centralization. \\
+
+Finally, it is worth noting the endless cycle between the push to centralize
+and decentralize. Many technical authors (Russ White in particular) have noted
+this recurring phenomenon dating back many decades. From the mainframe to the
+PC to the cloud to the fog, the pendulum continues to swing. The most
+realistic and supportable solution is one that embraces both extremes, as well
+as moderate approaches, deploying the proper solutions to meet the business
+needs. A combination of cloud and fog, as suggested by Cisco and others in the
+IoT space, is likely to be the most advantageous solution.
 
 \subsubsection{Data Aggregation}
+Data aggregation in IoT is a sizable topic with a broad range of techniques
+across the layers of the OSI model. Cisco states that \textit{data filtering,
+aggregation, and compression are performed at the edge, in the fog, or at the
+center.} Aggregation of data is a scaling technique that reduces the amount of
+traffic transmitted over the network, often times to conserve bandwidth,
+power, and storage requirements. A simple example includes logging. If
+hundreds of sensors are all in a healthy state, and report this in their
+regular updates, a middle-tier collector could send a single message upstream
+to claim ``All the sensors from my last update are still valid. There is
+nothing new to report.'' \\
+
+Because IoT devices are often energy constrained, much of the data aggregation
+research has been placed in the physical layer protocols and designs around
+them. The remainder of this section discusses many of these physical layer
+protocols/methods and compares them. Many of these protocols seek to maximize
+the network lifetime, which is the elapsed time until the first node fails due
+to power loss.
+
+\begin{enumerate}
+  \item \textbf{Direct transmission:} In this design, there is no aggregation
+  or clustering of nodes. All nodes send their traffic directly back to the
+  base station. This simple solution is appropriate if the coverage area is
+  small or it is electrically expensive to receive traffic, implying that a
+  minimal hop count is beneficial.
+  \item \textbf{Low-Energy Adaptive Clustering Hierarchy (LEACH):} LEACH
+  introduces the concept of a ``cluster'', which is a collection of nodes in
+  close proximity for the purpose of aggregation. A cluster head (CH) is
+  selected probabilistically within each cluster and serves as an aggregation
+  node. All other nodes in the cluster send traffic to the CH, which
+  communicates upstream to the base station. This relatively long-haul
+  transmission consumes more energy, so rotating the CH role is advantageous
+  to the network as a whole.  Last, it supports some local
+  processing/aggregation of data to reduce traffic sent upstream (which
+  consumes energy). Compared to direct transmission, LEACH prolongs network
+  lifetime and reduces energy consumption.
+  \item \textbf{LEACH-Centralized (LEACH-C):} This protocol modifies LEACH by
+  centralizing the CH selection process. All nodes report location and energy
+  to the base station, which finds average of energy levels. Those with above
+  average remaining energy levels in each cluster are selected as CH. The base
+  station also notifies all other nodes of this decision. The CH may not
+  change at regular intervals (rounds) since the CH selection is more
+  deliberate than with LEACH. LEACH distributes the CH role between nodes in a
+  probabilistic (randomized) fashion, whereby LEACH-C relies on the base
+  station to make this determination. The centralization comes at an energy
+  cost since all nodes are transmitting their current energy status back to
+  the base station between rounds. The logic of the base station itself also
+  becomes more complex with LEACH-C compared to LEACH.
+  \item \textbf{Threshold-sensitive Energy Efficiency Network (TEEN):} This
+  protocol differs from LEACH in that it is reactive, not proactive. The radio
+  stays off unless there is a significant change worth reporting. This implies
+  there are no periodic transmissions, which saves energy. Similar to the
+  LEACH family, each node becomes the CH for some time (cluster period) to
+  distribute the energy burden of long-haul communication to the base station.
+  If the trigger thresholds are not crossed, nodes have no reason to
+  communicate. TEEN is excellent for intermittent, alert-based communications
+  as opposed to routine communications. This is well suited for event-driven,
+  time sensitive applications.
+  \item \textbf{Power Efficient Gathering in Sensor Info Systems (PEGASIS):}
+  Unlike the LEACH and TEEN families, PEGASIS is a chain based protocol. Nodes
+  are connected in round-robin fashion (a ring); data is sent only to a node's
+  neighbors, not to a CH within a cluster. These short transmission distances
+  his further minimize energy consumption. Rather than rotate the burdensome
+  CH role, all nodes do a little more work at all times. Only one node
+  communicates with the base station. This allows nodes to determine which
+  other nodes are closest to them. Discovery is done by measuring the receive
+  signal strength indicator (RSSI) of incoming radio signals to find the
+  closest nodes. PEGASIS is optimized for dense networks.
+  \item \textbf{Minimum Transmission of Energy (MTE):} MTE is conceptually
+  similar to PEGASIS in that it is a chain based protocol designed to minimize
+  the energy required to communicate between nodes. In contrast with direct
+  transmission, MTE assumes that the cost to receive traffic is low, and works
+  well over long distances with sparse networks. MTE is more computationally
+  complex than PEGASIS, again assuming that the energy cost of radio
+  transmission is greater than the energy cost of local processing. This may
+  be true in some environments, such as long-haul power line systems and
+  interstate highway emergency phone booths.
+  \item \textbf{Static clustering:} Like the LEACH and TEEN families, static
+  clustering requires creating geographically advantageous clusters for the
+  purpose of transmission aggregation. This technique is static in that the CH
+  doesn't rotate; it is statically configured by the network designer. This
+  technique is useful in heterogeneous environments where the CH is known to
+  be a higher energy node. Consider a simple, non-redundant example. Suppose
+  that each building has 20 sensors, 1 of which is a more expensive variant
+  with greater energy capacity. The network is heterogeneous because not all
+  20 nodes are the same, and thus statically identifying the most powerful
+  node as the permanent CH may extend the network lifetime.
+  \item \textbf{Distributed Energy Efficient Clustering (DEEC):} Similar to
+  static clustering, the DEEC family of protocols is designed for
+  heterogeneous networks containing a mix of node types. DEEC introduces the
+  concept of ``normal'' and ``advanced;; nodes, with the latter having greater
+  initial energy than the former. Initial energy is assigned to normal nodes,
+  with a little more initial energy assigned to advanced nodes. CH selection
+  is done based on whichever node has the largest initial energy. As such,
+  advanced nodes are more likely to be selected as the CH.
+  \item \textbf{Developed DEEC (DDEEC):} A newer variant of DEEC, DDEEC
+  addresses the concern that advanced nodes become CH more often, and will
+  deplete their energy more rapidly. At some point, they'll look like normal
+  nodes, and should be treated as such as it relates to CH selection. Making a
+  long-term CH decision based on initial energy levels is can reduce the
+  overall network lifetime. DDEEC improves the CH selection process to
+  consider initial and residual (remaining) energy in its calculation.
+  Enhanced DEEC (EDEEC) further extends DDEEC by adding a third class of
+  nodes, called ``super'' nodes, which have even greater initial energy than
+  advanced nodes. Its operation is similar to DDEEC otherwise.
+\end{enumerate}
+
+The chart that follows summarizes these protocols comparatively. 
+
+\begin{longtable}{KKKLKL}
+\toprule
+\textbf{Method}
+&
+\textbf{Tx Target}
+&
+\textbf{Design}
+&
+\textbf{Operation}
+&
+\textbf{Used in}
+&
+\textbf{Network life}
+\\ \midrule
+\textbf{Direct Tx}
+&
+BS
+&
+Point-to-point links to BS
+&
+Send to BS independently
+&
+Homogenous
+&
+Poor
+\\ \midrule
+\textbf{LEACH}
+&
+CH
+&
+Proactive/ Cluster
+&
+Distributed (random)
+&
+Homogenous
+&
+Good in general
+\\ \midrule
+\textbf{LEACH-C}
+&
+CH
+&
+Proactive/ Cluster
+&
+Centralized assignment
+&
+Homogenous
+&
+Good in general
+\\ \midrule
+\textbf{TEEN}
+&
+CH
+&
+Reactive/ Cluster
+&
+Threshold-based alerts
+&
+Homogenous
+&
+Great with few comms
+\\ \midrule
+\textbf{PEGASIS}
+&
+Neighbor
+&
+Greedy chain
+&
+Find closest node
+&
+Homogenous
+&
+Great with dense nodes
+\\ \midrule
+\textbf{MTE}
+&
+Neighbor
+&
+Optimal chain
+&
+Find closest node
+&
+Homogenous
+&
+Great with sparse nodes
+\\ \midrule
+\textbf{Static clustering}
+&
+CH
+&
+Cluster
+&
+Manual CH configuration
+&
+Heterogenous
+&
+Variable, but usually poor
+\\ \midrule
+\textbf{DEEC}
+&
+CH
+&
+Cluster
+&
+Distributed using initial energy only
+&
+Heterogenous
+&
+Good
+\\ \midrule
+\textbf{DDEEC/ EDEEC}
+&
+CH
+&
+Cluster
+&
+Distributed using initial/residual energy
+&
+Heterogenous
+&
+Great
+\\
+\bottomrule
+\caption{IoT Data Aggregation Protocol Comparison}
+\end{longtable}
+
+Note that many of these protocols are still under extensive development,
+research, and testing.
+
 \subsubsection{Edge Intelligence}
+Cisco products relevant to the fog computing space include small Wi-Fi/LTE
+routers (Cisco IR 819/829 series) and programmable RF gateways (IR910). These
+devices bring all the power of Cisco IOS software in a small form factor
+suitable for industrial applications. As with many IoT topics, demonstrating
+edge intelligence is best accomplished with a real-life example. Edge
+intelligence often refers to distributed analytics systems that can locally
+evaluate, reduce/aggregation, and act on sensor data to avoid expensive
+backhaul to a centralized site. It can also generically refer to any
+intelligent decision making at the network edge (where the sensors/users are),
+which is discussed in the example below. \\
+
+The author personally used the IR 819 and IR 829 platforms in designing a
+large, distributed campus area network in an austere environment. The IR 819s
+were LTE-only and could be placed on vehicles or remote facilities within a
+few kilometers of the LTE base station. The IR 829s used LTE and Wi-Fi, with
+Wi-Fi being the preferred path. This allowed the vehicles equipped with IR
+829s to use Wi-Fi for superior performance when they were very close to the
+base station (say, for refueling or resupply). Both the IR 819 and IR 829
+equipped vehicles had plug-and-play Ethernet capability for when they were
+parked in the maintenance bay for software updates and other
+bandwidth-intensive operations. \\
+
+An IPsec overlay secured with next-generation encryption provided strong
+protection, and running Cisco EIGRP ensured fast failover between the
+different transports. Using only IPv6, this network was fully dynamic and each
+remote IR 819 and IR 829 had the exact same configuration. The headend used
+IPv6 prefix delegation through DHCP to assign prefixes to each node. The
+mobile routers, in turn, used these delegated prefixes to seed their stateless
+address auto-configuration (SLAAC) processes for LAN clients. While the
+solution did not introduce fog/edge compute or storage technology, it brought
+an intelligent, dynamic, and scalable network to the most remote users. Future
+plans for the design included small, ruggedized third-party servers with IoT
+analytics software locally hosted to reduce gateway backhaul bandwidth
+requirements. \\
+
+Cisco also has products to perform edge aggregation and analytics, such as
+Data in Motion (DMo). \textit{DMo is a software technology that provides data
+management and first-order analysis at the edge.} DMo converts raw data to
+useful/actionable information for transmission upstream. The previous section
+discussed ``Data aggregation'' in greater detail, and DMo offers that
+capability. DMo is a virtual machine which has RESTful API support, encrypted
+transport options, and local caching capabilities. \\
+
+Many IoT environments require a level of customization best suited for a
+business' internal developers to build. Cisco's Kinetic Edge and Fog Module
+(EFM) is a development platform that customers can use for operating and
+managing their IoT networks. \textit{Kinetic EFM is a distributed
+microservices platform for acquiring telemetry, moving it, analyzing it while
+it’s moving and putting it to rest.} The solution follows these main steps as
+defined by Cisco:
+
+\textit{
+\begin{enumerate}
+  \item Extract data from its sources and makes it usable.
+  \item Compute data to transform it, apply rules, and perform distributed micro-processing from edge to endpoint.
+  \item Move data programmatically to the right applications at the right time.
+\end{enumerate}
+}
+
+Furthermore, the solution has three main components:
+
+\begin{enumerate}
+  \item \textbf{IoT message broker:} Utilizes publish/subscribe exchanges with
+  endpoints. It has a small footprint and runs at the edge. It also supports
+  various QoS levels to provide the correct treatment for applications.
+  \item \textbf{Link:} Synonymous with ``microservice''. Many links already
+  exist and are open source for Kinetic EFM developers to utilize. For more
+  information on microservices, please review the ``containers'' section of
+  this document.
+  \item \textbf{Historian (formerly ParStream):} SQL style database which can
+  scale massively for IoT. It has excellent performance and is well-suited to
+  IoT architectures. The main drawback is that is only supports the INSERT
+  operation, not transactional operations like UPDATE or DELETE. To rapidly
+  retrieve information from the database, users have two options. One can send
+  a query using the EFM as a query mechanism directly. Alternatively, one can
+  form an Open Database Connectivity (ODBC) connection directly to the
+  Historian database.
+\end{enumerate}

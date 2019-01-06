@@ -1,2 +1,494 @@
 \subsubsection{OpenStack components with PackStack Demonstration}
-openstack stuff
+Before discussing the OpenStack components, OpenStack's background is
+discussed first. Although OpenStack seems similar to a hypervisor, it adds
+additional abstractions for virtual instances to reduce the management burden
+on administrators. OpenStack is part of the notion that technology is moving
+``from virtual Machines (VM) to APIs''. VMs allow users to dynamically
+instantiate a server abstracted from physical resources, which has been
+popular for years. The idea of cloud computing (and specifically OpenStack) is
+to extend that abstraction to all resources (compute, storage, network,
+management, etc). All of these things could be managed through APIs rather
+than vendor-specific prompts and user interfaces, such as GUIs, CLIs, etc. \\
+
+The fundamental idea is to change the way IT is consumed (including compute,
+storage, and network). The value proposition of this change includes
+increasing efficiency (peak of sums, not sum of peaks) and on-demand elastic
+provisioning (faster engineering processes). For cost reduction in both CAPEX
+and OPEX, the cost models generally resemble ``pay for what you use''. A
+customer can lease the space from a public cloud provider for a variable
+amount of time. In some cases, entire IT shops might migrate to a public cloud
+indefinitely. In others, a specific virtual workload may need to be executed
+one time for 15 minutes in the public cloud since some
+computationally-expensive operations may take too long in the on-premises DC.
+``Cloud bursting'' is an example of utilizing a large amount of cloud
+resources for a very short period of time, perhaps to reduce/compress a large
+chunk of data, which is a one-time event. \\
+
+OpenStack releases are scheduled every 6 months and many vendors from across
+the stack contribute to the code. The entire goal is to have an open-source
+cloud computing platform; while it may not be as feature-rich as large-scale
+public cloud implementations, it is considered a viable and stable
+alternative. OpenStack is composed of multiple projects which follow a basic
+process:
+
+\begin{enumerate}
+  \item	\textbf{External:} The idea phase
+  \item	\textbf{Incubated:} Mature the software, migrate to OpenStack after 2 milestones of incubation
+  \item	\textbf{Integrated:} Release as part of OpenStack
+\end{enumerate}
+
+OpenStack has several components (and growing) which are discussed briefly below.
+The components have code-names for quick reference within the OpenStack
+community; these are included in parentheses. Many of the components are
+supplementary and don’t comprise core OpenStack deployments, but can add value
+for specific cloud needs. Note that OpenStack compares directly to existing
+public cloud solutions offered by large vendors, except is open source with
+all code being available under the Apache 2.0 license.
+
+\begin{enumerate}
+  \item	\textbf{Compute (Nova):} Fabric controller (the main part of an IaaS
+  system). Manages pools of compute resources. A compute resource could be a
+  VM, container, or bare metal server. Side note: Containers are similar to
+  VMs except they share a kernel. They are otherwise independent, like VMs,
+  and are considered a lighter-weight yet secure alternative to VMs.
+  \item	\textbf{Networking (Neutron):} Manages networks and IP addresses.
+  Ensures the network is not a bottleneck or otherwise limiting factor in a
+  production environment. This is technology-agnostic network abstraction
+  which allows the user to create custom virtual networks, topologies, etc.
+  For example, virtual network creation includes adding a subnet, gateway
+  address, DNS, etc.
+  \item	\textbf{Block Storage (Cinder):} Manages creation, attaching, and
+  detaching of block storage devices to servers. This is not an implementation
+  of storage itself, but provides an API to access that storage. Many storage
+  appliance vendors often have a Cinder plug-in for OpenStack integration;
+  this ultimately abstracts the vendor-specific user interfaces from the
+  management process. Storage volumes can be detached and moved between
+  instances (an interesting form of file transfer, for example) to share
+  information and migrate data between projects.
+  \item	\textbf{Identity (Keystone):} Directory service contains users mapped
+  to services they can access. Somewhat similar to group policies applied in
+  corporate deployments. Tenants (business units, groups/teams, customers,
+  etc) are stored here which allows them to access resources/services within
+  OpenStack; commonly this is access to the OpenStack Dashboard (Horizon) to
+  manage an OpenStack environment.
+  \item	\textbf{Image (Glance):} Provides discovery, registration, and
+  retrieval of virtual machine images. It supports a RESTful API to query
+  image metadata and the image itself.
+  \item	\textbf{Object Storage (Swift):} Storage system with built-in data
+  replication and integrity. Objects and files are written to disk using this
+  interface which manages the I/O details. Scalable and resilient storage for
+  all objects like files, photos, etc. This means the customer doesn’t have to
+  deploy a block-storage solution themselves, then manage the storage
+  protocols (iSCSI, NFS, etc).
+  \item	\textbf{Dashboard (Horizon):} The GUI for administrators and users to
+  access, provision, and automate resources. The dashboard is based on the
+  Python Django framework and is layered on top of service APIs. Logging in
+  relies on Keystone for identity management which secures access to the GUI.
+  The dashboard supports different tenants with separate permissions and
+  credentials; this is effectively role-based access control. The GUI provides
+  the most basic/common functionality for users without needing CLI access,
+  which is supported for advanced functions. The ``security group'' construct
+  is used to enforce access control (administrators often need to configure
+  this before being able to access new instances).
+  \item	\textbf{Orchestration (Heat):} Orchestrates cloud applications via
+  templates using a variety of APIs.
+  \item	\textbf{Workflow (Mistral):} Manages user-created workflows (triggered
+  manually or by some event).
+  \item	\textbf{Telemetry (Ceilometer):} Provides a Single Point of Contact
+  for billing systems used within the cloud environment.
+  \item	\textbf{Database (Trove):} This is a Database-as-a-service
+  provisioning engine.
+  \item	\textbf{Elastic Map Reduce (Sahara):} Automated way to provision
+  Hadoop clusters, like a wizard.
+  \item	\textbf{Bare Metal (Ironic):} Provisions bare metal machines rather
+  than virtual machines.
+  \item	\textbf{Messaging (Zaqar):} Cloud messaging service for Web
+  Developments (full RESTful API) used to communicate between SaaS and mobile applications.
+  \item	\textbf{Shared File System (Manila):} Provides an API to manage shares
+  in a vendor agnostic fashion (create, delete, grant/deny access, etc).
+  \item	\textbf{DNS (Designate):} Multi-tenant REST API for managing DNS
+  (DNS-as-a-service).
+  \item	\textbf{Search (Searchlight):} Provides search capabilities across
+  various cloud services and is being integrated into the Dashboard. Searching
+  for compute instance status and storage system names are common uses cases
+  for administrators.
+  \item	\textbf{Key Manager (Barbican):} Provides secure storage,
+  provisioning, and management of secrets (passwords).
+\end{enumerate}
+
+The key components of OpenStack and their interactions are depicted on the
+diagram that follows. The source of this image is included in the references as it
+was not created by the author. This depicts a near-minimal OpenStack deploy
+with respect to the number of services depicted. At the time of this writing
+and according to
+\href{https://ask.openstack.org/en/question/63268/installing-minimum-services-using-devstack/}{OpenStack’s help forum},
+the minimum services required appear to be Nova, Keystone, Glance, and
+Horizon. Such a deployment would not have any networking or remote storage
+support, but could be used for developers looking to run code on OpenStack
+compute instances in isolation.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath openstack-high-level.jpg}
+      \captionof{figure}{Openstack Component Interconnections}
+    \end{minipage}
+
+This section briefly explores installing OpenStack on Amazon AWS as an EC2
+instance. This is effectively ``cloud inside of cloud'' and while easy and
+inexpensive to install, is difficult to operate. As such, this demonstration
+details basic GUI navigation, CLI troubleshooting, and Nova instance creation
+using Cinder for storage. \\
+
+For simplicity, packstack running on CentOS7 is used. The packstack package is
+a pre-made collection of OpenStack’s core services, including but not limited
+to Nova, Cinder, Neutron (limited), Horizon, and Keystone. Only these five
+services are explored in this demonstration. \\
+
+The installation process for packstack on CentOS7 and RHEL7 can be found at
+RDOproject. The author recommends using a \textbf{t2.large} or
+\textbf{t2.xlarge} AWS EC2 instance for the CentOS7/RHEL7 base operating
+system. At the time of this writing, these instances cost less than 0.11
+USD/hour and are affordable, assuming the instance is terminated after the
+demonstration is complete. The author used AWS Route53 (DNS) service to map
+the packstack public IP to \verb|http://packstack.njrusmc.net| (link is dead
+at the time of this writing) to simplify access (this process is not shown).
+This is not required, but may simplify the packstack HTTP server configuration
+later. Be sure to record the DNS name of the EC2 instance if you are not using
+Route53 explicitly for hostname resolution; this name is auto-generated by AWS
+assuming the EC2 instance is placed in the default VPC. Also, after
+installation completes, take note of the instructions from the installer which
+provide access to the administrator password for initial login. \\
+
+The author has some preparatory recommendations before logging into Horizon
+via the web GUI. Additionally, be sure to execute these steps before rebooting
+or powering off the packstack instance. \\
+
+Follow the current AWS guidance on how to change the hostname of a
+CentOS7/RHEL7 EC2 instance. The reason is because, on initial provisioning,
+the hostname lacks the FQDN text which includes the domain name (\verb|hostname|
+versus \verb|hostname.ec2.internal|). Change the hostname to remove all of the
+FQDN domain information for consistency within packstack. This will alleviate
+potential issues with false negatives as it relates to nova compute nodes
+being down. The hostname command and the \verb|/etc/hostname| file should look
+like the output below:
+
+\begin{minted}{text}
+[root@ip-172-31-9-84 ~(keystone_admin)]# hostname
+ip-172-31-9-84
+
+[root@ip-172-31-9-84 ~(keystone_admin)]# cat /etc/hostname
+ip-172-31-9-84
+\end{minted}
+
+In order to use the OpenStack CLI, many environment variables must be set.
+These variables can be set in the \verb|keystonerc_admin| file. It is easiest
+to source the file within root’s bash profile, then issue \verb|su -| when
+switching to the root user after logging in as ``centos''. Alternatively, the
+contents of the file can be manually pasted in the CLI as well. The author has
+already exported these environment variables which is why the prompt in the
+output below says ``keystone admin''.
+
+\begin{minted}{text}
+root@ip-172-31-9-84 ~(keystone_admin)]# cat keystonerc_admin
+unset OS_SERVICE_TOKEN
+export OS_USERNAME=admin
+export OS_PASSWORD=5e6ec577785047a8
+export OS_AUTH_URL=http://172.31.9.84:5000/v3
+export PS1='[\u@\h \W(keystone_admin)]\$ '
+
+export OS_PROJECT_NAME=admin
+export OS_USER_DOMAIN_NAME=Default
+export OS_PROJECT_DOMAIN_NAME=Default
+export OS_IDENTITY_API_VERSION=3
+
+[root@ip-172-31-9-84 ~(keystone_admin)]# echo "source keystonerc_admin" >> ~/.bash_profile
+
+[root@ip-172-31-9-84 ~(keystone_admin)]# tail -1 ~/.bash_profile
+source keystonerc_admin
+\end{hostname}
+
+Next, if Horizon is behind a NAT device (which is generally true for AWS
+deployments), be sure to add a \verb|ServerAlias| in
+\verb|/etc/httpd/conf.d/15-horizon_vhost.conf|, as shown below. This will
+allow HTTP GET requests to the specific URL to be properly handled by the HTTP
+server running on the packstack instance. Note that the VirtualHost tags
+already exist and the \verb|ServerAlias| must be added within those bounds.
+
+\begin{minted}{text}
+<VirtualHost *:80>
+  [snip]
+  ServerAlias packstack.njrusmc.net
+  [snip]
+</VirtualHost>
+\end{hostname}
+
+The final pre-operations step recommended by the author is to reboot the
+system. The packstack installer may also suggest this is required. After
+reboot, log back into packstack via SSH, switch to root with a full login, and
+verify the hostname has been retained. Additionally, all packstack related
+environmental variables should be automatically loaded, simplifying CLI
+operations. \\
+
+Navigate to the packstack instance’s DNS hostname in a web browser. The
+OpenStack GUI somewhat resembles that of AWS, which makes sense since both are
+meant to be cloud dashboards. The screenshot on the following page shows the
+main GUI page after login, which is the \verb|Identity -> Projects page|. Note that a
+``demo'' project already exists, and fortunately for those new to OpenStack,
+there is an entire sample structure built around this. This document will
+explore the demo project specifically.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath openstack-projects.png}
+      \captionof{figure}{Openstack Projects Page}
+    \end{minipage}
+
+This demonstration begins by exploring Keystone. Click on the \verb|Identity
+-> Users| page, find the demo user, and select ``Edit''. The screen on the
+following page shows some of the fields required, and most are self-evident
+(name, email, password, etc.). Update a few of the fields to add an email
+address and select a primary project, though neither is required. For brevity,
+this demonstration does not explore groups and roles, but these options are
+useful for management of larger OpenStack deployments.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath openstack-update-user.png}
+      \captionof{figure}{Openstack Projects Page}
+    \end{minipage}
+
+Next, click on \verb|Identity -> Project| and edit the demo project. The
+screenshots on the following page depicts the demonstration configuration for
+the basic project information and team members. Only the \verb|demo| user is
+part of this project. Note that the \verb|Quota| tab can be used in a
+multi-tenant environment, such as a hosted OpenStack-as-a-service solution, to
+ensure that an individual project does not consume too many resources.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath openstack-edit-project1.png}
+      \captionof{figure}{Openstack Edit Project Information}
+    \end{minipage}
+
+The project members tab is shown below. Only the demo user is a member of the
+demo project by default, and this demonstration does not make any
+modifications to this.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath openstack-edit-project2.png}
+      \captionof{figure}{Openstack Edit Project Members}
+    \end{minipage}
+
+Nova is explored next. Navigate to \verb|Project -> Compute -> Images|. There is
+already a CirrOS image present, which is a small Linux-based OS designed for
+testing in cloud environments. Without much work, we can quickly spin up a
+CirrOS instance on packstack for testing. Click on \verb|Launch| next to the
+CirrOS image to create a new instance. The \verb|Details| tab is currently
+selected. The instance name will be CirrOS1; note that there is only one
+availability zone.  The dashboard also shows the result of adding these new
+instances against the remaining limits of the system.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath openstack-launch1.png}
+      \captionof{figure}{Openstack Launch Details}
+    \end{minipage}
+
+Under the \verb|Source| tab, select \verb|Yes| for \verb|Delete Volume on
+Instance Delete|. This ensures that when the instance is terminated, the
+storage along with it is deleted also. This is nice for testing when instances
+are terminated regularly and their volumes are no longer needed. It’s also
+good for public cloud environments where residual, unused volumes cost money
+(lesson learned the hard way). Click on the up arrow next to the CirrOS
+instance to move it from the \verb|Available| menu to the \verb|Allocated| menu.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath openstack-launch2.png}
+      \captionof{figure}{Openstack Launch Source}
+    \end{minipage}
+
+Under \verb|Flavor|, select \verb|m1.tiny| which is appropriate for CirrOS.
+These flavors are general sizing models for the instance as it relates to
+compute, memory, and storage.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath openstack-launch3.png}
+      \captionof{figure}{Openstack Launch Flavor}
+    \end{minipage}
+
+At this point, it is technically possible to launch the instance, but there
+are other important fields to consider. It would be exhaustive to document
+every single instance option, so only the most highly relevant ones are
+explored next. \\
+
+Under \verb|Security Groups|, note that the instance is part of the
+\verb|default| security group since no explicit ones were created. This group
+allows egress communication to any IPv4 or IPv6 address, but no unsolicited
+ingress communication. Security Groups are stateful, so that returning traffic
+is allowed to reach the instance on ingress. This is true in the opposite
+direction as well; if ingress rules were defined, returning traffic would be
+allowed outbound even if the egress rules were not explicit matched. AWS EC2
+instance security groups work similarly, except only in the ingress direction.
+No changes are needed on this page for this demonstration. \\
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath openstack-launch4.png}
+      \captionof{figure}{Openstack Launch Security Groups}
+    \end{minipage}
+
+Packstack does not come with any key pairs by default, which make sense since
+the private key is only available once at the key pair creation time. Under
+\verb|Key Pair|, click on \verb|Create Key Pair|. Be sure to store the private
+key somewhere secure that provides confidentiality, integrity, and
+availability. Any Nova instances deployed using this key pair can only be
+accessed using the private key file, much like a specific key opens a specific
+lock.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath openstack-key-create.png}
+      \captionof{figure}{Openstack Key Pair Creation}
+    \end{minipage}
+
+After the key pair is generated, it can be viewed below and downloaded.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath openstack-key-launch.png}
+      \captionof{figure}{Openstack Mapping Key Pair to Instance}
+    \end{minipage}
+
+The OpenSSH client program (standard on Linux and Mac OS) will refuse to use
+private keys with their SSH clients unless the file is secured in terms of
+accessibility. In this case, the file permissions are reduced to read-only for
+the owning user and no others using the \verb|chmod 0400| command in Linux and
+Mac OS. The command below sets the ``read'' permission for the file's owner
+(nicholasrusso) and removes all other permissions.
+
+\begin{minted}{text}
+Nicholass-MBP:ssh nicholasrusso$ ls -l CirrOS1-kp.pem
+-rw-r--r--@ 1 nicholasrusso  staff  1679 Aug 13 12:45 CirrOS1-kp.pem
+Nicholass-MBP:ssh nicholasrusso$ chmod 0400 CirrOS1-kp.pem
+Nicholass-MBP:ssh nicholasrusso$ ls -l CirrOS1-kp.pem
+-r--------@ 1 nicholasrusso  staff  1679 Aug 13 12:45 CirrOS1-kp.pem
+\end{minted}
+
+Click on \verb|Launch Instance| and navigate back to the main \verb|Instances|
+menu. The screenshot on the following page shows two separate CirrOS instances
+as the author repeated the procedure twice.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath openstack-instances.png}
+      \captionof{figure}{Openstack Instances (Compute)}
+    \end{minipage}
+
+Exploring the volumes for these instances shows the iSCSI disks (block storage
+on Cinder) mapped to each CirrOS compute instance.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.7\textwidth]{\imgpath openstack-volumes.png}
+      \captionof{figure}{Openstack Volumes (Storage)}
+    \end{minipage}
+
+Accessing these instances, given the ``cloud inside of cloud architecture'',
+is non-trivial. The author does not cover the advanced Neutron configuration
+to make this work, so accessing the instances is not covered in this
+demonstration. Future releases of this document may detail this.
+
+Moving back to the CLI, there are literally hundreds of OpenStack commands
+used for configuration and troubleshooting of the cloud system. The author’s
+favorite three Nova commands are shown on the following page. Note that some
+of the columns were omitted to have it fit nicely on the screen, but the
+information removed was not terribly relevant for this demonstration. The
+host-list shows the host names and their services. The service-list is very
+useful to see if any hosts or services are down or disabled. The general list
+enumerates the configured instances. The two instances created above are
+displayed there.
+
+\begin{minted}{text}
+[root@ip-172-31-9-84 ~(keystone_admin)]# nova host-list
++----------------+-------------+----------+
+| host_name      | service     | zone     |
++----------------+-------------+----------+
+| ip-172-31-9-84 | cert        | internal |
+| ip-172-31-9-84 | conductor   | internal |
+| ip-172-31-9-84 | scheduler   | internal |
+| ip-172-31-9-84 | consoleauth | internal |
+| ip-172-31-9-84 | compute     | nova     |
++----------------+-------------+----------+
+
+[root@ip-172-31-9-84 ~(keystone_admin)]# nova service-list
++----+------------------+----------------+----------+----------+-------+
+| Id | Binary           | Host           | Zone     | Status   | State |
++----+------------------+----------------+----------+----------+-------+
+| 6  | nova-cert        | ip-172-31-9-84 | internal | enabled  | up    |
+| 7  | nova-conductor   | ip-172-31-9-84 | internal | enabled  | up    |
+| 8  | nova-scheduler   | ip-172-31-9-84 | internal | enabled  | up    |
+| 9  | nova-consoleauth | ip-172-31-9-84 | internal | enabled  | up    |
+| 10 | nova-compute     | ip-172-31-9-84 | nova     | enabled  | up    |
++----+------------------+----------------+----------+----------+-------+
+
+[root@ip-172-31-9-84 ~(keystone_admin)]# nova list
++----------------------+---------+--------+---------+--------------------+
+| ID                   | Name    | Status | Power   | Networks           |
++----------------------+---------+--------+---------+--------------------+
+| 9dca3460-36b6-(snip) | CirrOS1 | ACTIVE | Running | public=172.24.4.13 |
+| 2e4607d0-c49b-(snip) | CirrOS2 | ACTIVE | Running | public=172.24.4.2  |
++----------------------+---------+--------+---------+--------------------+
+\end{minted}
+
+When the CirrOS instances were created, each was given a 1 GiB disk via iSCSI,
+which is block storage. This is the Cinder service in action. The chart below
+shows each volume mapped to a given instance; note that a single instance
+could have multiple disks, just like any other machine.
+
+\begin{minted}{text}
+[root@ip-172-31-9-84 ~(keystone_admin)]# cinder list
++-----------------+--------+------+--------+----------+-----------------+
+| ID              | Status | Size | Volume | Bootable | Attached        |
++-----------------+--------+------+--------+----------+-----------------+
+| 0681343e-(snip) | in-use | 1    | iscsi  | true     | 9dca3460-(snip) |
+| 08554c2f-(snip) | in-use | 1    | iscsi  | true     | 2e4607d0-(snip) |
++-----------------+--------+------+--------+----------+-----------------+
+\end{minted}
+
+The command on the following page shows basic information about the public
+subnet that comes with the packstack installer by default. Neutron was not
+explored in depth in this demonstration.
+ 
+\begin{minted}{text}
+[root@ip-172-31-9-84 ~(keystone_admin)]# neutron net-show public
++---------------------------+--------------------------------------+
+| Field                     | Value                                |
++---------------------------+--------------------------------------+
+| admin_state_up            | True                                 |
+| availability_zone_hints   |                                      |
+| availability_zones        | nova                                 |
+| created_at                | 2017-08-14T01:53:35Z                 |
+| description               |                                      |
+| id                        | f627209e-a468-4924-9ee8-2905a8cf69cf |
+| ipv4_address_scope        |                                      |
+| ipv6_address_scope        |                                      |
+| is_default                | False                                |
+| mtu                       | 1500                                 |
+| name                      | public                               |
+| project_id                | d20aa04a11f94dc182b07852bb189252     |
+| provider:network_type     | flat                                 |
+| provider:physical_network | extnet                               |
+| provider:segmentation_id  |                                      |
+| revision_number           | 5                                    |
+| router:external           | True                                 |
+| shared                    | False                                |
+| status                    | ACTIVE                               |
+| subnets                   | cbb8bad6-8508-45a0-bbb9-86546f853ae8 |
+| tags                      |                                      |
+| tenant_id                 | d20aa04a11f94dc182b07852bb189252     |
+| updated_at                | 2017-08-14T01:53:39Z                 |
++---------------------------+--------------------------------------+
+\end{minted}

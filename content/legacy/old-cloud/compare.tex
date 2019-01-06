@@ -1,2 +1,200 @@
 \subsubsection{Cloud Comparison Chart}
-cloud table here
+Those who don’t need to create and operate their own private clouds may be
+inclined to use a well-known and trusted public cloud provider. At the time of
+this writing, the three most popular cloud providers are Amazon Web Services
+(AWS), Microsoft Azure, and Google Cloud Platform (GCP). The table below
+compares the OpenStack components to their counterparts in the aforementioned
+public cloud providers. \textbf{The chart below is the result of the author’s
+personal research and will likely change over time as these cloud providers
+modify their cloud offerings.}
+
+\begin{longtable}{LLLLL}
+\toprule
+\textbf{Component/Utility}
+\textbf{OpenStack}
+\textbf{AWS}
+\textbf{Microsoft Azure}
+\textbf{GCP}
+\textbf{Compute}
+&
+Nova
+&
+EC2
+&
+VMs
+&
+Compute Engine
+\\ \midrule
+\textbf{Network}
+&
+Neutron
+&
+VPC
+&
+Virtual Network
+&
+VPC
+\\ \midrule
+\textbf{Block Storage}
+&
+Cinder
+&
+EBS
+&
+Storage Disk
+&
+Persistent Disk
+\\ \midrule
+\textbf{Identity}
+&
+Keystone
+&
+IAM
+&
+Active Directory
+&
+Cloud IAM
+\\ \midrule
+\textbf{Image}
+&
+Glance
+&
+Lightsail
+&
+VMs and Images
+&
+Cloud Vision API
+\\ \midrule
+\textbf{Object Storage}
+&
+Swift
+&
+S3
+&
+Storage
+&
+Cloud Storage
+\\ \midrule
+\textbf{Dashboard}
+&
+Horizon
+&
+Console
+&
+Portal
+&
+Console
+\\ \midrule
+\textbf{Orchestration}
+&
+Heat
+&
+Batch
+&
+Batch
+&
+Cloud Dataflow
+\\ \midrule
+\textbf{Workflow}
+&
+Mistral
+&
+SWF
+&
+Logic Apps
+&
+Cloud Dataflow
+\\ \midrule
+\textbf{Telemetry}
+&
+Ceilometer
+&
+CloudWatch
+&
+VS App Insights
+&
+Cloud Pub/Sub
+\\ \midrule
+\textbf{Database}
+&
+Trove
+&
+RDS
+&
+SQL Database
+&
+Cloud Spanner
+\\ \midrule
+\textbf{Elastic Map Reduce}
+&
+Sahara
+&
+EMR
+&
+HDInsight
+&
+BigQuery and more
+\\ \midrule
+\textbf{Bare Metal}
+&
+Iconic
+&
+Dedicated instance
+&
+Bare Metal Recovery
+&
+Actual Cloud Platform
+\\ \midrule
+\textbf{Messaging}
+&
+Zaqar
+&
+SQS
+&
+Queue Storage
+&
+Cloud Pub/Sub
+\\ \midrule
+\textbf{Shared File System}
+&
+Manila
+&
+EFS
+&
+File Storage
+&
+FUSE
+\\ \midrule
+\textbf{DNS}
+&
+Designate
+&
+Route 53
+&
+DNS
+&
+Cloud DNS
+\\ \midrule
+\textbf{Search}
+&
+Searchlight
+&
+Elastic Search
+&
+Elastic Search
+&
+SearchService
+\\ \midrule
+\textbf{Key Manager}
+&
+Barbican
+&
+KMS
+&
+Key Vault
+&
+Cloud KMS
+\\
+\bottomrule
+\caption{Commercial Cloud Provider Comparison}
+\end{longtable}

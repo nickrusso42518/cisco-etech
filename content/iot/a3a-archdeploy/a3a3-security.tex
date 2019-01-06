@@ -1,2 +1,123 @@
 \subsection{IoT security}
-IoT security stuff
+Providing security and privacy for IoT devices is challenging mostly due to
+the sheer size of the access network and supported clients (IoT devices).
+Similar best practices still apply as they would for normal hosts except for
+needing to work in a massively scalable and distributed network. The best
+practices also take into account the computational constraints of IoT devices
+to the greatest extent possible:
+
+\begin{enumerate}
+  \item	Use IEEE 802.1x for wired and wireless authentication for all devices.
+  This is normally tied into a Network Access Control (NAC) architecture which
+  authorizes a set of permissions per device.
+  \item	Encrypt wired and wireless traffic using MACsec/IPsec as appropriate.
+  \item	Maintain physical accounting of all devices, especially small ones, to
+  prevent theft and reverse engineering.
+  \item	Do not allow unauthorized access to sensors; ensure remote locations
+  are secure also.
+  \item	Provide malware protection for sensors so that the compromise of a
+  single sensor is detected quickly and suppressed.
+  \item	Rely on cloud-based threat analysis (again, assumes cloud is used)
+  rather than a distributed model given the size of the IoT access network and
+  device footprint. Sometimes this extension of the cloud is called the
+  ``fog'' and encompasses other things that produce and act on IoT data.
+\end{enumerate}
+
+Another discussion point on the topic of security is determining how/where to
+``connect'' an IoT network. This is going to be determined based on the
+business needs, as always, but the general logic is similar to what
+traditional corporate WANs use. Note that the terms ``producer-oriented'' and
+``consumer-oriented'' are creations of the author and exist primarily to help
+explain IoT concepts.
+
+\begin{enumerate}
+  \item	\textbf{Fully private connections:} Some IoT networks have no need
+  to be accessible via the public Internet. Such examples would include
+  Government sensor networks which may be deployed in a battlefield support
+  capacity. More common examples might include Cisco’s ``Smart Grid''
+  architecture which is used for electricity distribution and management
+  within a city. Exposing such a critical resource to a highly insecure
+  network offers little value since the public works department can likely
+  control it from a dedicated NOC. System updates can be performed in-house
+  and the existence of the IoT network can be (and often times, should be)
+  largely unknown by the general population. In general, IoT networks that
+  fall into this category are ``producer-oriented'' networks. While
+  Internet-based VPNs (discussed next) could be less expensive than private
+  transports, not all IoT devices can support the high computing requirements
+  needed for IPsec. Additionally, some security organizations still see the
+  Internet as too dirty for general transport and would prefer private,
+  isolated solutions.
+  \item	\textbf{Public Internet:} Other IoT networks are designed to have their
+  information shared or made public between users. One example might be a
+  managed thermostat service; users can log into a web portal hosted by the
+  service provider to check their home heating/cooling statistics, make
+  changes, pay bills, request refunds, submit service tickets, and the like.
+  Other networks might be specifically targeted to sharing information
+  publicly, such as fitness watches that track how long an individual
+  exercises. The information could be posted publicly and linked to one’s
+  social media page so others can see it. A more practical and useful example
+  could include \textit{public safety information via a web portal} hosted by
+  the Government. In general, IoT networks that fall into this category are
+  ``consumer-oriented'' networks. Personal devices, such as fitness watches,
+  are more commonly known within the general population, and they typically
+  use Wi-Fi for transport.
+\end{enumerate}
+
+The topics in this section, thus far, have been on generic IoT security
+considerations and solutions. Cisco identifies three core IoT security
+challenges and their associated high-level solutions. These challenges are
+addressed by the Cisco
+\href{https://www.cisco.com/c/en/us/solutions/security/iot-threat-defense/index.html}{IoT Threat Defense},
+which is designed to protect IoT environments, reducing downtime and business disruption.
+
+\begin{enumerate}
+  \item	\textbf{Antiquated equipment and technology:} Cisco recommends using
+  improved visibility to help secure aging systems. Many legacy technologies use
+  overly-simplistic network protocols and strategies to communicate. The
+  author personally worked with electronic test equipment which used IP
+  broadcasts to communicate. Because this test equipment needed to report to a
+  central manager for calibration and measurement reporting, all of these
+  components were placed into a common VLAN, and this VLAN was supposed to be
+  dedicated only to this test equipment. Due to poor visibility (and
+  convenience), other devices unrelated to the test equipment were connected
+  to this VLAN and therefore forced to process the IP broadcasts. Being able
+  to see this poor design and its inherent security risks is the first step
+  towards fixing it. To paraphrase Cisco: Do not start with the firewall,
+  start with visibility. You cannot begin segmentation until you know what is
+  on your network.
+  \item	\textbf{Insecure design:} Cisco recommends using access control to
+  segment the network and isolate devices, systems, or networks to contain any
+  security breaches between unrelated activities. For example, a small
+  manufacturer may operate in a single plant where all the fabrication
+  activities that feed assembly are located near one another. For industrial
+  engineers skilled in production engineering but unskilled in network
+  engineering, a ``flat'' network with all devices connected seems like an
+  appropriate business decision. Suppose that the cutting specifications on
+  one of the milling machines was malicious adjusted. Then, using the machine
+  as a launch point, the attacker changed the tooling in assembly accordingly
+  so that the defective part still fit snugly into the final product. The
+  manufacturer is unaware of the problem until the customer receives the
+  product, only to discover a defect. In summary, use ``the principle of least
+  privilege'' in building communications streams between devices only as necessary.
+  \item	\textbf{Lack of OT security skills:} Cisco recommends advancing the IT/OT
+  convergence effort to address this issue. The previous two examples could be
+  considered derivatives of this one. By intelligently and securely combining
+  IT and OT within an organization, many of the relatively modern technologies
+  used within IT can be leveraged within the OT environment. In addition to
+  the business benefits discussed earlier, IT/OT converge can increase
+  security for the OT environment at low cost. It obviates the need to deploy
+  OT-specific security tools and solutions with a separate OT security team.
+\end{enumerate}
+
+The following Cisco products form the basis of the Cisco IoT Threat Defense solution set:
+
+\textit{
+\begin{enumerate}
+  \item Identity Services Engine (ISE): Profiles devices and creates IoT group policies
+  \item Stealthwatch: Baselines traffic and detects unusual activity
+  \item Next-generation Firewall (NGFW): Identifies and blocks malicious traffic
+  \item Umbrella: Analyzes DNS and web traffic
+  \item Catalyst 9000 switches: Enforce segmentation and containment policies (via Trustsec)
+  \item AnyConnect: Protects remote devices from threats off-net. NGFW and ISE team up to protect against remote threats and place remote users in the proper groups with proper permissions
+\end{enumerate}
+}

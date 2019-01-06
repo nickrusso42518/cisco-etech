@@ -1,0 +1,420 @@
+\subsubsection{Basic Jenkins Setup Demonstration}
+Several CI/CD tools exist today. A common, open-source tool is known as
+Jenkins which can be used for many CI/CD workflows. The feature list from
+Jenkins’ website (included in the references) nicely summarizes the features
+of the tool.
+
+\begin{enumerate}
+  \item \textbf{Continuous Integration and Continuous Delivery:} As an
+  extensible automation server, Jenkins can be used as a simple CI server or
+  turned into the continuous delivery hub for any project.
+  \item \textbf{Easy installation:} Jenkins is a self-contained Java-based
+  program, ready to run out-of-the-box, with packages for Windows, Mac OS X
+  and other Unix-like operating systems.
+  \item \textbf{Easy configuration:} Jenkins can be easily set up and
+  configured via its web interface, which includes on-the-fly error checks and
+  built-in help.  \item Plugins: With hundreds of plugins in the Update
+  Center, Jenkins integrates with practically every tool in the continuous
+  integration and continuous delivery toolchain.
+  \item \textbf{Extensible:} Jenkins can be extended via its plugin
+  architecture, providing nearly infinite possibilities for what Jenkins can do.
+  \item \textbf{Distributed:} Jenkins can easily distribute work across
+  multiple machines, helping drive builds, tests and deployments across
+  multiple platforms faster.
+\end{enumerate}
+
+In this demonstration, the author explores two common Jenkins usages. The
+first is utilizing the Git and Github plugins to create a ``build server'' for
+code maintained in a repository. The demonstration will be limited to basic
+Jenkins installation, configuration, and integration with a Github repository.
+The actual testing of the code itself is a follow-on step that readers can
+perform according to their CI/CD needs. This demonstration uses an Amazon
+Linux EC2 instance in AWS, which is similar to Redhat Linux. \\
+
+Before installing Jenkins on a target Linux machine, ensure Java 1.8.0 is
+installed to prevent any issues. The commands below accomplish this, but the
+outputs are not shown for brevity.
+
+\begin{minted}{text}
+yum install -y java-1.8.0-openjdk.x86_64
+alternatives --set java /usr/lib/jvm/jre-1.8.0-openjdk.x86_64/bin/java
+alternatives --set javac /usr/lib/jvm/jre-1.8.0-openjdk.x86_64/bin/javac
+\end{minted}
+
+To install Jenkins, issue these commands as root (indentation included for
+readability). Technically, some of these commands can be issued from a
+non-root user. The AWS installation guide for Jenkins, included in the
+references, suggests doing so as root.
+
+\begin{minted}{text}
+wget -O /etc/yum.repos.d/jenkins.repo \
+  http://pkg.jenkins-ci.org/redhat/jenkins.repo
+rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
+yum install jenkins
+service jenkins start
+\end{minted}
+
+Verify Jenkins is working after the completing the installation. Also,
+download the \verb|jenkins.war| file (~64MB) to get Jenkins CLI access, which is
+useful for bypassing the GUI for some tasks. Because the file is large, users
+may want to run it as a background task by appending \verb|&| to the command
+(not shown). It is used below to check the Jenkins version.
+
+\begin{minted}{text}
+[root@ip-10-125-0-85 .ssh]# service jenkins status
+jenkins (pid  2666) is running...
+
+[root@ip-10-125-0-85 jenkins]# wget -q http://mirrors.jenkins.io/war/1.649/jenkins.war
+[root@ip-10-125-0-85 jenkins]# java -jar jenkins.war --version
+1.649
+\end{minted}
+
+Once Jenkins installed, log into Jenkins at http://jenkins.njrusmc.net:8080/,
+substituting the correct hostname or IP address. Enable the relevant Git
+plugins by navigating to \verb|Manage Jenkins > Manage Plugins > Available tab|.
+Enter \verb|git| in the search bar. Select the plugs shown below and install
+them. Each one will be installed, along with all their dependencies.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath jenkins-gitplugins.png}
+      \captionof{figure}{Jenkins git Plugins}
+    \end{minipage}
+
+Once complete, log into Github and navigate to the user
+\verb|Settings > Developer settings > Personal access tokens|. These tokens
+can be used as an easy authentication method via shared-secret to access
+Github's API. When generating a new token, \verb|admin:org_hook| must be granted at a
+minimum, but in the interest of experimentation, the author selected a few
+other options as depicted in the image that follows.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath jenkins-makegithubtoken.png}
+      \captionof{figure}{Jenkins Personal Github Access Token}
+    \end{minipage}
+
+After the token has been generated and the secret text properly copied,
+navigate to \verb|Credentials > Global Credentials| and create a new
+credential. The graphic below depicts all parameters. This credential will be
+used for the Github API integration.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath jenkins-tokencreds.png}
+      \captionof{figure}{Jenkins Personal Access Tokens}
+    \end{minipage}
+
+Next, navigate to \verb|Manage Jenkins > Configure System|, then scroll down
+to the Git and Github configurations. Configure the Git username and email
+under the Git section. For the Github section, the secret text authentication
+method should be used to allow Github API access.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath jenkins-gitpluginuser.png}
+      \captionof{figure}{Jenkins User-specific Plugins}
+    \end{minipage}
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath jenkins-githubglobalconfig.png}
+      \captionof{figure}{Jenkins Setting up Github Integration}
+    \end{minipage}
+
+The global Jenkins configuration for Git/Github integration is complete. Next,
+create a new repository (or use an existing one) within Github. This process
+is not described as Github basics are covered elsewhere in this book. The
+author created a new repository called \verb|jenkins-demo|. \\
+
+After creating the Github repository, the following commands are issued on the
+user's machine to make a first commit. Github provides these commands in an
+easy copy/paste format to get started quickly. The assumption is that the
+user's laptop already has the correct SSH integration with Github.
+
+\begin{minted}{text}
+MacBook-Pro:jenkins-demo nicholasrusso$ echo "# jenkins-demo" >> README.md
+MacBook-Pro:jenkins-demo nicholasrusso$ git init
+Initialized empty Git repository in /Users/nicholasrusso/projects/jenkins-demo/.git/
+MacBook-Pro:jenkins-demo nicholasrusso$ git add README.md
+MacBook-Pro:jenkins-demo nicholasrusso$ git commit -m "first commit"
+[master (root-commit) ac98dd9] first commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+MacBook-Pro:jenkins-demo nicholasrusso$ git remote add origin \
+>  git@github.com:nickrusso42518/jenkins-demo.git
+MacBook-Pro:jenkins-demo nicholasrusso$ git push -u origin master
+
+Counting objects: 3, done.
+Writing objects: 100% (3/3), 228 bytes | 0 bytes/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+To git@github.com:nickrusso42518/jenkins-demo.git
+ * [new branch]      master -> master
+Branch master set up to track remote branch master from origin.
+\end{minted}
+
+After this initial commit, a simple Ansible playbook has been added as our
+source code. Intermediate file creation and Git source code management (SCM)
+steps are omitted for brevity, but there are now two commits in the Git log.
+As it relates to Cisco Evolving Technologies, one would probably commit
+customized code for Cisco Network Services Orchestration (NSO) or perhaps
+Cisco-specific Ansible playbooks for testing. Jenkins would be able to access
+these files, test it (or on a slave processing node within the Jenkins
+system), and provide feedback about the build's quality. Jenkins can be
+configured to initiate software builds (including compilation) using a variety
+of tools and these builds can be triggered from a variety of events. These
+features are not explored in detail in this demonstration.
+
+\begin{minted}{yaml}
+---
+# sample-pb.yml
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - file:
+        path: "/etc/ansible/ansible.cfg"
+        state: present
+...
+\end{minted}
+
+\begin{minted}{text}
+MBP:jenkins-demo nicholasrusso$ git log --oneline --decorate
+bb91945 (HEAD -> master, origin/master) Create sample-pb.yml
+ac98dd9 first commit
+\end{minted}
+
+Next, log into the Jenkins box, wherever it exists (the author is using AWS
+EC2 to host Jenkins for this demo on an \verb|m3.medium| instance). SSH keys
+must be generated in the Jenkins users' home directory since this is the user
+running the software. In the current release of Jenkins, the home directory is
+\verb|/var/lib/jenkins/|.
+
+\begin{minted}{text}
+[root@ip-10-125-0-85 ~]# grep jenkins /etc/passwd
+jenkins:x:498:497:Jenkins Automation Server:/var/lib/jenkins:/bin/false
+\end{minted}
+
+The intermediate Linux file system steps to create the \verb|~/.ssh/|
+directory and \verb|~/.ssh/known_hosts| file are not shown for brevity.
+Additionally, generating RSA2048 keys is not shown.  Navigating to the .ssh
+directory is recommended since there are additional commands that use these files.
+
+\begin{minted}{text}
+[root@ip-10-125-0-85 .ssh]# pwd
+/var/lib/jenkins/.ssh
+
+[root@ip-10-125-0-85 .ssh]# ls
+id_rsa  id_rsa.pub  known_hosts
+\end{minted}
+
+Next, add the Jenkins user's public key to Github under either your personal
+username or a Jenkins utility user (preferred). The author uses his personal
+username for brevity in this example shown on the following page.
+ 
+\begin{minted}{text}
+[root@ip-10-125-0-85 .ssh]# cat id_rsa.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDd6qISM3f/mhmSeauR6DSFMhvlT8QkXyyY73Tk8Nuf+SytelhP15gqTao3iA08LlpOBOnvtGXVwHEyQhMu0JTfFwRsTOGRRl3Yp9n6Y2/8AGGNTp+Q4tGpczZkh/Xs7LFyQAK3DIVBBnfF0eOiX20/dC5W72aF3IzZBIsNyc9Bcka8wmVb2gdYkj1nQg6VQI1C6yayLwyjFxEDgArGbWk0Z4GbWqgfJno5gLT844SvWmOWEJ1jNIw1ipoxSioVSSc/rsA0A3e9nWZ/HQGUbbhIOGx7k4ruQLTCPeduU+VgIIj3Iws1tFRwc+lXEn58qicJ6nFlIbAW1kJj8I/+1fEj jenkins-ssh-key
+\end{minted}
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath jenkins-gitsshkey.png}
+      \captionof{figure}{Github SSH Keys for Jenkins Access}
+    \end{minipage}
+
+The commands below verify that the keys are functional. Note that the
+\verb|-i| flag must be used because the command is run as root, and a
+different identity file (Jenkins' user private key) should be used for this test.
+
+\begin{minted}{text}
+[root@ip-10-125-0-85 .ssh]# ssh -T git@github.com -i id_rsa
+Hi nickrusso42518! You've successfully authenticated, but GitHub does not provide shell access.
+\end{minted}
+
+Before continuing, edit the \verb|/etc/passwd| file as root to give the
+Jenkins user access to any valid shell (bash or sh). Additionally, use \verb|yum|
+or \verb|apt-get| to install \verb|git| so that Jenkins can issue \verb|git|
+commands. The \verb|git| installation via \verb|yum| is not shown for brevity.
+
+\begin{minted}{text}
+[root@ip-10-125-0-85 plugins]# grep jenkins /etc/passwd
+jenkins:x:498:497:Jenkins Automation Server:/var/lib/jenkins:/bin/bash
+\end{minted}
+
+Once Git is installed and Jenkins has shell access, copy the repository URL in
+SSH format from Github and substitute it as the repository argument in the
+command below. This is the exact command that Jenkins tries to run when a
+project's SCM is set to git; this tests reachability to a repository using
+SSH. If you accidentally run the command as root, it will fail due to using
+root's public key rather than Jenkins' public key. Switch to the Jenkins user,
+try again, and test the return code (0 means success).
+
+\begin{minted}{text}
+[root@ip-10-125-0-85 plugins]# git ls-remote -h \
+git@github.com:nickrusso42518/jenkins-demo.git HEAD
+Permission denied (publickey).
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+
+[root@ip-10-125-0-85 plugins]# su jenkins
+bash-4.2$ git ls-remote -h \
+>  git@github.com:nickrusso42518/jenkins-demo.git HEAD
+bash-4.2$ echo $?
+0
+\end{minted}
+
+The URL above can be copied by starting to clone the Github repository as
+shown below. Be sure to select SSH to get the correct repository link.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath jenkins-repourl.png}
+      \captionof{figure}{Github Repository URL for Jenkins Demo}
+    \end{minipage}
+
+At this point, adding a new Jenkins project should succeed when the repository
+link is supplied. This is an option under SCM for the project whereby the only
+choices are git and None. If it fails, an error message will be prominently
+displayed on the screen and the error is normally related to SSH setup. Do not
+specify any credentials for this because the SSH public key method is inherent
+with the setup earlier. The screenshot that follows depicts this process.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath jenkins-projectscm.png}
+      \captionof{figure}{Jenkins Source Code Management via git}
+    \end{minipage}
+
+As a final check, you can view the \verb|Console Output| for this
+project/build by clicking the icon on the left. It reveals the git commands
+executed by Jenkins behind the scenes to perform the pull, which is mostly
+\verb|git fetch| to pull down new data from the Github repository associated
+with the project.
+
+\begin{minted}{text}
+Started by user anonymous
+Building in workspace /var/lib/jenkins/workspace/jenkins-demo
+Cloning the remote Git repository
+Cloning repository git@github.com:nickrusso42518/jenkins-demo.git
+ > git init /var/lib/jenkins/workspace/jenkins-demo # timeout=10
+Fetching upstream changes from git@github.com:nickrusso42518/jenkins-demo.git
+ > git --version # timeout=10
+ > git fetch --tags --progress git@github.com:nickrusso42518/jenkins-demo.git +refs/heads/*:refs/remotes/origin/*
+ > git config remote.origin.url git@github.com:nickrusso42518/jenkins-demo.git # timeout=10
+[snip]
+Commit message: "Create sample-pb.yml"
+First time build. Skipping changelog.
+Finished: SUCCESS
+\end{minted}
+
+The project workspace shows the files in the repository, which includes
+the newly created Ansible playbook.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath jenkins-projectworkspace.png}
+      \captionof{figure}{Jenkins }
+    \end{minipage}
+
+This section briefly explores configuring Jenkins integration with AWS EC2.
+There are many more detailed guides on the Internet which describe this
+process; this book includes the author's personal journey into setting it up.
+Just like with Git, the AWS EC2 plugins must be installed. Look for the AWS
+EC2 plugin as shown on the following page, and install it. The Jenkins wiki
+concisely describes how this integration works and what problems it can solve:
+
+\textit{
+Allow Jenkins to start slaves on EC2 or Eucalyptus on demand, and kill them as
+they get unused. With this plugin, if Jenkins notices that your build cluster
+is overloaded, it'll start instances using the EC2 API and automatically
+connect them as Jenkins slaves. When the load goes down, excessive EC2
+instances will be terminated. This set up allows you to maintain a small
+in-house cluster, then spill the spiky build/test loads into EC2 or another
+EC2 compatible cloud.
+}
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath jenkins-ec2plugins.png}
+      \captionof{figure}{AWS EC2 Plugin for Jenkins Integration}
+    \end{minipage}
+
+Log into the AWS console and navigate to the Identity Access Management (IAM)
+service. Create a new user that has full EC2 access which effectively grants
+API access to EC2 for Jenkins. The user will come with an access ID and secret
+access key. Copy both pieces of information as Jenkins must know both.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath jenkins-iamuser.png}
+      \captionof{figure}{Adding Jenkins user in AWS IAM}
+    \end{minipage}
+
+Next, create a new credential of type \verb|AWS credential|. Populate the
+fields as shown below.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath jenkins-awscreds.png}
+      \captionof{figure}{Jenkins AWS Credential Creation}
+    \end{minipage}
+
+Navigate back to \verb|Manage Jenkins > Configure System > Add a new cloud|.
+Choose Amazon EC2 and populate the credentials option with the recently
+created AWS credentials using the secret access key for the IAM user
+\verb|jenkins|. You must select a specific AWS region. Additionally, you'll
+need to paste the EC2 private key used for any EC2 instances managed by
+Jenkins. This is not for general AWS API access but for shell access to EC2
+instances in order to control them. For security, you can create a new key
+pair within AWS (recommended but not shown) for Jenkins-based hosts in case
+the general-purpose EC2 private key is stolen. The screenshot is shown on the
+following page.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath jenkins-addcloud.png}
+      \captionof{figure}{Adding AWS Cloud Option via Jenkins}
+    \end{minipage}
+
+You can validate the connection using the \verb|Test Connection| button which
+should result in success.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath jenkins-awstestcon.png}
+      \captionof{figure}{Testing Connection from AWS to Jenkins}
+    \end{minipage}
+
+The final step is determining what kind of AMIs Jenkins should create within
+AWS. There can be multiple AMIs for different operating systems, including
+Windows, depending on the kind of testing that needs to be done. Perhaps it is
+useful to run the tests on different OS' as part of a more comprehensive
+testing strategy for software portability. There are many options to enter and
+the menu is somewhat similar to launching native instances within EC2. A
+subset of options is shown here; note that you can validate the spelling of
+the AMI codes (accessible from the AWS EC2 console) using the \verb|Check AMI|
+button. More details on this process can be found in the references.
+
+    \begin{minipage}[t]{\linewidth}
+	  \centering
+      \includegraphics[width=0.3\textwidth]{\imgpath jenkins-ami.png}
+      \captionof{figure}{Jenkins AMIs within EC2}
+    \end{minipage}
+
+With both Github and AWS EC2 integration set up, a developer can create large
+projects complete with automated testing from SCM repository and automatic
+scaling within the public cloud. Provided there was a larger, complex project
+which requires slave processing nodes, EC2 nodes would be dynamically created
+based on the need or the administrator assigned labels within a project. \\
+
+Jenkins is not the only commonly used CI/CD tool. Gitlab, which is private
+(on-premises) version of Github, supports source code management (SCM) and
+CI/CD together. A real-life example of this implementation is provided in the
+references. All of these options come at a very low price and allow
+individuals to deploy higher quality code more rapidly, which is a core tenant
+of Agile software development. The author has participated in a number of free
+podcasts on CI/CD and has used a variety of different providers. These podcasts
+are linked in the references.

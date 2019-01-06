@@ -1,0 +1,135 @@
+\subsubsection{DevOps methodologies, tools and workflows}
+The term ``DevOps'' is relatively new and is meant to describe not just a job
+title but a cultural shift in service delivery, management, and operation. It
+was formerly known as ``agile system administration'' or ``agile
+methodology''. The keyword ``agile'' typically refers to the integration of
+development and operations staff throughout the entire lifecycle of a service.
+The idea is to tear down the silos and the resulting poor service delivery
+that both teams facilitate. Often times, developers will create applications
+without understanding the constraints of the network, while the network team
+will create a network (ineffective QoS, slow rerouting, etc) policies that
+don’t support the business-critical applications. \\
+
+The tools and workflows used within the DevOps community are things that
+support an information sharing environment. Many of them are focused on
+version control, service monitoring, configuration management, orchestration,
+containerization, and everything else needed to typically support a service
+through its lifecycle. The key to DevOps is that using a specific DevOps tool
+does not mean an organization has embraced the DevOps culture or mentality. A
+good phrase is ``People over Process over Tools'', as the importance of a
+successful DevOps team is reliance on those things, in that order.
+
+DevOps also introduces several new concepts. Two critical ones are continuous
+integration (CI) and continuous delivery (CD). The CI/CD mindset suggests
+several changes to traditional software development. Some of the key points
+are listed here.
+
+\begin{enumerate}
+  \item	Everyone can see the changes: Dev, Ops, Quality Assurance (QA),
+  management, etc.
+  \item	Verification is an exact clone of the production environment, not
+  simply a smoke-test on a developer’s test bed
+  \item	The build and deployment/upgrade process is automated
+  \item	Provide software in short timeframes and ensure releases are always
+  available in increments
+  \item	Reduce friction, increase velocity
+  \item	Reduce silos, increase collaboration
+\end{enumerate}
+
+On the topic of software development models, it is beneficial to compare the
+commonly used models with the new agile or DevOps mentality. Additional
+details on these software development models can be found in the references. 
+The table that follows contains a comparison chart of the different models.
+
+\begin{longtable}{LLLL}
+\toprule
+% top left cell is blank
+&
+\textbf{Waterfall}
+&
+\textbf{Iterative}
+&
+\textbf{Agile}
+\\ \midrule
+\textbf{Basic Description}
+&
+Five serial phases, no feedback
+\begin{enumerate}
+  \item Requirements
+  \item Design
+  \item Implementation
+  \item Verification
+  \item Maintenance
+\end{enumerate}
+&
+Like the waterfall model, but operates in loops. This creates a feedback
+mechanism at each cycle to promote a faster and more flexible process.
+&
+Advances when the current step/function/feature is complete; cyclical model.
+\\ \midrule
+\textbf{Pros}
+&
+Simple, well understood, long history, requires minimal resources / management
+oversight
+&
+Simple, well understood, opportunity to adjust, requires slightly more
+resources than waterfall (but still reasonable)
+&
+Customer is engaged (better feedback), early detection of issues during rapid
+code development periods (sprints)
+\\ \midrule
+\textbf{Cons}
+&
+Difficult to revert, customer is not engaged until the end, higher risk, slow
+to deliver
+&
+Can be inefficient, customer feedback comes at the end of an iteration (not within)
+&
+High quantity of resources required, more focused management/customer
+interaction needed
+\\
+\bottomrule
+\caption{Software Development Methodology Comparison}
+\end{longtable}
+
+There are a number of popular Agile methodologies. Two of them are discussed below.
+
+\begin{enumerate}
+  \item \textbf{Scrum} is considered lightweight as the intent of most Agile
+  methodologies is to maximize the amount of productive work accomplished
+  during a given time period. In Scrum, a ``sprint'' is a period of time upon
+  which certain tasks are expected to be accomplished. At the beginning of the
+  sprint, the Scrum Master (effectively a task manager) holds a ~4 hour
+  planning meeting whereby work is prioritized and assigned to individuals.
+  Tasks are pulled from the sprint backlog into a given sprint. The only
+  meetings thereafter (within a sprint) are typically 15 minute daily
+  stand-ups to report progress or problems (and advance items across the Scrum
+  board). If a sprint is 2 weeks (~80 hours) then only about 6 hours of it is
+  spent in meetings. This may or may not include a retrospective discussion at
+  the end of a sprint to discuss what went well/poorly. Tasks such as bugs,
+  features, change requests, and more topics are tracked on a ``scrum board''
+  which drives the work for the entire sprint.
+  \item \textbf{Kanban} is another Agile methodology which seeks to further
+  optimize useful work done. Unlike scrum, it is less structured in terms of
+  time and it lacks the concept of a sprint. As such, there is neither a
+  sprint planning session nor a sprint retrospective. Rather than limit work
+  by units of time, it limits work by the number of concurrent tasks occurring
+  at once. The Kanban board, therefore, is more focused on tracking the number
+  of tasks (sometimes called stories) within a single chronological point in
+  the development cycle (often called Work In Progress or WIP). The most basic
+  Kanban board might have three columns: To Do, Doing, Done. Ensuring that
+  there is not too much work in any column keeps productivity high.
+  Additionally, there is no official task manager in Kanban, though an
+  individual may assume a similar role given the size/scope of the project.
+  Finally, release cycles are not predetermined, which means releases can be
+  more frequent.
+\end{enumerate}
+
+Although these Agile methodologies were initially intended for software
+development, they can be adapted for work in any industry. The author has
+personally seen Scrum used within a network security engineering team to
+organize tasks, limit the scope of work over a period of time, and regularly
+deliver production-ready designs, solutions, and consultancy to a large customer.
+The author personally uses Kanban for personal task management, as well as
+network operations and even home construction projects. Both strategies have
+universal applicability.

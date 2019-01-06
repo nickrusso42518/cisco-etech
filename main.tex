@@ -24,6 +24,7 @@
 % Allows for customizing long table entries with custom column type "L"
 \usepackage{array}
 \newcolumntype{L}{>{\raggedright\arraybackslash}p{2.8cm}}
+\newcolumntype{K}{>{\raggedright\arraybackslash}p{2.0cm}}
 
 % Build headers
 \usepackage{fancyhdr}
@@ -50,8 +51,8 @@
 }
 
 % Preamble
-\author{Nicholas Russo}
-\title{Evolving Technology}
+\title{CCIE/CCDE Written Exam Evolving Technologies Study Guide}
+\author{Nicholas Russo - CCIE \#42518 (RS/SP) CCDE \#20160041}
 
 % Start of document
 \begin{document}
@@ -62,6 +63,8 @@
 % Front matter (about me, legal notices, donations, etc)
 \newpage
 \begin{abstract}
+\setlength\parindent{0pt}
+\newcommand{\imgpath}{content/misc/img/}
 \input{content/misc/abstract.tex}
 \end{abstract}
 
@@ -101,7 +104,7 @@
 % Internet of Things
 \newpage
 \section{Internet of Things}
-\renewcommand{\imgpath}{content/iot/a3a-archdeploy/img}
+\renewcommand{\imgpath}{content/iot/a3a-archdeploy/img/}
 \input{content/iot/a3a-archdeploy/a3a1-stack.tex}
 \input{content/iot/a3a-archdeploy/a3a2-protocols.tex}
 \input{content/iot/a3a-archdeploy/a3a3-security.tex}
@@ -111,6 +114,9 @@
 % Legacy content from the v1.0 blueprint
 \newpage
 \section{Blueprint v1.0 Legacy Topics}
+Topics in this section did not easily fit into the new blueprint. Rather than
+force them into the new blueprint where they likely do not belong, the content
+for these topics is retained in this section.
 \renewcommand{\imgpath}{content/legacy/img/}
 \subsection{Cloud}
 \input{content/legacy/old-cloud/tsmgmt.tex}
@@ -118,6 +124,8 @@
 \input{content/legacy/old-cloud/compare.tex}
 \subsection{Network Programmability}
 \input{content/legacy/old-netprog/controllers.tex}
+\input{content/legacy/old-netprog/devops.tex}
+\input{content/legacy/old-netprog/jenkins.tex}
 \subsection{Internet of Things}
 \input{content/legacy/old-iot/perf.tex}
 
