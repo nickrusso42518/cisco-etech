@@ -3,6 +3,13 @@ language: python
 python:
   - "3.6"
 
+# Other artifact details are accessible via Travis website
+# as environment variables
+addons:
+  artifacts:
+    target_paths:
+	  - "/pub"
+
 # Install basic TexLive along with TL and Python packages.
 install:
   - "sudo ./texsetup.sh"
