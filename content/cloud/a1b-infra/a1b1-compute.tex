@@ -355,8 +355,8 @@ production-quality examples. This 3 step playbook is simple:
 \end{enumerate}
 
 \begin{minted}{yaml}
-[root@04eb3ee71a52 examples]# cat issue31575.yml
 ---
+# issue31575.yml
 - hosts: csr1.njrusmc.net
   gather_facts: false
   connection: network_cli
@@ -399,15 +399,17 @@ host_key_checking = False
 
 Next, ensure the inventory contains the specific router in question. In this
 case, it is a Cisco CSR1000v running in AWS. Note that we would have used
-``echo'' commands in our Dockerfile to address these issues in advance, but this
-specific information makes the docker image less useful and less portable.
+\verb|echo| commands in our Dockerfile to address these issues in advance, but
+this specific information makes the docker image less useful and less portable.
 
 \begin{minted}{yaml}
-[root@04eb3ee71a52 examples]# head -20 hosts.yml
 ---
+# hosts.yml
+#
 # This is the default ansible 'hosts' file.
 #
 # It should live in /etc/ansible/hosts
+# but can be renamed to hosts.yml
 all:
   hosts:
     csr1.njrusmc.net
@@ -509,11 +511,8 @@ container's file system. In this folder, one can copy the Ansible files
 access. While it is possible to handle volume mounting from the commands
 viewed previously, it is tedious and complex.
 
-\begin{minted}{text}
-[centos@docker compose]$ cat docker-compose.yml 
-\end{minted}
-
 \begin{minted}{yaml}
+# docker-compose.yml 
 version: '3.2'
 services:
   ansible:
@@ -533,13 +532,13 @@ in the mnt\_files/ directory with relation to where the docker-compose.yml file
 is located.
 
 \begin{minted}{text}
-[centos@docker compose]$ tree
+[centos@docker compose]$ tree --charset=ascii
 .
-├── docker-compose.yml
-└── mnt_files
-    ├── ansible.cfg
-    ├── hosts.yml
-    └── issue31575.yml
+|-- docker-compose.yml
+`-- mnt_files
+    |-- ansible.cfg
+    |-- hosts.yml
+    `-- issue31575.yml
 \end{minted}
 
 To run the docker-compose file, use the command below. It will build
@@ -568,7 +567,7 @@ Ansible.
 
 \begin{minted}{text}
 [centos@docker compose]$ docker-compose exec ansible bash
-[root@cmd_authz examples]# tree mnt_files/
+[root@cmd_authz examples]# tree mnt_files/ --charset=ascii
 mnt_files/
 |-- ansible.cfg
 |-- hosts.yml
@@ -744,17 +743,17 @@ name must be used as shortcuts like ``~'' are not allowed. The second variable
 is a nested login credentials dictionary.
 
 \begin{minted}{text}
-(ansible242) [ec2-user@devbox login]$ tree
+(ansible242) [ec2-user@devbox login]$ tree --charset=ascii
 .
-├── group_vars
-│   └── routers.yml
-├── inv.yml
-└── login.yml
+|-- group_vars
+|   `-- routers.yml
+|-- inv.yml
+`-- login.yml
 \end{minted}
 
 \begin{minted}{yaml}
-(ansible242) [ec2-user@devbox login]$ cat group_vars/routers.yml
 ---
+# group_vars/routers.yml
 ansible_python_interpreter: "/home/ec2-user/venv/ansible242/bin/python"
 login_creds:
   host: "{{ inventory_hostname }}"
@@ -762,8 +761,8 @@ login_creds:
   password: "ansible"
 ...
 
-(ansible242) [ec2-user@devbox login]$ cat inv.yml
 ---
+# inv.yml
 all:
   children:
     routers:
@@ -771,8 +770,8 @@ all:
         csr1:
 ...
 
-(ansible242) [ec2-user@devbox login]$ cat login.yml
 ---
+# login.yml
 - name: "Login to all routers"
   hosts: routers
   connection: local
@@ -786,7 +785,7 @@ all:
 \end{minted}
 
 Running the playbook with the custom inventory (containing one router called
-``csr1'') and verbosity enabled so the CLI output is printed to standard
+\verb|csr1|) and verbosity enabled so the CLI output is printed to standard
 output.
 
 \begin{minted}{text}
@@ -858,12 +857,12 @@ code is copied between venvs.
 
 \begin{minted}{text}
 (ansible263) [ec2-user@devbox ansible263]$ cp -R ../ansible242/login/ .
-(ansible263) [ec2-user@devbox ansible263]$ tree login/
+(ansible263) [ec2-user@devbox ansible263]$ tree login/ --charset=ascii
 login/
-├── group_vars
-│   └── routers.yml
-├── inv.yml
-└── login.yml
+|-- group_vars
+|   `-- routers.yml
+|-- inv.yml
+`-- login.yml
 \end{minted}
 
 Modify the group variables and playbook files according to the code shown
@@ -875,16 +874,16 @@ Python interpreter path is updated for this specific venv using the directory
 \verb|ansible263/|.
 
 \begin{minted}{yaml}
-(ansible263) [ec2-user@devbox login]$ cat group_vars/routers.yml
 ---
+# group_vars/routers.yml
 ansible_python_interpreter: "/home/ec2-user/venv/ansible263/bin/python"
 ansible_network_os: "ios"
 ansible_user: "ansible"
 ansible_ssh_pass: "ansible"
 ...
 
-(ansible263) [ec2-user@devbox login]$ cat login.yml
 ---
+# login.yml
 - name: "Login to all routers"
   hosts: routers
   connection: network_cli
