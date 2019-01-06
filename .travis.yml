@@ -8,7 +8,7 @@ python:
 addons:
   artifacts:
     target_paths:
-	  - "/pub"
+      - "/pub"
 
 # Install basic TexLive along with TL and Python packages.
 install:
