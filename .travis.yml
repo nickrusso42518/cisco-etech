@@ -16,7 +16,8 @@ before_script:
   - "make lint"
   - "make draft"
 
-# Make the PDF itself, including images
+# Make the PDF itself, including images. Usee pass2 to avoid
+# trying to "open" a PDF within the CI system
 script:
-  - "make pdf"
+  - "make pass2"
 ...
