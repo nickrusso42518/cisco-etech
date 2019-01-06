@@ -25,11 +25,64 @@ included 10% of their questions pulled from a new "evolving techologies"
 topic domain. This book seeks to address that new section.
 
 ## Structure
-TBD
+The simplified tree structure below outlines how the TeX source files are
+organized. Each `img/` folder has `.jpg` or `.png` images which are
+imported to the TeX files as needed. Auxiliary files (Makefile, setup
+scripts, etc.) are not shown below and are discussed in the Tooling section.
+
+The structure of this best aligns almost perfectly with Cisco's current
+blueprint. There are three levels of hierarchy:
+
+1. __Sections__ represent the topmost level of organization, which include
+   the main three technical topics, plus the collection of legacy topics
+   and the glossary.
+2. __Subsections__ represent the individual blueprint topics, and each one
+   has a corresponding `*.tex` file with a prefix corresponding to its
+   official blueprint name. For example, `a1a4` is the blueprint topic
+   for "Workload Migration".
+3. __Subsubsections__ represent a level of depth not represented on the
+   blueprint. These are the author's excursions into more detailed subjects,
+   often technical demonstrations or detailed analyses of the technologies
+   being discussed.
+
+At the top of the hierarchy is the `main.tex` file, which does very little
+beyond importing the required TeX packages and including all the `*.tex`
+source files for individual sections.
+
+```
+|-- content
+|   |-- cloud
+|   |   |-- a1a-design
+|   |   |   |-- source-files.tex
+|   |   |   `-- img/
+|   |   `-- a1b-infra
+|   |       |-- source-files.tex
+|   |       `-- img/
+|   |-- iot
+|   |   `-- a3a-archdeploy
+|   |       |-- source-files.tex
+|   |       `-- img/
+|   |-- legacy
+|   |   |-- img/
+|   |   |-- old-cloud
+|   |   |   `-- source-files.tex
+|   |   |-- old-iot
+|   |   |   `-- source-files.tex
+|   |   `-- old-netprog
+|   |       `-- source-files.tex
+|   |-- misc
+|   |   |-- source-files.tex
+|   |   `-- img/
+|   `-- netprog
+|       `-- a2a-archops
+|           |-- source-files.tex
+|           `-- img
+|-- main.tex
+```
 
 ## Tooling
 Still being built, but uses a GNU `Makefile` for simplify linting and
-typesetting functions. Alsu uses Travis CI for automated testing.
+typesetting functions. Also uses Travis CI for automated testing.
 
 ## FAQ
 __Q__: Why was LaTeX chosen over simpler Markdown or reStructuredText?\
@@ -46,14 +99,7 @@ manual effort. Additionally, I find it very fitting that a book on "evolving
 technologies" be written, maintained, updated, distributed, and tested as if
 it were code. "Walk the walk", as it were.
 
-__Q__: How does this book compare to other Cisco evolving tech books?\
-__A__: Having not read any, I cannot comment directly. I encourage
-readers to research the available options and decide for themselves. I will
-say that this book goes far beyond what Cisco written exams typically
-require. Readers will find it a useful field guide/reference for their
-professional lives beyond a certification test.
-
-__Q__: How often is the book updated?\
+__Q__: How often is the book updated with new content?\
 __A__: Traditionally, the book has been updated every 6 months, starting
 in the summer of 2016 and continuing until the summer of 2018 (5 releases).
 Given the new version control and pipeline design, releases may happen
@@ -64,4 +110,4 @@ __Q__: Who covers your operating expenses for maintenance/updates?\
 __A__: Given that the book is and always will be free, I fund everything with
 the help of generous donations from others. If you like the book, like the
 cause, like the concept, or just like me as a person, __please donate__
-[here](https://www.paypal.com/donate/?token=PAgLQIXPZ0b7h1qkdLXmKyAjrEpmzaWgk09MtVtozb00NXjmbrT9Vj58K-ex13sEn8hll0&country.x=US&locale.x=US).
+[here](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=KA9QZVDMVYN26&lc=US&item_name=Evolving%20Technology%20Study%20Guide&item_number=42518&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted).
