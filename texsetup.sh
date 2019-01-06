@@ -1,3 +1,12 @@
+#!/bin/bash
+
+# File:    texsetup.sh
+# Version: GNU bash, version 3.2.57(1)
+# Author:  Nicholas Russo (njrusmc@gmail.com)
+# Purpose: Wrap many commands requiring sudo into a script to simplify
+#          the CI config file and provide better commentary on what
+#          needs to be done to get things working.
+
 # Packages required above and beyond the ones include with "texlive-basic".
 # Everything after "minted" is a dependency of it, not directly
 # included by any tex source files in this project.
