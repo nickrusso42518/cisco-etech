@@ -43,9 +43,38 @@ IoT combines a number of emerging technologies into its generalized network
 architecture. The architecture consists primarily of four layers:
 
 \begin{enumerate}
-  \item	\textbf{Data center (DC) Cloud:} Although not a strict requirement, the understanding that a public cloud infrastructure exists to support IoT is a common one. A light bulb manufacturer could partner with a networking vendor to develop network-addressable light bulbs which are managed from a custom application running in the public cloud. This might be better than a private cloud solution since, if the application is distributed, regionalized instances could be deployed in geographically dispersed areas using an ``anycast'' design for scalability and performance improvements. As such, public cloud is generally assumed to be the DC presence for IoT networks.
-  \item	\textbf{Core Networking and Services:} This could be a number of transports to connect the public cloud to the sensors. The same is true for any connection to public cloud, in reality, since even businesses need to consider the manner in which they connect to public cloud. The primary three options (private WAN, IXP, or Internet VPN) were discussed in the Cloud section. The same options apply here. A common set of technologies/services seen within this layer include IP, MPLS, mobile packet core, QoS, multicast, security, network services, hosted cloud applications, big data, and centralized device management (such as a network operations facility).
-  \item	\textbf{Multi-service Edge (access network):} Like most SP networks, the access technologies tend to vary greatly based on geography, cost, and other factors. Access networks can be optically-based to provide Ethernet handoffs to IoT devices; this would make sense for relatively large devices that would have Ethernet ports and would be generally immobile. Mobile devices, or those that are small or remote, might use cellular technologies such as 2G, 3G, or 4G/LTE for wireless backhaul to the closest POP. A combination of the two could be used by extending Ethernet to a site and using 802.11 Wi-Fi to connect the sensors to the WLAN. The edge network may require use of ``gateways'' as a short-term solution for bridging (potentially non-IP) IoT networks into traditional IP networks. The gateways come with an associated high CAPEX and OPEX since they are custom devices to solve a very specific use-case. Specifically, gateways are designed to perform some subset of the following functions, according to Cisco:
+  \item	\textbf{Data center (DC) Cloud:} Although not a strict requirement,
+  the understanding that a public cloud infrastructure exists to support IoT
+  is a common one. A light bulb manufacturer could partner with a networking
+  vendor to develop network-addressable light bulbs which are managed from a
+  custom application running in the public cloud. This might be better than a
+  private cloud solution since, if the application is distributed,
+  regionalized instances could be deployed in geographically dispersed areas
+  using an ``anycast'' design for scalability and performance improvements. As
+  such, public cloud is generally assumed to be the DC presence for IoT networks.
+  \item	\textbf{Core Networking and Services:} This could be a number of
+  transports to connect the public cloud to the sensors. The same is true for
+  any connection to public cloud, in reality, since even businesses need to
+  consider the manner in which they connect to public cloud. The primary three
+  options (private WAN, IXP, or Internet VPN) were discussed in the Cloud
+  section. The same options apply here. A common set of technologies/services
+  seen within this layer include IP, MPLS, mobile packet core, QoS, multicast,
+  security, network services, hosted cloud applications, big data, and
+  centralized device management (such as a network operations facility).
+  \item	\textbf{Multi-service Edge (access network):} Like most SP networks,
+  the access technologies tend to vary greatly based on geography, cost, and
+  other factors. Access networks can be optically-based to provide Ethernet
+  handoffs to IoT devices; this would make sense for relatively large devices
+  that would have Ethernet ports and would be generally immobile. Mobile
+  devices, or those that are small or remote, might use cellular technologies
+  such as 2G, 3G, or 4G/LTE for wireless backhaul to the closest POP. A
+  combination of the two could be used by extending Ethernet to a site and
+  using 802.11 Wi-Fi to connect the sensors to the WLAN. The edge network may
+  require use of ``gateways'' as a short-term solution for bridging
+  (potentially non-IP) IoT networks into traditional IP networks. The gateways
+  come with an associated high CAPEX and OPEX since they are custom devices to
+  solve a very specific use-case. Specifically, gateways are designed to
+  perform some subset of the following functions, according to Cisco:
 
   \begin{enumerate}
     \item \textbf{Map semantics between two heterogeneous domains:} The word

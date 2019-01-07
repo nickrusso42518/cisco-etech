@@ -60,7 +60,7 @@ demonstration, any Linux development platform will work, assuming it has
 Python installed. Testing gRPC on IOS-XR is not particularly different than
 other APIs, but requires many setup steps. Each one is covered briefly before
 the demonstration begins. First, install the necessary underlying libraries
-needed to use gRPC. The "docopt" package helps with using CLI commands and is
+needed to use gRPC. The ``docopt'' package helps with using CLI commands and is
 used by the Cisco IOS-XR \verb|cli.py| client. \\
 
 \begin{minted}{text}
@@ -91,7 +91,8 @@ clone. More skilled developers may skip this step and write custom Python code
 using the \verb|iosxr_grpc| library directly.
 
 \begin{minted}{text}
-[root@devbox ec2-user]# git clone https://github.com/cisco-grpc-connection-libs/ios-xr-grpc-python.git
+[root@devbox ec2-user]# git clone \
+>  https://github.com/cisco-grpc-connection-libs/ios-xr-grpc-python.git
 Cloning into 'ios-xr-grpc-python'...
 remote: Counting objects: 419, done.
 remote: Total 419 (delta 0), reused 0 (delta 0), pack-reused 419
@@ -1149,8 +1150,8 @@ Restful API   Enabled, UP             port: 55443
 \end{minted}
 
 Using \verb|curl| for IOS XE REST API invocations requires a number of options. Those
-options are summarized on the following page. They are also described in the
-manual pages for \verb|curl| (use the \verb|man curl| shell command). This specific
+options are summarized next. They are also described in the manual pages for
+\verb|curl| (use the \verb|man curl| shell command). This specific
 demonstration will be limited to obtaining an authentication token, posting a
 QoS class-map configuration, and verifying that it was written.
 
@@ -1347,7 +1348,8 @@ One can embed the JSON text as a single line into the curl command using the
 quotes ('') surrounding the JSON data with the -d option; these are required
 since the keys and values inside the JSON structure have double quotes (``'').
 Additionally, the username/password is omitted from the request, and
-additional headers (-H) are applied to include the authentication token string and the JSON content type.
+additional headers (-H) are applied to include the authentication token string
+and the JSON content type.
 
 \begin{minted}{text}
 [root@ip-10-125-0-100 restapi]# curl -v -H "Accept:application/json" \

@@ -1,1 +1,2 @@
-Pygments
+# Required for the "minted" package to work (syntax highlighting)
+Pygments==2.3.1

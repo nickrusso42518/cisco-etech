@@ -26,7 +26,7 @@ a transport, similar to NETCONF.
 \subsubsection{YANG}
 YANG defines how data is structured/modeled rather than containing data
 itself. Below is snippet from RFC 6020 which defines YANG (section 4.2.2.1).
-The YANG model defines a "host-name" field as a string (array of characters)
+The YANG model defines a ``host-name'' field as a string (array of characters)
 with a human-readable description. Pairing YANG with NETCONF, the XML syntax
 references the data field by its name to set a value. \\
 
@@ -306,10 +306,10 @@ it is a critical skill for anyone working with any form of network programmabili
 \subsubsection{JSON}
 JavaScript Object Notation (JSON) is another data modeling language that is
 similar to YAML in concept. It was designed to be simpler than traditional
-markup languages and uses key/value pairs to store information. The "value" of
+markup languages and uses key/value pairs to store information. The ``value'' of
 a given pair can be another key/value pair, which enables hierarchical data
 nesting. The key/value pair structure and syntax is very similar to the
-"dictionary" data type in Python. JSON is even lighter than YAML and is also
+\verb|dict| data type in Python. JSON is even lighter than YAML and is also
 commonly used for maintaining configuration files. The next page displays a
 syntax example of JSON which represents the same data and same structure as
 the YAML example.

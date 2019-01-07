@@ -10,7 +10,7 @@ addons:
     target_paths:
       - "/pub"
 
-# Install basic TexLive along with TL and Python packages.
+# Install basic Tex Live, additional TeX packages, and Python packages.
 install:
   - "sudo ./texsetup.sh"
   - "PATH=$PATH:/usr/local/texlive/2018/bin/x86_64-linux"

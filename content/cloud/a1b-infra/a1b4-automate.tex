@@ -326,7 +326,7 @@ already been deployed. \\
 
 Kubernetes introduces many new terms which are critical to understand its
 operation. The most important terms, at least for the demonstration in this
-section, are discussed on the following page. \\
+section, are discussed next. \\
 
 \textbf{A pod} is the smallest building block of a Kubernetes deployment. Pods
 contain application containers and are managed a single entity. It is common
@@ -372,7 +372,7 @@ often), and the application servers must target the correct database
 containers to read/write data. The service often has a label, such as
 ``database'', which would also exist on pods. Whenever the web application
 communicates to the service over TCP/IP, the service communicates to any pod
-with the "database" tag. Services could include node-specific ports, which is
+with the ``database'' tag. Services could include node-specific ports, which is
 a simple port forwarding mechanism to access pods on a node. Advanced load
 balancing services are also available but are not discussed in detail in this
 book. \\
@@ -385,11 +385,11 @@ production-capable software instances (blue and green), and one is in
 production while the other is upgraded/changed. Using JSON syntax, one set of
 pods (or perhaps an entire deployment) might be labeled as \verb|{"color": "blue"}|
 while the other is \verb|{"color": "green"}|. The key of ``color' is the same so
-the administrator can query for "color" label to get the value, and then make
-a decision based on that. One engineer described labels as "flexible and
+the administrator can query for ``color'' label to get the value, and then make
+a decision based on that. One engineer described labels as ``flexible and
 extensible source of metadata. They can reference releases of code, locations,
 or any sort of logical groupings. There is no limitation of how many labels
-can be applied." In this way, labels are similar to tags in Ansible which can
+can be applied.'' In this way, labels are similar to tags in Ansible which can
 be used to pick-and-choose certain tasks to execute or skip, depending. \\
 
 The \verb|minikube| solution provides a relatively easy way to get started
@@ -581,7 +581,7 @@ user that there are currently 2 pods, but we desire 3 now.
     \end{minipage}
 
 After scaling this application, the dashboard changes to show new pods being
-added on the following page. After a few seconds, the dashboard reflects 3
+added in the diagram that follows. After a few seconds, the dashboard reflects 3
 healthy pods (not shown for brevity). During this state, the third replica set
 is still being initialized and is not available for workload processing yet.
 
@@ -672,7 +672,7 @@ shared. \\
 
 Once the new ``terraform'' user exists in the proper group with the proper
 permissions and a valid access key, run \verb|aws configure| from the shell. The
-"aws" binary can be installed via Python pip, but if you are like the author
+\verb|aws| binary can be installed via Python pip, but if you are like the author
 and are using an EC2 instance to run the AWS CLI, it comes pre-installed on
 Amazon Linux. Simply answer the questions as they appear, and always
 copy/paste the access and secret keys to avoid typos. Choose a region near you
@@ -796,7 +796,7 @@ of \verb|subnet-f1dfa694|.
 \end{minted}
 
 Armed with the proper subnet for the CSR1000v, an Amazon Machine Image (AMI)
-must be identified to deploy. Sine there are many flavors of CSR1000v
+must be identified to deploy. Since there are many flavors of CSR1000v
 available, such as bring your own license (BYOL), maximum performance, and
 security, apply a filter to target the specific image desired. The example
 below shows a name-based filter searching for a string containing 16.09 as the
@@ -1219,7 +1219,7 @@ provider "aws" {
 Next, use the \verb|aws_vpc| resource to create a new VPC. The documentation
 suggests that only the \verb|cidr_block| argument is required. The author
 suggests adding a \verb|Name| tag to help organize resources as well. Note
-that there is a large list of "attribute" fields on the documentation page.
+that there is a large list of ``attribute'' fields on the documentation page.
 These are the pieces of data returned by Terraform, such as the VPD ID and
 Amazon Resource Name (ARN). These are dynamically allocated at runtime and
 referencing these values can simply the Terraform plan later.
@@ -1811,7 +1811,7 @@ Plan: 0 to add, 0 to change, 4 to destroy.
 
 The command above serves as a good preview into what \verb|terraform destroy| will
 perform. Below, the infrastructure is torn down in the reverse order it was
-created. Note that \verb|-auto-approve| can be appended to both "apply" and
+created. Note that \verb|-auto-approve| can be appended to both \verb|apply| and
 \verb|destroy| actions to remove the interactive prompt asking for \verb|yes|.
 
 \begin{minted}{text}

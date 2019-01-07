@@ -33,7 +33,8 @@ process:
 
 \begin{enumerate}
   \item	\textbf{External:} The idea phase
-  \item	\textbf{Incubated:} Mature the software, migrate to OpenStack after 2 milestones of incubation
+  \item	\textbf{Incubated:} Mature the software, migrate to OpenStack after 2
+  milestones of incubation
   \item	\textbf{Integrated:} Release as part of OpenStack
 \end{enumerate}
 
@@ -231,8 +232,8 @@ operations. \\
 
 Navigate to the packstack instance’s DNS hostname in a web browser. The
 OpenStack GUI somewhat resembles that of AWS, which makes sense since both are
-meant to be cloud dashboards. The screenshot on the following page shows the
-main GUI page after login, which is the \verb|Identity -> Projects page|. Note that a
+meant to be cloud dashboards. The screenshot that follows shows the main GUI
+page after login, which is the \verb|Identity -> Projects page|. Note that a
 ``demo'' project already exists, and fortunately for those new to OpenStack,
 there is an entire sample structure built around this. This document will
 explore the demo project specifically.
@@ -244,8 +245,8 @@ explore the demo project specifically.
     \end{minipage}
 
 This demonstration begins by exploring Keystone. Click on the \verb|Identity
--> Users| page, find the demo user, and select ``Edit''. The screen on the
-following page shows some of the fields required, and most are self-evident
+-> Users| page, find the demo user, and select ``Edit''. The screen that
+follows shows some of the fields required, and most are self-evident
 (name, email, password, etc.). Update a few of the fields to add an email
 address and select a primary project, though neither is required. For brevity,
 this demonstration does not explore groups and roles, but these options are
@@ -258,7 +259,7 @@ useful for management of larger OpenStack deployments.
     \end{minipage}
 
 Next, click on \verb|Identity -> Project| and edit the demo project. The
-screenshots on the following page depicts the demonstration configuration for
+screenshots that follow depict the demonstration configuration for
 the basic project information and team members. Only the \verb|demo| user is
 part of this project. Note that the \verb|Quota| tab can be used in a
 multi-tenant environment, such as a hosted OpenStack-as-a-service solution, to
@@ -378,7 +379,7 @@ Nicholass-MBP:ssh nicholasrusso$ ls -l CirrOS1-kp.pem
 \end{minted}
 
 Click on \verb|Launch Instance| and navigate back to the main \verb|Instances|
-menu. The screenshot on the following page shows two separate CirrOS instances
+menu. The screenshot that follows shows two separate CirrOS instances
 as the author repeated the procedure twice.
 
     \begin{minipage}[t]{\linewidth}
@@ -403,7 +404,7 @@ demonstration. Future releases of this document may detail this. \\
 
 Moving back to the CLI, there are literally hundreds of OpenStack commands
 used for configuration and troubleshooting of the cloud system. The author’s
-favorite three Nova commands are shown on the following page. Note that some
+favorite three Nova commands are shown next. Note that some
 of the columns were omitted to have it fit nicely on the screen, but the
 information removed was not terribly relevant for this demonstration. The
 host-list shows the host names and their services. The service-list is very
@@ -458,7 +459,7 @@ could have multiple disks, just like any other machine.
 +-----------------+--------+------+--------+----------+-----------------+
 \end{minted}
 
-The command on the following page shows basic information about the public
+The command that follows shows basic information about the public
 subnet that comes with the packstack installer by default. Neutron was not
 explored in depth in this demonstration.
 

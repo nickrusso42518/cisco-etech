@@ -210,7 +210,7 @@ id_rsa  id_rsa.pub  known_hosts
 
 Next, add the Jenkins user's public key to Github under either your personal
 username or a Jenkins utility user (preferred). The author uses his personal
-username for brevity in this example shown on the following page.
+username for brevity in this example shown in the diagram that follows.
 
 \begin{minted}{text}
 [root@ip-10-125-0-85 .ssh]# cat id_rsa.pub
@@ -302,7 +302,8 @@ Cloning repository git@github.com:nickrusso42518/jenkins-demo.git
  > git init /var/lib/jenkins/workspace/jenkins-demo # timeout=10
 Fetching upstream changes from git@github.com:nickrusso42518/jenkins-demo.git
  > git --version # timeout=10
- > git fetch --tags --progress git@github.com:nickrusso42518/jenkins-demo.git +refs/heads/*:refs/remotes/origin/*
+ > git fetch --tags --progress git@github.com:nickrusso42518/jenkins-demo.git \
+ >  +refs/heads/*:refs/remotes/origin/*
  > git config remote.origin.url git@github.com:nickrusso42518/jenkins-demo.git # timeout=10
 [snip]
 Commit message: "Create sample-pb.yml"
@@ -323,7 +324,7 @@ This section briefly explores configuring Jenkins integration with AWS EC2.
 There are many more detailed guides on the Internet which describe this
 process; this book includes the author's personal journey into setting it up.
 Just like with Git, the AWS EC2 plugins must be installed. Look for the AWS
-EC2 plugin as shown on the following page, and install it. The Jenkins wiki
+EC2 plugin as shown in the diagram that follows, and install it. The Jenkins wiki
 concisely describes how this integration works and what problems it can solve:
 
 \textit{
@@ -370,8 +371,7 @@ need to paste the EC2 private key used for any EC2 instances managed by
 Jenkins. This is not for general AWS API access but for shell access to EC2
 instances in order to control them. For security, you can create a new key
 pair within AWS (recommended but not shown) for Jenkins-based hosts in case
-the general-purpose EC2 private key is stolen. The screenshot is shown on the
-following page.
+the general-purpose EC2 private key is stolen.
 
     \begin{minipage}[t]{\linewidth}
 	  \centering
