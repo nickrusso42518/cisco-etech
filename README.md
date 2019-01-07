@@ -80,7 +80,7 @@ source files for individual sections.
 |       `-- a2a-archops
 |           |-- source-files.tex
 |           `-- img
-|-- main.tex
+`-- main.tex
 ```
 
 ## Builds
@@ -114,8 +114,8 @@ __Q__: Why did you spend time to convert Microsoft Word to LaTeX anyway?\
 __A__: As the book grew, I found it difficult using MS Word on my Macbook to
 format things properly and get a consistent design without extensive
 manual effort. Additionally, I find it very fitting that a book on "evolving
-technologies" be written, maintained, tested, and delivered and tested as if
-it were code. "Walk the walk", as it were.
+technologies" be written, maintained, tested, and delivered as if it were
+code. "Walk the walk", as it were.
 
 __Q__: How often is the book updated with new content?\
 __A__: Traditionally, the book has been updated every 6 months, starting
