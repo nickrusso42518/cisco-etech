@@ -31,7 +31,7 @@ The models are discussed briefly below.
     \begin{minipage}[t]{\linewidth}
 	  \centering
       \includegraphics[width=0.7\textwidth]{\imgpath sdn-distributed.jpg}
-      \captionof{figure}{SDN Model - Distributed}
+      \captionof{figure}{SDN Model --- Distributed}
     \end{minipage}
 
   \item \textbf{Augmented:} This model relies on a fully distributed
@@ -57,7 +57,7 @@ The models are discussed briefly below.
     \begin{minipage}[t]{\linewidth}
 	  \centering
       \includegraphics[width=0.7\textwidth]{\imgpath sdn-augmented.jpg}
-      \captionof{figure}{SDN Model - Augmented}
+      \captionof{figure}{SDN Model --- Augmented}
     \end{minipage}
 
   \item \textbf{Hybrid:} This model is very similar to the augmented model
@@ -80,7 +80,7 @@ The models are discussed briefly below.
     \begin{minipage}[t]{\linewidth}
 	  \centering
       \includegraphics[width=0.7\textwidth]{\imgpath sdn-hybrid.jpg}
-      \captionof{figure}{SDN Model - Augmented}
+      \captionof{figure}{SDN Model --- Augmented}
     \end{minipage}
 
   \item \textbf{Centralized:} This is the model most commonly referenced when
@@ -119,7 +119,7 @@ The models are discussed briefly below.
     \begin{minipage}[t]{\linewidth}
 	  \centering
       \includegraphics[width=0.7\textwidth]{\imgpath sdn-centralized.jpg}
-      \captionof{figure}{SDN Model - Centralized}
+      \captionof{figure}{SDN Model --- Centralized}
     \end{minipage}
 \end{enumerate}
 
@@ -150,7 +150,7 @@ intelligent network devices used for forwarding only (assuming a centralized
 model). A common control-plane used for this purpose would be OpenFlow; the
 controller determines the forwarding tables per flow per network device,
 programs this information, and then the devices obey it. Note that OpenFlow is
-not synonymous with SDN; it is just an example of one southbound control-plane
+not synonymous with SDN\@; it is just an example of one southbound control-plane
 protocol. Because the SDN controller is sandwiched between the northbound and
 southbound interfaces, it can be considered ``middleware'' in a sense. The
 controller is effectively able to evaluate application constraints and produce
@@ -196,7 +196,7 @@ split failure domains or to make one failure domain resilient
 \\ \midrule
 \textbf{Granularity / control}
 &
-Generally low for IGPs but better for BGP. All devices generally need a common
+Generally low for IGPs but better for BGP\@. All devices generally need a common
 view of the network to prevent loops independently. MPLS TE helps somewhat.
 &
 Better than distributed since policy injection can happen at the network edge,

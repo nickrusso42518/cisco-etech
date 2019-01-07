@@ -10,7 +10,7 @@ controllers and business applications, either one can be changed at any time
 without significantly impacting the overall architecture.
 
 A common API that is discussed within the networking world is the
-Representational State Transfer (REST) API. REST represents an ``architectural
+Representational State Transfer (REST) API\@. REST represents an ``architectural
 style'' of transferring information between clients and servers. In essence, it
 is a way of defining attributes or characteristics of how data is moved. REST
 is commonly used with HTTP by combining traditional HTTP methods (GET, POST,
@@ -31,7 +31,7 @@ considered legacy today. gRPC is open source and free at the time of this
 writing. \\
 
 gRPC attempts to solve a number of shortcomings of REST-based APIs. For
-example, there is no formal machine definition of a REST API. Each API is
+example, there is no formal machine definition of a REST API\@. Each API is
 custom-built following REST architectural principles. API consumers must
 always read documents pertaining to the specific API in order to determine its
 usage specifications. Furthermore, streaming operations (sending a stream of
@@ -60,7 +60,7 @@ demonstration, any Linux development platform will work, assuming it has
 Python installed. Testing gRPC on IOS-XR is not particularly different than
 other APIs, but requires many setup steps. Each one is covered briefly before
 the demonstration begins. First, install the necessary underlying libraries
-needed to use gRPC. The ``docopt'' package helps with using CLI commands and is
+needed to use gRPC\@. The ``docopt'' package helps with using CLI commands and is
 used by the Cisco IOS-XR \verb|cli.py| client. \\
 
 \begin{minted}{text}
@@ -74,7 +74,7 @@ Collecting docopt
 \end{minted}
 
 Next, install the Cisco IOS-XR specific libraries needed to communicate using
-gRPC. This could be bundled into the previous step, but was separated in this
+gRPC\@. This could be bundled into the previous step, but was separated in this
 document for cleanliness.
 
 \begin{minted}{text}
@@ -159,7 +159,7 @@ module: Cisco-IOS-XR-ipv6-ospfv3-cfg
 \end{minted}
 
 Before continuing, ensure you have a functional IOS-XR platform running
-version 6.0 or later. Log into the IOS-XR platform via SSH and enable gRPC.
+version 6.0 or later. Log into the IOS-XR platform via SSH and enable gRPC\@.
 It's very simple and only requires identifying a TCP port on which to listen.
 Additionally, TLS-based security options are available but omitted for this
 demonstration. This IOS-XR platform is an XRv9000 running in AWS on version 6.3.1.
@@ -235,7 +235,7 @@ _______________________________________________________________
 \end{minted}
 
 Manually configure some OSPFv3 parameters via CLI to start. Below is a
-configuration snippet from the IOS-XRv platform running gRPC.
+configuration snippet from the IOS-XRv platform running gRPC\@.
 
 \begin{minted}{text}
 RP/0/RP0/CPU0:XRv_gRPC#show running-config router ospfv3
@@ -336,7 +336,7 @@ configuration from the file.
 \end{minted}
 
 Run the \verb|jq| command again except redirect the output to a new file. This new
-file represents the configuration updates to be pushed via gRPC.
+file represents the configuration updates to be pushed via gRPC\@.
 
 \begin{minted}{text}
 [root@devbox examples]# jq '.data."Cisco-IOS-XR-ipv6-ospfv3-cfg:ospfv3"' \
@@ -444,7 +444,7 @@ wrapper tools like Ansible, networkers could interact with a network device
 shell by sending raw commands and receiving byte strings in return. The
 mechanics are generally simple but less elegant than modern tools. This brief
 demonstration uses paramiko to both collect information from, and push
-information to, a Cisco CSR1000v running in AWS. The relevant version and
+information to, a Cisco CSR1000v running in AWS\@. The relevant version and
 package information is listed below. You may need to use pip to install paramiko.
 
 \begin{minted}{text}
@@ -673,12 +673,12 @@ service sequence-numbers
 YANG as a modeling language was discussed earlier in this document. This was
 lacking context because YANG by itself provides little value. There needs to
 be some mechanism to transport the data that conforms to these
-machine-friendly models. One of those transport options is NETCONF. \\
+machine-friendly models. One of those transport options is NETCONF\@. \\
 
 This section explores a short NETCONF/YANG example using Cisco CSR1000v on
 modern \verb|Everest| software. This router is running as an EC2 instance inside
-AWS. Using the EIGRP YANG model explored earlier in this document, this
-section demonstrates configuration updates relating to EIGRP. \\
+AWS\@. Using the EIGRP YANG model explored earlier in this document, this
+section demonstrates configuration updates relating to EIGRP\@. \\
 
 The simplest way to enable NETCONF/YANG is with the \verb|netconf-yang| global
 command with no additional arguments.
@@ -715,7 +715,7 @@ revision=2017-02-07</capability>
 \end{minted}
 
 The \verb|netconf-console.py| tool is a simple way to interface with network
-devices that use NETCONF. This is the same tool used in the Cisco blog post
+devices that use NETCONF\@. This is the same tool used in the Cisco blog post
 mentioned earlier. Rather than specify basic SSH login information as command
 line arguments, the author suggests editing these values in the Python code to
 avoid typos while testing. These options begin around line 540 of the
@@ -764,7 +764,7 @@ Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --hello
 This device claims to support EIGRP configuration via NETCONF as verified
 above. To simplify the initial configuration, an EIGRP snippet is provided
 below which adjusts the variables in scope for this test. These are CLI
-commands and are unrelated to NETCONF.
+commands and are unrelated to NETCONF\@.
 
 \begin{minted}{text}
 # Applied to NETCONF_TEST router
@@ -778,13 +778,14 @@ router eigrp NCTEST
 
 When querying the router for this data, start at the topmost layer under the
 data field and drill down to the interesting facts. The text below shows the
-current \verb|router eigrp| configuration on the device using the \verb|--get-config -x|
-option set. Omitting any options and simply using \verb|--get-config| will provide
-the entire configuration, which is useful for finding out what the structure
-of the different CLI stanzas are.
+current \verb|router eigrp| configuration on the device using the
+\verb|--get-config -x| option set. Omitting any options and simply using
+\verb|--get-config| will provide the entire configuration, which is useful for
+finding out what the structure of the different CLI stanzas are.
 
 \begin{minted}{text}
-Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --get-config -x "native/router/eigrp"
+Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py \
+>  --get-config -x "native/router/eigrp"
 \end{minted}
 
 \begin{minted}{xml}
@@ -815,7 +816,7 @@ Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --get-config -x "nat
  </rpc-reply>
 \end{minted}
 
-Next, a small change will be applied using NETCONF. Each of the three
+Next, a small change will be applied using NETCONF\@. Each of the three
 variables will be incremented by 10. Simply copy the \verb|eigrp| data field from
 the remote procedure call (RPC) feedback, save it to a file (eigrp-updates.xml
 for example), and hand-modify the variable values. Correcting the indentation
@@ -854,7 +855,8 @@ Using the \verb|--edit-config| option, write these changes to the device. NETCON
 will return an \verb|ok| message when complete.
 
 \begin{minted}{text}
-Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --edit-config=./eigrp-updates.xml
+Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py \
+>  --edit-config=./eigrp-updates.xml
 \end{minted}
 
 \begin{minted}{xml}
@@ -864,10 +866,12 @@ Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --edit-config=./eigr
 </rpc-reply>
 \end{minted}
 
-Perform the \verb|get| operation once more to ensure the value were updated correctly by NETCONF.
+Perform the \verb|get| operation once more to ensure the value were updated
+correctly by NETCONF\@.
  
 \begin{minted}{text}
-Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --get-config -x "native/router/eigrp"
+Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py \
+>  --get-config -x "native/router/eigrp"
 \end{minted}
 
 \begin{minted}{xml}
@@ -1386,7 +1390,7 @@ and the JSON content type.
 
 This newly-configured class-map can be verified using an HTTPS GET request.
 The data field is stripped to the empty string, POST is changed to GET, and
-the class-map name is appended to the URL. The verbose option (-v) is omitted
+the class-map name is appended to the URL\@. The verbose option (-v) is omitted
 for brevity. Writing this output to a file and using the jq utility can be a
 good way to query for specific fields. Piping the output to \verb|tee| allows
 it to be written to the screen and redirected to a file.
@@ -1424,11 +1428,11 @@ end
 \end{minted}
 
 \subsubsection{RESTCONF on IOS-XE}
-RESTCONF is a relatively new API offered by Cisco IOS XE. RESTCONF is a new
+RESTCONF is a relatively new API offered by Cisco IOS XE\@. RESTCONF is a new
 API introduced into Cisco IOS XE 16.3.1 which has some characteristics of
-NETCONF and the classic REST API. It uses HTTP/HTTPS for transport much like
+NETCONF and the classic REST API\@. It uses HTTP/HTTPS for transport much like
 the REST API, but appears to be simpler. It is like NETCONF in terms of its
-usefulness for configuring devices using data modeled in YANG; it supports
+usefulness for configuring devices using data modeled in YANG\@; it supports
 JSON and XML formats for retrieved data. The version of the router is shown
 below as it differs from the router used in other tests.
 
@@ -1456,7 +1460,7 @@ interface Loopback42518
 \end{minted}
 
 The \verb|curl| utility is useful with RESTCONF as it was with the class REST
-API. The difference is that the data retrieval process is more intuitive.
+API\@. The difference is that the data retrieval process is more intuitive.
 First, we query the interface IP address, then the description. Both of the
 URLs are simple and the overall curl command syntax is easy to understand. The
 output comes back in easy-to-read XML which is convenient for machines that
@@ -1495,5 +1499,5 @@ nested as there is only ever one description per interface.
 \end{minted}
 
 This section does not detail other HTTP operations such as POST, PUT, and
-DELETE using RESTCONF. The feature is still very new and is tightly integrated
+DELETE using RESTCONF\@. The feature is still very new and is tightly integrated
 with postman, a tool that generates HTTP requests automatically.

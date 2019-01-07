@@ -3,7 +3,7 @@ Controllers are components that are responsible for programming forwarding
 tables of data-plane devices. Controllers themselves could even be routers,
 like Cisco’s PfR operating as a master controller (MC), or they could be
 software-only appliances, as seen with OpenFlow networks or Cisco’s
-Application Policy Infrastructure Controller (APIC) used with ACI. The models
+Application Policy Infrastructure Controller (APIC) used with ACI\@. The models
 discussed above help detail the significance of the controller; this is
 entirely dependent on the deployment model. The more involved a controller is,
 the more flexibility the network administrator gains. This must be weighed
@@ -31,13 +31,13 @@ independence. IWAN has several key components:
   exchange using a reactive control-plane used to map overlay and underlay
   addresses into pairs. DMVPN can provide transport independence as it can be
   used as an overlay atop the public Internet, private WANs (MPLS), or any
-  other transport that carries IP.
+  other transport that carries IP\@.
   \item \textbf{IP Service Level Agreement (IP SLA):} This feature is used to
   synthesize traffic to match application flows on the network. By sending
   probes that look like specific applications, IWAN can test application
   performance and make adjustments. This is called ``active monitoring''. The
   newest version of PfR (version 3) used within IWAN 2.0 no longer uses IP
-  SLA. Instead, it uses Cisco-specific ``Smart Probes'' which provide some
+  SLA\@. Instead, it uses Cisco-specific ``Smart Probes'' which provide some
   additional monitoring capabilities.
   \item \textbf{Netflow:} Like probes, Netflow is used to measure the
   performance of specific applications across an IWAN deployment, but does so

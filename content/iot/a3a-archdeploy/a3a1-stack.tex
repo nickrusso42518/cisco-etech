@@ -67,9 +67,9 @@ architecture. The architecture consists primarily of four layers:
   handoffs to IoT devices; this would make sense for relatively large devices
   that would have Ethernet ports and would be generally immobile. Mobile
   devices, or those that are small or remote, might use cellular technologies
-  such as 2G, 3G, or 4G/LTE for wireless backhaul to the closest POP. A
+  such as 2G, 3G, or 4G/LTE for wireless backhaul to the closest POP\@. A
   combination of the two could be used by extending Ethernet to a site and
-  using 802.11 Wi-Fi to connect the sensors to the WLAN. The edge network may
+  using 802.11 Wi-Fi to connect the sensors to the WLAN\@. The edge network may
   require use of ``gateways'' as a short-term solution for bridging
   (potentially non-IP) IoT networks into traditional IP networks. The gateways
   come with an associated high CAPEX and OPEX since they are custom devices to
@@ -114,7 +114,7 @@ architecture. The architecture consists primarily of four layers:
     \item \textbf{Long range:} Some devices may be placed very far from their RF base
 	stations/access points and could potentially be highly mobile. Smart
 	automobiles are a good example of this; such devices are often equipped with
-	cellular radios, such as 4G/LTE. Such an option is not optimal for supporting
+	cellular radios, such as 4G/LTE\@. Such an option is not optimal for supporting
 	LLNs given the cost of radios and power required to run them. To operate a
 	private cellular network, the RF bands must be licensed (in the USA, at
 	least), which creates an expensive and difficult barrier for entry.
@@ -137,7 +137,7 @@ architecture. The architecture consists primarily of four layers:
 	lights, sprinklers, and parking/ticketing meters. IEEE has defined 802.15.4
 	to support low-rate wireless personal area networks (LR-PANS) which is used
 	for many such IoT devices. Note that 802.15.4 is the foundation for
-	upper-layer protocols such as ZigBee and WirelessHART. ZigBee, for example,
+	upper-layer protocols such as ZigBee and WirelessHART\@. ZigBee, for example,
 	is becoming popular in homes to network some IoT devices, such as
 	thermostats, which may not support Wi-Fi in their hardware.
   \end{enumerate}
@@ -160,7 +160,7 @@ The basic IoT architecture is depicted in the diagram that follows.
 
 As a general comment, one IoT strategy is to ``mesh under'' and ``route
 over''. This loosely follows the 7-layer OSI model by attempting to constrain
-layers 1-2 to the IoT network, to include RF networking and link-layer
+layers 1 and 2 to the IoT network, to include RF networking and link-layer
 communications, then using some kind of IP overlay of sorts for network
 reachability. Additional details about routing protocols for IoT are discussed
 later in this document. \\
@@ -180,7 +180,7 @@ which is currently running a virtual private cloud infrastructure with some
 critical in-house applications in their private cloud. All remaining
 commercial applications are in the public cloud. Assume this public cloud is
 hosted locally by an ISP and is connected via an MPLS L3VPN extranet into the
-corporate VPN. If this corporation owns a large manufacturing company and
+corporate VPN\@. If this corporation owns a large manufacturing company and
 wants to begin deploying various IoT components, it can begin with the large
 and immobile pieces. \\
 
@@ -233,7 +233,7 @@ None of this equipment was Ethernet or IP enabled, yet still had to report
 test data back to a centralized system. This served a short term purpose of
 tracking defects to redirect defective products to the rework area. It also
 was useful in the long-term to identify trends relating to faulty product
-design or testing procedures. All of this equipment is considered OT. \\
+design or testing procedures. All of this equipment is considered OT\@. \\
 
 The test equipment described above is like an IoT sensor; it performs specific
 measurements and reports the data back upstream. The first device in the path

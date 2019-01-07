@@ -68,7 +68,7 @@ software shim between the underlying OS and the containers known as the
 container manager, which enforces the multi-tenancy via memory isolation and
 other techniques. \\
 
-The main drawback of containers is that all containers must share the same OS.
+The main drawback of containers is that all containers must share the same OS\@.
 For applications or services where such behavior is desired (for example, a
 container per customer consuming a specific service), containers are a good
 choice. As a general-purpose virtualization platform in environments where
@@ -398,7 +398,7 @@ host_key_checking = False
 \end{minted}
 
 Next, ensure the inventory contains the specific router in question. In this
-case, it is a Cisco CSR1000v running in AWS. Note that we would have used
+case, it is a Cisco CSR1000v running in AWS\@. Note that we would have used
 \verb|echo| commands in our Dockerfile to address these issues in advance, but
 this specific information makes the docker image less useful and less portable.
 

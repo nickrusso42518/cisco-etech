@@ -6,7 +6,7 @@ the modeling language used to represent device configuration and state, much
 like eXtensible Markup Language (XML). Put simply, NETCONF is a transport
 vessel for YANG information to be transferred from a network management system
 (NMS) to a network device. Although YANG can be quite complex to humans, it is
-similar to SNMP; it is simple for machines. YANG is an abstraction away from
+similar to SNMP\@; it is simple for machines. YANG is an abstraction away from
 network device CLIs which promotes simplified management in cloud environments
 and a progressive migration toward one of the SDN models discussed later in
 this document. Devices that implement NETCONF/YANG provide a uniform
@@ -14,14 +14,14 @@ manageability interface which means vendor hardware/software can be swapped in
 a network without affecting the management architecture, operations, or strategy. \\
 
 Previous revisions of this document claimed that NETCONF is to YANG as HTTP is
-to HTML. This is not technically accurate, as NETCONF serializes data using
-XML. In HTML, Document Type Definitions (DTDs) describe the building blocks of
+to HTML\@. This is not technically accurate, as NETCONF serializes data using
+XML\@. In HTML, Document Type Definitions (DTDs) describe the building blocks of
 how the data is structured. This is the same role played by YANG as it relates
-to XML. It would be more correct to say that DTD is to HTML over HTTP as YANG
-is to XML over NETCONF. YANG can also be considered to be a successor to
+to XML\@. It would be more correct to say that DTD is to HTML over HTTP as YANG
+is to XML over NETCONF\@. YANG can also be considered to be a successor to
 Simple Network Management Protocol (SNMP) Management Information Base (MIB)
 definitions. These MIBs define how data is structured and SNMP itself provides
-a transport, similar to NETCONF.
+a transport, similar to NETCONF\@.
 
 \subsubsection{YANG}
 YANG defines how data is structured/modeled rather than containing data
@@ -45,7 +45,7 @@ NETCONF XML Example:
 \end{minted}
 
 This section explores a YANG validation example using Cisco CSR1000v on modern
-``Everest'' software. This router is running as an EC2 instance inside AWS.
+``Everest'' software. This router is running as an EC2 instance inside AWS\@.
 Although the NETCONF router is not used until later, it is imported to check
 the software version to ensure we clone the right YANG models.
 
@@ -198,7 +198,7 @@ Nicholass-MBP:1661 nicholasrusso$ echo $?
 
 This confirms that the model has valid syntax. The pyang tool can also convert
 between different formats. Below is a simple and lossless conversion of YANG
-syntax into XML. This YANG-to-XML format is known as YIN, and pyang can
+syntax into XML\@. This YANG-to-XML format is known as YIN, and pyang can
 generate pretty XML output based on the YANG model. This is an alternative way
 to view, edit, or create data models. YIN format might be useful for Microsoft
 Powershell users. Powershell makes XML parsing easy, and may not be as
@@ -338,7 +338,7 @@ the YAML example.
 
 More discussion around YAML and JSON is warranted since these two formats are
 very commonly used today. YAML is considered to be a strict (or proper)
-superset of JSON. That is, any JSON data can be represented in YAML, but not
+superset of JSON\@. That is, any JSON data can be represented in YAML, but not
 vice versa. This is important to know when converting back and forth;
 converting JSON to YAML should always succeed, but converting YAML to JSON may
 fail or yield unintended results. Below is a straightforward conversion
@@ -371,7 +371,7 @@ mylist:
 
 Next, observe an example of some potentially unexpected conversion results.
 While the JSON result is technically correct, it lacks the shorthand
-``anchoring'' technique available in YAML. The anchor, for example, creates
+``anchoring'' technique available in YAML\@. The anchor, for example, creates
 information that can be inherited by other dictionaries later. While the
 information is identical between these two blocks and has no functional
 difference, some of these YAML shortcuts are advantageous for encouraging
@@ -412,7 +412,7 @@ Data structured in XML is very common and has been popular for decades. XML is
 very verbose and explicit, relying on starting and ending tags to identify the
 size/scope of specific data fields. The next page shows an example of XML code
 resembling a similar structure as the previous YAML and JSON examples. Note
-that the topmost ``root'' wrapper key is needed in XML but not for YAML or JSON.
+that the topmost ``root'' wrapper key is needed in XML but not for YAML or JSON\@.
 
 \begin{minted}{xml}
 <?xml version="1.0" encoding="UTF-8" ?>

@@ -119,12 +119,12 @@ execution engine for network devices.
   Ansible is agent-less, and does not require a software agent to be installed
   on the target node (server or switch) in order to automate the device. By
   default, Ansible requires SSH and Python support on the target node, but
-  Ansible can also be easily extended to use any API.
+  Ansible can also be easily extended to use any API\@.
 \end{enumerate}
 
 In summary, Ansible is lighter-weight than Puppet or Chef given that
 management is agent-less. No custom software needs to be installed on any
-device provided that it supports SSH. This can be a drawback since individual
+device provided that it supports SSH\@. This can be a drawback since individual
 device CLIs must be exposed to network operators (or, at best, the Ansible
 automation engine) instead of using a more abstract API design. Ansible is
 very commonly used to manage Cisco network devices as it requires no agent
@@ -164,7 +164,7 @@ target hosts, and some other minor options. Gathering facts can provide basic
 information like time and date, which are used in this script. When
 connection: local is used, the python commands used with Ansible are executed
 on the control machine (Linux) and not on the target. This is required for
-many Cisco devices being managed by the CLI. \\
+many Cisco devices being managed by the CLI\@. \\
 
 The first task defines a credentials dictionary. This contains transport
 information like SSH port (default is 22), target host, username, and
@@ -346,7 +346,7 @@ where this playbook is hosted is provided below, and in the references
 section. There are many other, unrelated Ansible playbooks available at the
 author's Github page as well. \\
 
-Nick's OSPF TroubleShooter (nots) - \url{https://github.com/nickrusso42518/nots}
+Nick's OSPF TroubleShooter (nots) --- \url{https://github.com/nickrusso42518/nots}
 
 \subsubsection{Agent-less Demonstration with Nornir}
 Nornir is an open source project created by
@@ -359,10 +359,11 @@ execution engine, like Ansible, with a few key differences:
 
 \begin{enumerate}
   \item	No domain specific language (DSL). Yes, Nornir makes you write Python,
-  while Ansible lets you write simpler YAML. Doing simple things is easy in
+  while Ansible lets you write simpler YAML\@. Doing simple things is easy in
   DSL, but complex hard things is extremely challenging. Even moderately
   complex nested iteration requires multiple files in Ansible, but doing so in
-  Python is trivial. With Nornir, you get pure Python without complex integrations via DSL.
+  Python is trivial. With Nornir, you get pure Python without complex
+  integrations via DSL\@.
   \item	Python debugger (\verb|pdb|) works natively, simplifying debugging. In
   Ansible, your best tools are verbosity options from the shell (i.e.,
   \verb|ansible-playbook test.yml -vvv|) or the \verb|debug| module, neither
@@ -1024,7 +1025,7 @@ comment added to the last commit is visible.
     \begin{minipage}[t]{\linewidth}
 	  \centering
       \includegraphics[width=0.8\textwidth]{\imgpath github-folders.png}
-      \captionof{figure}{Github Changes - Summary}
+      \captionof{figure}{Github Changes --- Summary}
     \end{minipage}
 
 Looking into the min-scalar-prod directory and specifically the \verb|VectorPair.py|
@@ -1036,7 +1037,7 @@ controlled. The screenshot is shown below.
     \begin{minipage}[t]{\linewidth}
 	  \centering
       \includegraphics[width=0.8\textwidth]{\imgpath github-diff.png}
-      \captionof{figure}{Github Changes - Detailed Differences}
+      \captionof{figure}{Github Changes --- Detailed Differences}
     \end{minipage}
 
 \subsubsection{Git with AWS CodeCommit and CodeBuild}
@@ -1080,11 +1081,12 @@ Github without having pushed any files to it.
     \end{minipage}
 
 Next, perform a clone operation from the AWS CodeCommit repository using
-HTTPS. While the repository is empty, this establishes successful connectivity
+HTTPS\@. While the repository is empty, this establishes successful connectivity
 with AWS CodeCommit.
 
 \begin{minted}{text}
-Nicholass-MBP:projects nicholasrusso$ git clone https://git-codecommit.us-east-1.amazonaws.com/v1/repos/awsgit
+Nicholass-MBP:projects nicholasrusso$ git clone \
+>  https://git-codecommit.us-east-1.amazonaws.com/v1/repos/awsgit
 Cloning into 'awsgit'...
 Username for 'https://git-codecommit.us-east-1.amazonaws.com': nrusso-at-043535020805
 Password for 'https://nrusso-at-043535020805@git-codecommit.us-east-1.amazonaws.com':
@@ -1374,13 +1376,13 @@ functionality.
     \begin{minipage}[t]{\linewidth}
 	  \centering
       \includegraphics[width=0.8\textwidth]{\imgpath svn-login.png}
-      \captionof{figure}{SVN Repository - Initial Login}
+      \captionof{figure}{SVN Repository --- Initial Login}
     \end{minipage}
 
     \begin{minipage}[t]{\linewidth}
 	  \centering
       \includegraphics[width=0.8\textwidth]{\imgpath svn-empty.png}
-      \captionof{figure}{SVN Repository - Empty Project}
+      \captionof{figure}{SVN Repository --- Empty Project}
     \end{minipage}
 
 The remainder of this section is focused on SVN client-side operations, where
@@ -1533,7 +1535,7 @@ new file is present.
     \begin{minipage}[t]{\linewidth}
 	  \centering
       \includegraphics[width=0.8\textwidth]{\imgpath svn-hasfile.png}
-      \captionof{figure}{SVN Repository - Files Present}
+      \captionof{figure}{SVN Repository --- Files Present}
     \end{minipage}
 
 As in most git-based repository systems with GUIs, such as Github or Gitlab,
@@ -1544,7 +1546,7 @@ works. Clicking on the hyperlink reveals the source code contained in the file.
     \begin{minipage}[t]{\linewidth}
 	  \centering
       \includegraphics[width=0.8\textwidth]{\imgpath svn-code.png}
-      \captionof{figure}{SVN Repository - Viewing Code}
+      \captionof{figure}{SVN Repository --- Viewing Code}
     \end{minipage}
 
 Next, make some changes to the file. In this case, remove one test case and

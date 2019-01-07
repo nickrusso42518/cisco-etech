@@ -84,7 +84,7 @@ them. Each one will be installed, along with all their dependencies.
 Once complete, log into Github and navigate to the user
 \verb|Settings > Developer settings > Personal access tokens|. These tokens
 can be used as an easy authentication method via shared-secret to access
-Github's API. When generating a new token, \verb|admin:org_hook| must be granted at a
+Github's API\@. When generating a new token, \verb|admin:org_hook| must be granted at a
 minimum, but in the interest of experimentation, the author selected a few
 other options as depicted in the image that follows.
 
@@ -246,7 +246,7 @@ Once Git is installed and Jenkins has shell access, copy the repository URL in
 SSH format from Github and substitute it as the repository argument in the
 command below. This is the exact command that Jenkins tries to run when a
 project's SCM is set to git; this tests reachability to a repository using
-SSH. If you accidentally run the command as root, it will fail due to using
+SSH\@. If you accidentally run the command as root, it will fail due to using
 root's public key rather than Jenkins' public key. Switch to the Jenkins user,
 try again, and test the return code (0 means success).
 
@@ -389,7 +389,7 @@ should result in success.
     \end{minipage}
 
 The final step is determining what kind of AMIs Jenkins should create within
-AWS. There can be multiple AMIs for different operating systems, including
+AWS\@. There can be multiple AMIs for different operating systems, including
 Windows, depending on the kind of testing that needs to be done. Perhaps it is
 useful to run the tests on different OS' as part of a more comprehensive
 testing strategy for software portability. There are many options to enter and

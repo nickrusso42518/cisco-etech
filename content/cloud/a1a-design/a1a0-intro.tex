@@ -22,7 +22,7 @@ These distinctions are important for a few reasons. Some organizations joke that
 migrating to cloud is simple; all they have to do is update their on-premises
 DC diagram with the words ``Private Cloud'' and upper management will be
 satisfied. While it is true that the term ``cloud'' is often abused, it is
-important to differentiate it from a traditional private DC.
+important to differentiate it from a traditional private DC\@.
 \\
 
 Cloud architectures generally come in four variants:
@@ -155,7 +155,7 @@ exhaustive:
   \item \textbf{Private WAN (like MPLS L3VPN):} Using the existing private WAN, the
   cloud provider is connected as an extranet. To use MPLS L3VPN as an example,
   the cloud-facing PE exports a central service route-target (RT) and imports
-  corporate VPN RT. This approach could give direct cloud access to all sites
+  corporate VPN RT\@. This approach could give direct cloud access to all sites
   in a highly scalable, highly performing fashion. Traffic performance would
   (should) be protected under the ISP’s SLA to cover both site-to-site
   customer traffic and site-to-cloud/cloud-to-site customer traffic. The ISP
@@ -174,7 +174,7 @@ exhaustive:
   amount of intra-workflow bandwidth (database server on-premises and
   application/web server in the cloud, for example) is expected to be very
   high. The diagram that follows depicts private WAN connectivity
-  assuming MPLS L3VPN. In this design, branches could directly access cloud
+  assuming MPLS L3VPN\@. In this design, branches could directly access cloud
   resources without transiting the main site.
 
     \begin{minipage}[t]{\linewidth}
@@ -188,10 +188,10 @@ exhaustive:
   into the cloud provider’s network. The IXP network is generally access-like
   and connects different organizations together so that they can peer with
   Border Gateway Protocol (BGP) directly, but typically does not provide
-  transit services between sites like a private WAN. Some describe an IXP as a
+  transit services between sites like a private WAN\@. Some describe an IXP as a
   ``bandwidth bazaar'' or ``bandwidth marketplace'' where such exchanges can
   happen in a local area. A strict SLA may not be guaranteed but performance
-  would be expected to be better than the Internet VPN. This is likewise an
+  would be expected to be better than the Internet VPN\@. This is likewise an
   acceptable choice for virtual private (hybrid) cloud but lacks the tight SLA
   typically offered in private WAN deployments. A company could, for example,
   use internet VPNs for inter-site traffic and an IXP for public cloud access.

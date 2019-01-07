@@ -87,15 +87,15 @@ to power loss.
   \item \textbf{LEACH-Centralized (LEACH-C):} This protocol modifies LEACH by
   centralizing the CH selection process. All nodes report location and energy
   to the base station, which finds average of energy levels. Those with above
-  average remaining energy levels in each cluster are selected as CH. The base
+  average remaining energy levels in each cluster are selected as CH\@. The base
   station also notifies all other nodes of this decision. The CH may not
   change at regular intervals (rounds) since the CH selection is more
-  deliberate than with LEACH. LEACH distributes the CH role between nodes in a
+  deliberate than with LEACH\@. LEACH distributes the CH role between nodes in a
   probabilistic (randomized) fashion, whereby LEACH-C relies on the base
   station to make this determination. The centralization comes at an energy
   cost since all nodes are transmitting their current energy status back to
   the base station between rounds. The logic of the base station itself also
-  becomes more complex with LEACH-C compared to LEACH.
+  becomes more complex with LEACH-C compared to LEACH\@.
   \item \textbf{Threshold-sensitive Energy Efficiency Network (TEEN):} This
   protocol differs from LEACH in that it is reactive, not proactive. The radio
   stays off unless there is a significant change worth reporting. This implies
@@ -142,7 +142,7 @@ to power loss.
   initial energy than the former. Initial energy is assigned to normal nodes,
   with a little more initial energy assigned to advanced nodes. CH selection
   is done based on whichever node has the largest initial energy. As such,
-  advanced nodes are more likely to be selected as the CH.
+  advanced nodes are more likely to be selected as the CH\@.
   \item \textbf{Developed DEEC (DDEEC):} A newer variant of DEEC, DDEEC
   addresses the concern that advanced nodes become CH more often, and will
   deplete their energy more rapidly. At some point, they'll look like normal
@@ -360,7 +360,7 @@ Furthermore, the solution has three main components:
   \item \textbf{Historian (formerly ParStream):} SQL style database which can
   scale massively for IoT. It has excellent performance and is well-suited to
   IoT architectures. The main drawback is that is only supports the INSERT
-  operation, not transactional operations like UPDATE or DELETE. To rapidly
+  operation, not transactional operations like UPDATE or DELETE\@. To rapidly
   retrieve information from the database, users have two options. One can send
   a query using the EFM as a query mechanism directly. Alternatively, one can
   form an Open Database Connectivity (ODBC) connection directly to the

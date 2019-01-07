@@ -77,7 +77,7 @@ Less reliance on vendor hardware refresh cycle
 &
 Interoperability between different VNFs
 \\ \midrule
-Mutually beneficial to SDN; complementary
+Mutually beneficial to SDN (complementary)
 &
 Mgmt and orchestration alongside legacy systems
 \\
@@ -96,7 +96,7 @@ consisting of NFIV components. Some call this an NFVI POP, which would house
 VNFs for customers within the region it serves. It would typically be
 centrally managed by the service provider's NOC, along with all of the other
 NFVI POPs deployed within the network. The amalgamation of these NFVI POPs are
-parts of an organization's overall NFVI.
+parts of an organization's overall NFVI design.
 
 \subsubsection{Virtual Network Functions with NFVIS Demonstration}
 NFV exists to abstract the network functions from their underlying hardware.
@@ -173,7 +173,8 @@ effort with Red Hat known simply as NFV Infrastructure and is targeted for
 service providers. The hardware complement includes Cisco UCS servers for
 compute and Cisco Nexus switches for networking. Cisco's Virtual
 Infrastructure Manager (VIM) is a fully automated cloud lifecycle management
-system and is designed for private cloud. At a high level, VIM is a wrapper
+system and is designed for private cloud. This is not to be confused with
+the world's best text editor. At a high level, VIM is a wrapper
 for Red Hat OpenStack and Docker containers behind the scenes, since managing
 these technologies independently is technically challenging. In summary, VIM
 is the NFVI software platform. The solution has many subcomponents. Two
@@ -183,11 +184,11 @@ particularly interesting ones are discussed below.
   \item \textbf{Cisco Virtual Topology System (VTS):} A standards-based, open,
   overlay management and provisioning system for data center networks. It automates DC
   overlay fabric provisioning for physical and virtual workloads. This is an
-  optional service that is available through Cisco VIM. In summary, VTS provides
+  optional service that is available through Cisco VIM\@. In summary, VTS provides
   policy-based (declarative) configuration to create secure, multi-tenant
   overlays. Its control plane uses Cisco IOS-XRv software for BGP EVPN
   route-reflection and VXLAN for data plane encapsulation between the Nexus
-  switches in the NFVI fabric. VTS is an optional enhancement to VIM and NFVI.
+  switches in the NFVI fabric. VTS is an optional enhancement to VIM and NFVI\@.
   \item \textbf{Cisco Virtual Topology Forwarder (VTF):} Included with VTS, VTF
   leverages Vector Packet Processing (VPP) to provide high performance Layer 2
   and Layer 3 VXLAN packet forwarding. VTF is effectively a VXLAN-capable
@@ -217,7 +218,7 @@ for customers desiring a complete Cisco solution.
   \item \textbf{Virtual Network Functions (VNFs):} The virtual machines themselves
   that are managed through the hypervisor. They deliver consistent, trusted network
   services across all platforms. NFVIS supports many common image types,
-  including ISO, OVA, QCOW, QCOW2, and RAW. Images can be certified by Cisco
+  including ISO, OVA, QCOW, QCOW2, and RAW\@. Images can be certified by Cisco
   after extensively testing and integration which is a desirable accomplishment
   for production operations. The current list of certified third-party VNFs can
   be found here.
@@ -242,7 +243,7 @@ system. NFVIS brings the following capabilities:
   firewall, and WAN acceleration VNFs. Each of these devices can come with a
   ``day zero'' configuration for rapid deployment. Cisco officially supports
   many third-party VNFs (Palo Alto virtual firewalls are one notable example)
-  within NFVIS.
+  within the NFVIS hypervisor.
   \item \textbf{Drag-and-drop networking:} VNFs can be clicked and dragged from
   inventory onto a blank canvas and connected, at a high level, with different
   virtual network. VNFs can be chained together in the proper sequence. The
@@ -262,7 +263,7 @@ NFVIS has many open source components. A few common ones are listed below:
   internal networking of NFVIS as well as the user-facing switch ports.
   \item \textbf{Quick Emulator (QEMU):} Open source machine emulator which can run
   code written for one CPU architecture on a different one. For example, running x86
-  code on an ARM CPU.
+  code on an ARM CPU becomes possible.
   \item \textbf{Linux daemons:} A collection of well-known Linux daemons, such as
   snmpd, syslogd, and collectd run in the background to handle basic system
   management using common methods.

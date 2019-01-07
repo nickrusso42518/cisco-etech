@@ -67,7 +67,7 @@ requirements, but Cloud Center can deploy and migrate applications between
 clouds based on user policy. For example, one application may require very
 high disk read/write capabilities, and perhaps this is less expensive in
 Azure. Another application may require very high availability, and perhaps
-this is best achieved in AWS. Note that these are examples only and not
+this is best achieved in AWS\@. Note that these are examples only and not
 indicative of any cloud provider in particular. \\
 
 Applications can be abstracted into individual components, usually virtual
@@ -107,11 +107,11 @@ workflow types:
   virtual networking and segmentation, and traffic copying via encapsulated
   remote switch port analyzer (ERSPAN). Some of these features require ISE
   integration, such as Trustsec, but not all do. As such, DNA-C can provide
-  improved security for the LAN environment even without ISE.
+  improved security for the LAN environment even without ISE present.
   \item \textbf{Provision:} After the network has been designed with its appropriate
   policies attached, DNA-C can provision these new sites. This workflow usually
   includes pushing VNF images and their corresponding day 0 configurations onto
-  hypervisors, such as NFVIS. This is detailed in the upcoming demonstration as
+  hypervisors, such as NFVIS\@. This is detailed in the upcoming demonstration as
   describing it in the abstract is difficult.
 \end{enumerate}
 
@@ -119,7 +119,7 @@ The demonstration in this session ties in with the previous NFVIS
 demonstration which discussed the hypervisor and its local management
 capabilities. Specifically, DNA-C provides improved orchestration over the
 NFVIS nodes. DNA-C can provide day 0 configurations and setup for a variety of
-VNFs on NFVIS. It can also provide the NFVIS hypervisor software itself,
+VNFs on NFVIS\@. It can also provide the NFVIS hypervisor software itself,
 allowing for scaled software updates. Upon logging into DNAC, the screenshot
 below is displayed. The three main workflows (design, policy, and provision)
 are navigable hyperlinks, making it easy to get started. \textbf{DNA-C version 1.2
@@ -179,7 +179,7 @@ at the global, regional, or site level.
   the global level and DHCP/DNS servers at the regional or site level, for example.
   \item \textbf{Device Credentials:} Because DNA-C can directly manage network
   devices, it must know the credentials to access them. Options including SSH,
-  SNMP, and HTTP.
+  SNMP, and HTTP protocols.
   \item \textbf{IP Address Pools:} Discussed briefly earlier, this is where
   administrators defined the IP ranges used at the global, regional, and site
   levels. DNA-C helps manage these IP pools to reduce that manual burden from
@@ -204,13 +204,13 @@ at the global, regional, or site level.
 
 Additionally, the Network Profiles tab is particularly interesting for this
 demonstration as VNFs are being provisioned on remote ENCS platforms running
-NFVIS. On a global, regional, or per site basis, the administrator can
+NFVIS\@. On a global, regional, or per site basis, the administrator can
 identify which VNFs should run on which NFVIS-enabled sites. For example,
 sites in one region may only have access to high-latency WAN transport, and
 thus could benefit from WAN optimization VNFs. Such an expense may not be
 required in other regions where all transports are relatively low-latency. The
 screenshot below shows an example. Note the similarities with the NFVIS
-drag-and-drop GUI; in this solution, the administrator checks boxes on the
+drag-and-drop GUI\@; in this solution, the administrator checks boxes on the
 left hand side of the screen to add or remove VNFs. The virtual networking
 between VNFs is defined elsewhere in the profile and is not discussed in
 detail here.
@@ -279,7 +279,7 @@ options are summarized below:
     \end{minipage}
 
 After applying any SDA-related security policies into the network, it's time
-to provision the VNFs on the remote ENCS platforms running NFVIS. The
+to provision the VNFs on the remote ENCS platforms running NFVIS\@. The
 screenshot below targets site 200. For the initial day 0 configuration
 bootstrapping, the administrator must tell DNA-C what the publicly-accessible
 IP address of the remote NFVIS is. This management IP could change as the ENCS
@@ -402,7 +402,7 @@ The installation of \verb|kubectl| and \verb|minikube| on Mac OS is
 well-documented. The author recommends using VirtualBox, not xhyve or VMware
 Fusion. Despite being technically supported, the author was not able to get
 the latter options working. After installation, ensure both binaries exist and
-are in the shell PATH.
+are in the shell \verb|PATH| environment variable.
 
 \begin{minted}{bash}
 Nicholass-MBP:localkube nicholasrusso$ which minikube kubectl
@@ -521,7 +521,7 @@ hello-minikube-c8b6b4fdc-l5jgn   1/1       Running   0          6s
 hello-minikube-c8b6b4fdc-nz5nc   1/1       Running   0          1m
 \end{minted}
 
-The minikube cluster comes with a GUI interface accessible via HTTP. The
+The minikube cluster comes with a GUI interface accessible via HTTP\@. The
 Kubernetes web dashboard can be quickly verified from the shell. First, you
 can see the URL using the command below, then feed the output from this
 command into curl to issue an HTTP GET request.
@@ -764,7 +764,7 @@ which is \verb|vpc-889b03ee|.
 }
 \end{minted}
 
-Armed with the VPC ID from above, ask for the subnets available in this VPC.
+Armed with the VPC ID from above, ask for the subnets available in this VPC\@.
 By default, every AZ within this region has a default subnet, but since this
 demonstration is focused on us-east-1a, we can apply some filters. First, we
 filter subnets only contained in the default VPC, then additionally only on
@@ -925,7 +925,7 @@ when deploying the CSR1000v.
 With all the key information collected, use the command below with the
 appropriate inputs to create the new EC2 instance. After running the command,
 a string is returned with the instance ID of the new instance; this is why the
-\verb|--query| argument is handy when deploying new instances using AWS CLI. The
+\verb|--query| argument is handy when deploying new instances using AWS CLI\@. The
 CSR1000v will take a few minutes to fully power up.
 
 \begin{minted}{text}
@@ -941,7 +941,7 @@ CSR1000v will take a few minutes to fully power up.
 
 In the meantime, collect information about the instance using the command
 below. Use the \verb|--instance-ids| option to supply a list of strings, each
-containing a specific instance ID. The value returned above is pasted below.
+containing a specific instance ID\@. The value returned above is pasted below.
 The status is still ``initializing''.
 
 \begin{minted}{text}
@@ -998,12 +998,14 @@ changes to \verb|ok|. Some extra information has been removed from the output.
                         "Status": "passed", 
                         "Name": "reachability"
                     }
+			    ]
+            }
 }
 \end{minted}
 
 In order to connect to the instance to configure it, the public IP or public
 DNS hostname is required. The command below targets this specific information
-without a massive JSON dump. Simply feed in the instance ID. Without the
+without a massive JSON dump. Simply feed in the instance ID\@. Without the
 complex query, one could manually scan the JSON to find the address, but this
 solution is more targeted and elegant.
 
@@ -1163,10 +1165,11 @@ Unzip the package to reveal a single binary. At this point, Terraform
 operators have 3 options:
 
 \begin{enumerate}
-  \item	Move the binary to a directory in your PATH. This is the author's
-  preferred choice and what is done below.
-  \item	Add the current directory (where the terraform binary exists) to the shell PATH.
-  \item	Prefix the binary with ./ every time you want to use it.
+  \item	Move the binary to a directory in your \verb|PATH|. This is the
+  author's preferred choice and what is done below.
+  \item	Add the current directory (where the terraform binary exists) to the
+  shell \verb|PATH|.
+  \item	Prefix the binary with \verb|./| every time you want to use it.
 \end{enumerate}
 
 \begin{minted}{text}
@@ -1216,7 +1219,7 @@ provider "aws" {
 }
 \end{minted}
 
-Next, use the \verb|aws_vpc| resource to create a new VPC. The documentation
+Next, use the \verb|aws_vpc| resource to create a new VPC\@. The documentation
 suggests that only the \verb|cidr_block| argument is required. The author
 suggests adding a \verb|Name| tag to help organize resources as well. Note
 that there is a large list of ``attribute'' fields on the documentation page.
@@ -1257,7 +1260,7 @@ resource "aws_subnet" "dmz" {
 \end{minted}
 
 Now that the basic network constructs have been configured, its time to add
-EC2 instances to construct the DMZ. One could just add a few more resource
+EC2 instances to construct the DMZ\@. One could just add a few more resource
 invocations to the existing network.tf file. For variety, the author is going
 to create a second file for the EC2 compute devices. When multiple *.tf
 configuration files exist, they are loaded in alphabetical order, but that's
@@ -1266,7 +1269,7 @@ in the appropriate sequence regardless of the file names. \\
 
 Edit a file called ``services.tf'' in your favorite text editor and apply the
 following configuration to deploy a Cisco ASAv and CSR1000v within the
-us-east-1a AZ. The AMI for the CSR1000v is the same one used in the AWS CLI
+us-east-1a AZ\@. The AMI for the CSR1000v is the same one used in the AWS CLI
 demonstration. The AMI for the ASAv is the BYOL version, which was derived
 using the AWS CLI \verb|describe-instances|. Both instances are placed in the newly
 created subnet within the newly created VPC, keeping everything separate from
@@ -1554,7 +1557,7 @@ Apply complete! Resources: 4 added, 0 changed, 0 destroyed.
 
 Quickly verify that the instances were successfully created and are powering
 up. It's best to do this verification outside of Terraform just to confirm
-from multiple sources that the infrastructure is working as expected. Using
+from multiple sources that the infrastructure is working as expected\@. Using
 the AWS CLI with a detailed query, one can limit the output to just a few
 lines, effectively only collecting the \verb|Status| value. Note that the two
 instance IDs specified here are annotated above in the output from Terraform.
@@ -1594,7 +1597,7 @@ is in the correct VPC, AZ, and has the right IPv4 CIDR range.
 Going back to Terraform, notice that a new terraform.tfstate file has been
 created. This represents the new infrastructure state after the Terraform plan
 was applied. Use \verb|terraform show| to view the file, which contains all the
-\verb|computed| fields filled in, such as the ARN.
+\verb|computed| fields filled in, such as the ARN value.
 
 \begin{minted}{text}
 [ec2-user@devbox tf-demo]$ ls -l

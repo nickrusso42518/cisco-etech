@@ -3,7 +3,7 @@ Several new protocols have been introduced specifically for IoT, some of which
 are standardized:
 
 \begin{enumerate}
-  \item \textbf{RPL - IPv6 Routing Protocol for LLNs (RFC 6550):} RPL is a
+  \item \textbf{RPL --- IPv6 Routing Protocol for LLNs (RFC 6550):} RPL is a
   distance-vector routing protocol specifically designed to support IoT. At a
   high-level, RPL is a combination of control-plane and forwarding logic of
   three other technologies: regular IP routing, multi-topology routing (MTR),
@@ -19,7 +19,7 @@ are standardized:
   TE’s constrained shortest path first (CSPF) process which is used for
   defining administrator-defined paths through a network based on a set of
   constraints, which might have technical and/or business drivers behind them.
-  \item \textbf{6LoWPAN - IPv6 over Low Power WPANs (RFC 4944):} This
+  \item \textbf{6LoWPAN --- IPv6 over Low Power WPANs (RFC 4944):} This
   technology was specifically developed to be an adaptation layer for IPv6 for
   IEEE 802.15.4 wireless networks. Specifically, it ``adapts'' IPv6 to work
   over LLNs which encompasses many functions:
@@ -43,11 +43,11 @@ are standardized:
       \item	The low-order 64-bits of the link-local addresses can be derived
 	  from the layer-2 network addressing in an IEEE 802.15.4 wireless network.
       \item	The packet length can be derived from the layer-2 header.
-      \item	Next header is always ICMP, TCP, or UDP.
+      \item	Next header is always ICMP, TCP, or UDP\@.
       \item	Flow label and traffic class are always zero.
       \item As an example, an IPv6 header (40 bytes) and a UDP header (8
 	  bytes) are 48 bytes long when concatenated. This can be compressed down to
-	  7 bytes by 6LoWPAN.
+	  7 bytes by 6LoWPAN\@.
     \end{enumerate}
 
     \item \textbf{Mesh routing:} Somewhat similar to Wi-Fi, mesh networking is
@@ -56,19 +56,19 @@ are standardized:
 	the per-hop source/destination addresses are written to the MAC header.
     \item \textbf{MAC level retransmissions:} IP was designed to be fully
 	stateless and any retransmission or flow control was the responsibility of
-	upper-layer protocols, such as TCP. When using 6LoWPAN, retransmissions can
+	upper-layer protocols, such as TCP\@. When using 6LoWPAN, retransmissions can
 	occur at layer-2.
 
   \end{enumerate}
-  \item \textbf{CoAP - Constrained Application Protocol (RFC7252):} At a
+  \item \textbf{CoAP --- Constrained Application Protocol (RFC7252):} At a
   high-level, CoAP is very similar to HTTP in terms of the capabilities it
   provides. It is used to support the transfer of application data using
-  common methods such as GET, POST, PUT, and DELETE. CoAP runs over UDP port
+  common methods such as GET, POST, PUT, and DELETE\@. CoAP runs over UDP port
   5683 by default (5684 for secure CoAP) and was specifically designed to be
-  lighter weight and faster than HTTP. Like the other IoT protocols, CoAP is
+  lighter weight and faster than HTTP\@. Like the other IoT protocols, CoAP is
   designed for LLNs, and more specifically, to support machine-to-machine
   communications. Despite CoAP being designed for maximum efficiency, it is
-  not a general replacement for HTTP. It only supports a subset of HTTP
+  not a general replacement for HTTP\@. It only supports a subset of HTTP
   capabilities and should only be used within IoT environments. To interwork
   with HTTP, one can deploy an HTTP/CoAP proxy as a ``gateway'' device between
   the multi-service edge and smart device networks. CoAP has a number of useful
@@ -92,12 +92,12 @@ are standardized:
   and was specifically designed for lightweight, web-based, machine-to-machine
   communications. Like HTTP, it relies on TCP, except uses ports 1883 and 8883
   for plain-text and TLS communications, respectively. Being based on TCP also
-  implies a client/server model, similar to HTTP, but not necessary like CoAP.
+  implies a client/server model, similar to HTTP, but not necessary like CoAP\@.
   Compared to CoAP, MQTT is losing traction given the additional benefits
   specific to modern IoT networks that CoAP offers.
 \end{enumerate}
 
-The table that follows briefly compares CoAP, MQTT, and HTTP.
+The table that follows briefly compares CoAP, MQTT, and HTTP\@.
 
 \begin{longtable}{llll}
 \toprule
@@ -169,7 +169,7 @@ transfer over power lines and other electrical infrastructure devices. Two
 examples of PLC standards are discussed below:
 
 \begin{enumerate}
-  \item \textbf{IEEE 1901.2-2013:} This specification allows for up to 500
+  \item \textbf{IEEE 1901.2--2013:} This specification allows for up to 500
   kbps of data transfer across alternating current, direct current, and
 
   non-energized electric power lines. Smart grid applications used to operate
@@ -179,7 +179,7 @@ examples of PLC standards are discussed below:
   appliances such as refrigerators, stoves (aka ranges), microwaves, and even
   plug-in electric vehicles (PEV). The technology allows devices to be
   integrated with existing smart grid applications, similar to IEEE
-  1901.2-2013 discussed above. The creator of this technology says that
+  1901.2--2013 discussed above. The creator of this technology says that
   GreenPHY is a ``manufacturer's profile'' of the IEEE specification, and
   suggests that interworking is seamless.
 \end{enumerate}
@@ -204,7 +204,7 @@ these two technology sets below.
   \item	\textbf{Industrial Ethernet:} To overcome the lack of deterministic
   and reliable transport of traditional Ethernet within the industrial sector,
   a variety of Ethernet-like protocols have been created. Two examples include
-  EtherCAT and PROFINET. While speeds of industrial Ethernet are much slower
+  EtherCAT and PROFINET\@. While speeds of industrial Ethernet are much slower
   than modern Ethernet (10 Mbps to 1 Gbps), these technologies introduce
   deterministic data transfer. In summary, these differences allow for
   accurate and timely delivery of traffic at slower speeds, compared to
