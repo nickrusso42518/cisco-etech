@@ -18,6 +18,10 @@
 \usepackage{minted}
 \setminted{fontsize=\small}
 
+% Provides nice spacing between left-justified paragraphs without
+% "badness" errors of using manual \\ after each paragraph
+\usepackage{parskip}
+
 % Gives \toprule \midrule \bottomrule for table lines
 \usepackage{booktabs}
 
@@ -25,6 +29,7 @@
 \usepackage{array}
 \newcolumntype{L}{>{\raggedright\arraybackslash}p{2.8cm}}
 \newcolumntype{K}{>{\raggedright\arraybackslash}p{2.0cm}}
+\newcolumntype{J}{>{\raggedright\arraybackslash}p{3.6cm}}
 
 % Build headers
 \usepackage{fancyhdr}
@@ -39,7 +44,7 @@
 \renewcommand{\footrulewidth}{0.4pt}
 
 % Remove default indentation for paragraphs for a nice block look
-\setlength\parindent{0pt}
+% \setlength\parindent{0pt}
 
 % Allows hyperlinks, including table of contents
 \usepackage{hyperref}

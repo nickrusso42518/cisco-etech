@@ -9,7 +9,7 @@ monitored. The business drivers for IoT are substantial: electrical devices
 based on changing conditions, window blinds can open and close based on the
 luminosity of a room, and chemical levels can be adjusted in a water treatment
 plant by networked sensors. These are all real-life applications of IoT and
-network automation in general. \\
+network automation in general.
 
 The term Low-power and Lossy Networks (LLN) is commonly used in the IoT space
 since it describes the vast majority of IoT networks. LLNs have the following
@@ -26,7 +26,7 @@ Recently, the term Operational Technology (OT) has been introduced within the
 context of IoT. OT is described by Gartner as hardware and software that
 detects or causes a change through the direct monitoring and/or control of
 physical devices, processes and events in the enterprise. OT encompasses the
-technologies that organizations use to operate their businesses. \\
+technologies that organizations use to operate their businesses.
 
 For example, a manufacturer has expensive machines, many of which use custom
 protocols and software to operate. These machines have historically not been
@@ -159,7 +159,7 @@ over''. This loosely follows the 7-layer OSI model by attempting to constrain
 layers 1 and 2 to the IoT network, to include RF networking and link-layer
 communications, then using some kind of IP overlay of sorts for network
 reachability. Additional details about routing protocols for IoT are discussed
-later in this document. \\
+later in this document.
 
 The mobility of an IoT device is going to be largely determined by its access
 method. Devices that are on 802.11 Wi-Fi within a factory will likely have
@@ -169,7 +169,7 @@ manufacturing work carts (containing tools, diagnostic measurement machines,
 etc), this might be an appropriate method. Devices connected via 4G LTE will
 have greater mobility but will likely represent something that isn’t supposed
 to be constrained to the factory, such as a service truck or van. Heavy
-machinery bolted to the factory floor might be wired since it is immobile. \\
+machinery bolted to the factory floor might be wired since it is immobile.
 
 Migrating to IoT need not be swift. For example, consider an organization
 which is currently running a virtual private cloud infrastructure with some
@@ -178,7 +178,7 @@ commercial applications are in the public cloud. Assume this public cloud is
 hosted locally by an ISP and is connected via an MPLS L3VPN extranet into the
 corporate VPN\@. If this corporation owns a large manufacturing company and
 wants to begin deploying various IoT components, it can begin with the large
-and immobile pieces. \\
+and immobile pieces.
 
 The multi-service edge (access) network from the regional SP POP to the
 factory likely already supports Ethernet as an access technology, so devices
@@ -190,7 +190,7 @@ existing electrical infrastructure can also be used at this tier in the
 architecture. The migration strategy towards IoT is very similar to adding new
 remote branch sites, except the number of hosts could be very large. The LAN,
 be it wired or wireless, still must be designed correctly to support all of
-the devices. \\
+the devices.
 
 Environment impacts are especially important for IoT given the scale of
 devices deployed. Although wireless technologies become more resilient over
@@ -200,19 +200,19 @@ impacted by rain, a common occurrence in many parts of the world. The
 significance of this with IoT is to consider when to use wired or wireless
 communications for a sensor. Some sensors may even be able to support multiple
 communication styles in an active/standby design. As is true in most networks,
-resilient design is important in ensuring that IoT-capable devices are operable. \\
+resilient design is important in ensuring that IoT-capable devices are operable.
 
 \subsubsection{Data Acquisition and Flow}
 Understanding data flow through an IoT network requires tracing all of the
 communication steps from the sensors in the field up to the business
 applications in the private data center or cloud. This is best explained with
 an example to help solidify the high-level IoT architecture discussed in the
-previous section. \\
+previous section.
 
 Years ago, the author worked in a factory as a product quality assurance (QA)
 technician for a large radio manufacturer. The example is based on a true
 story with some events altered to better illustrate the relevance to IoT data
-flow. \\
+flow.
 
 Stationed immediately after final assembly, newly-built products were tested
 within customized test fixtures to ensure proper operation. The first series
@@ -223,13 +223,13 @@ radios, ensuring they could tolerate the harsh treatment. The final series
 consisted of environmental testing conducted in a temperature-controlled
 chamber. The machine tested very hot temperatures, very cold temperatures, and
 ambient temperature. Products had to pass all tests to be considered of
-satisfactory quality for customer shipment. \\
+satisfactory quality for customer shipment.
 
 None of this equipment was Ethernet or IP enabled, yet still had to report
 test data back to a centralized system. This served a short term purpose of
 tracking defects to redirect defective products to the rework area. It also
 was useful in the long-term to identify trends relating to faulty product
-design or testing procedures. All of this equipment is considered OT\@. \\
+design or testing procedures. All of this equipment is considered OT\@.
 
 The test equipment described above is like an IoT sensor; it performs specific
 measurements and reports the data back upstream. The first device in the path
@@ -243,7 +243,7 @@ plant and connected into the corporate IT network. The gateway was, in effect,
 an IT/OT interworking device. A Cisco IR 819 or IR 829 router is an example of
 a gateway device. Additional intelligence (filtering, aggregation, processing,
 etc.) could be added via fog/edge computing resources collocated with the IoT
-gateway. \\
+gateway.
 
 The gateway passes data to a data broker, such as a Cisco Kinetic Edge and Fog
 Module (EFM) broker. This device facilitates communication between the IoT
@@ -252,14 +252,14 @@ level of aggregation above the gateway as many gateways communicate to it. The
 broker serves as an entry point (i.e., an API) for developers using Kinetic
 EFM to tie into their IoT networks through the gateways. Please see the ``fog
 computing'' section for more information on this solution, as it also includes
-database functionality suited for IoT. \\
+database functionality suited for IoT.
 
 The data collected by the sensors can now be consumed by manufacturing
 business applications, using the story described earlier. At its most benign,
 the information presented to business leaders may just be used for reporting,
 followed by human-effected downstream adjustments. For example, industrial
 engineers may adjust the tolerance of a specific machine after noticing some
-anomalies with the data. \\
+anomalies with the data.
 
 A more modern approach to IoT would be using the business application's
 intelligence to issue these commands automatically. Higher technology machines
@@ -270,7 +270,7 @@ could be pushed from the business application down through the broker and
 gateway to each individual device, but more commonly, an actor (opposite of a
 sensor) is used for this purpose. The actor IoT devices do not monitor
 anything about the environment, but serve to make adjustments to sensors based
-on business needs. \\
+on business needs.
 
 The diagram that follows depicts a flow diagram of the IoT components and data flow
 across the IoT architecture. For consistency, the same IoT high level diagram

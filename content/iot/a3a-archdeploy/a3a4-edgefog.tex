@@ -7,7 +7,7 @@ to the users where a given service is being consumed. The drivers for edge
 computing typically revolve around performance, notably latency reduction, as
 content is closer to users. The concept is somewhat similar to Content
 Distribution Networking (CDN) in that users should not need to reach back to a
-small number of remote, central sites to consume a service. \\
+small number of remote, central sites to consume a service.
 
 Cisco defines fog computing as an architecture that \textit{extends the Compute,
 Networking, and Storage capabilities from the Cloud to the Edge of IoT
@@ -20,14 +20,14 @@ another and/or their controllers, such as an MRP system. As such, many of
 these OT products deployed far away from the cloud need to communicate
 directly, and in a timely, secure, and reliable fashion. Having compute,
 network, and storage resources closer to these lines of communication helps
-achieve these goals. \\
+achieve these goals.
 
 Fog computing is popular in IoT environments not just for performance reasons,
 but consumer convenience. Wearing devices that are managed/tethered to other
 personally owned devices are a good example. Some examples might be smart
 watches, smart calorie trackers, smart heart monitors, and other wearable
 devices that ``register'' to a user’s cell phone or laptop rather than a large
-aggregation machine in the cloud. \\
+aggregation machine in the cloud.
 
 With respect to cost reduction when deploying a new service, comparing
 ``cloud'' versus ``fog'' can be challenging and should be evaluated on a
@@ -37,7 +37,7 @@ capital investment in distributed compute, storage, and networking. If transit
 bandwidth and cloud services are cheap while distributed compute/storage
 resources are expensive, then fog computing is likely a poor choice. That is
 to say, fog computing will typically be more expensive that cloud
-centralization. \\
+centralization.
 
 Finally, it is worth noting the endless cycle between the push to centralize
 and decentralize. Many technical authors (Russ White in particular) have noted
@@ -296,7 +296,7 @@ intelligence often refers to distributed analytics systems that can locally
 evaluate, reduce/aggregation, and act on sensor data to avoid expensive
 backhaul to a centralized site. It can also generically refer to any
 intelligent decision making at the network edge (where the sensors/users are),
-which is discussed in the example below. \\
+which is discussed in the example below.
 
 The author personally used the IR 819 and IR 829 platforms in designing a
 large, distributed campus area network in an austere environment. The IR 819s
@@ -307,7 +307,7 @@ Wi-Fi being the preferred path. This allowed the vehicles equipped with IR
 base station (say, for refueling or resupply). Both the IR 819 and IR 829
 equipped vehicles had plug-and-play Ethernet capability for when they were
 parked in the maintenance bay for software updates and other
-bandwidth-intensive operations. \\
+bandwidth-intensive operations.
 
 An IPsec overlay secured with next-generation encryption provided strong
 protection, and running Cisco EIGRP ensured fast failover between the
@@ -320,7 +320,7 @@ solution did not introduce fog/edge compute or storage technology, it brought
 an intelligent, dynamic, and scalable network to the most remote users. Future
 plans for the design included small, ruggedized third-party servers with IoT
 analytics software locally hosted to reduce gateway backhaul bandwidth
-requirements. \\
+requirements.
 
 Cisco also has products to perform edge aggregation and analytics, such as
 Data in Motion (DMo). \textit{DMo is a software technology that provides data
@@ -328,7 +328,7 @@ management and first-order analysis at the edge.} DMo converts raw data to
 useful/actionable information for transmission upstream. The previous section
 discussed ``Data aggregation'' in greater detail, and DMo offers that
 capability. DMo is a virtual machine which has RESTful API support, encrypted
-transport options, and local caching capabilities. \\
+transport options, and local caching capabilities.
 
 Many IoT environments require a level of customization best suited for a
 business' internal developers to build. Cisco's Kinetic Edge and Fog Module

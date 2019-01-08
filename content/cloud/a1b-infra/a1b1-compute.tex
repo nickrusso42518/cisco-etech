@@ -3,11 +3,11 @@ Conceptually, containers and virtual machines are similar in that they are a
 way to virtualize services/machines on a single platform, effectively
 achieving multi-tenancy. The subsections of this section will focus on their
 differences and use cases, rather than discuss them at the top-level
-section. \\
+section.
 
 A brief discussion on two new design paradigms popular within any data center
 is warranted. \textbf{Hyper-convergence and disaggregation} are polar
-opposites but are both highly effective in solving specific business problems. \\
+opposites but are both highly effective in solving specific business problems.
 
 Hyper-convergence attempts to address issues with data center management and
 resource consumption/provisioning. For example, the traditional DC
@@ -22,7 +22,7 @@ change as the business grows. Hyper-converged systems, by virtue of their
 integrated management solution, simplify life cycle management of DC assets as
 the ``single pane of glass'' concept can be used to manage all components.
 Cisco's Hyperflex (also called Flexpod) is an example of a hyper-converged
-solution. \\
+solution.
 
 Disaggregation is the opposite of hyper-convergence in that rather than
 combining functions (storage, network, and compute) into a single entity, it
@@ -66,14 +66,14 @@ Multi-tenancy is achieved by memory isolation, effectively segmenting the
 different services deployed in different containers. There is still a thin
 software shim between the underlying OS and the containers known as the
 container manager, which enforces the multi-tenancy via memory isolation and
-other techniques. \\
+other techniques.
 
 The main drawback of containers is that all containers must share the same OS\@.
 For applications or services where such behavior is desired (for example, a
 container per customer consuming a specific service), containers are a good
 choice. As a general-purpose virtualization platform in environments where
 requirements may change often (such as military networks), containers are a
-poor choice. \\
+poor choice.
 
 Docker and Linux Containers (LXC) are popular examples of container engines.
 The image that follow is from from \url{www.docker.com} that compares VMs to
@@ -153,7 +153,7 @@ To build a custom image, one creates a Dockerfile. It is a plain text file
 that closely resembles a shell script and is designed to procedurally assemble
 the required components of a container image for use later. The author already
 created a Dockerfile using a CentOS7 image as a basic image and added some
-additional features to it. Every step has been commented for clarity. \\
+additional features to it. Every step has been commented for clarity.
 
 Dockerfiles are typically written to minimize the both number of ``layers'' and
 amount of build time. Each instruction generally qualifies as a layer. The
@@ -646,7 +646,7 @@ be a better long-term solution. These features were introduced in Ansible 2.5,
 but suppose you wrote all your playbooks in Ansible 2.4. How could you safely
 run two versions of Ansible on a single machine to perform the necessary
 refactoring? Python virtual environments (venv for short) are a good solution
-to this problem. \\
+to this problem.
 
 First, create a new venv for Ansible 2.4.2 to demonstrate the now-deprecated
 provider dictionary method. The command below creates a new directory called

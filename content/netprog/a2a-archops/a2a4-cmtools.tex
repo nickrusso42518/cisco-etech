@@ -15,7 +15,7 @@ the controller can sense (or, with analytics, predict) congestion, route
 around failures, and perform all manner of fancy traffic-engineering as
 required by the business applications. Many of these agents perform the same
 general function as SNMP yet offer increased flexibility and granularity as
-they are programmable. \\
+they are programmable.
 
 Agents could also be used for non-management purposes. Interface to the
 Routing System (I2RS) is an SDN technique where a specific control-plane agent
@@ -24,7 +24,7 @@ control-plane client that communicates northbound towards the controller. This
 is the channel by which the controller consults its RIB and populates the FIB
 of the forwarding devices. The same is true for OpenFlow (OF) which is a fully
 centralized SDN model. The agent can be considered an interface to a
-data-plane forwarder for a control-plane SDN controller. \\
+data-plane forwarder for a control-plane SDN controller.
 
 A simple categorization method is to quantify management strategies as ``agent
 based'' or ``agent-less based''. Agent is pull-based, which means the agent
@@ -35,7 +35,7 @@ abates before passing telemetry data to the master. Agent-less is push-based
 like SNMP traps, where the triggering of an event on a network device creates
 a message for the controller in unsolicited fashion. The other direction also
 holds true; a master can use SSH to access a device for programming whenever
-the master is ``ready''. \\
+the master is ``ready''.
 
 Although not specific to ``agents'', there are several common
 applications/frameworks that are used for automation. Some of them rely on
@@ -57,7 +57,7 @@ understood by Cisco.
   puppet manifest is a collection of property definitions for setting the
   state on the device. Manifests are commonly used for defining configuration
   settings, but they can also be used to install software packages, copy
-  files, and start services. \\
+  files, and start services.
   
   In summary, Puppet is agent-based (requiring software installed on the
   client) and pushes complex data structures to managed nodes from the master
@@ -84,7 +84,7 @@ understood by Cisco.
   and more. A Chef recipe is a collection of property definitions for setting
   state on the device. While recipes are commonly used for defining
   configuration settings, they can also be used to install software packages,
-  copy files, start services, and more. \\
+  copy files, start services, and more.
 
   In summary, Chef is very similar to Puppet in that it requires agents and
   manages devices using complex data structures. The concepts of cookbooks and
@@ -164,7 +164,7 @@ target hosts, and some other minor options. Gathering facts can provide basic
 information like time and date, which are used in this script. When
 connection: local is used, the python commands used with Ansible are executed
 on the control machine (Linux) and not on the target. This is required for
-many Cisco devices being managed by the CLI\@. \\
+many Cisco devices being managed by the CLI\@.
 
 The first task defines a credentials dictionary. This contains transport
 information like SSH port (default is 22), target host, username, and
@@ -344,7 +344,7 @@ written a comprehensive OSPF troubleshooting playbook which is simple to set
 up, executes quickly, and is 100\% free. The link to the Github repository
 where this playbook is hosted is provided below, and in the references
 section. There are many other, unrelated Ansible playbooks available at the
-author's Github page as well. \\
+author's Github page as well.
 
 Nick's OSPF TroubleShooter (nots) --- \url{https://github.com/nickrusso42518/nots}
 
@@ -380,7 +380,7 @@ Because the author has extensive experience with Ansible across a variety of
 production use cases, comparisons between Nornir and Ansible are common
 throughout this section. Given Ansible's popularity and market penetration at
 the time of this writing, it is likely that readers will be able to compare
-and contrast, too. \\
+and contrast, too.
 
 Installing Nornir is simple using pip. The author recommends using Python 3.6
 or newer and Nornir 2.0.0 or newer. The Linux and Cisco CSR1000v versions are
@@ -402,7 +402,7 @@ configuration file is used to specify global parameters, typically default
 settings for the execution of Nornir runbooks, which can simplify Nornir
 coding later. The same concept exists in Ansible. Exploring the configuration
 file is not terribly important to understanding Nornir basics and is not
-covered in this demonstration. \\
+covered in this demonstration.
 
 Also like Ansible, Nornir supports robust options for managing inventory,
 which is a collection of hosts and groups. Nornir can even consume existing
@@ -410,7 +410,7 @@ Ansible inventories for those looking to migrate from Ansible to Nornir. The
 inventory file is called \verb|hosts.yaml| and is required when using Nornir's
 default inventory plugin. The groups file is called \verb|groups.yaml| and is
 optional, though often used. Many more advanced inventory options exist, but
-this demonstration uses the ``simple'' inventory method, which is the default. \\
+this demonstration uses the ``simple'' inventory method, which is the default.
 
 The simplest possible hosts.yaml file is shown below. There are many other
 minor options for host fields, such as a site identifier, role, and group
@@ -689,7 +689,7 @@ function is a task and contains the logic to perform some action, like run a
 command, gather facts, or make configuration changes. The remaining keyword
 arguments (kwargs) are the inputs for the parameter function passed into
 \verb|run()|. In short, \verb|run()| is a Nornir wrapper to execute the
-parameter function with its kwargs, but do so within the framework of Nornir. \\
+parameter function with its kwargs, but do so within the framework of Nornir.
 
 To group tasks together, one does not create a ``list of tasks'' as in
 Ansible. Instead, use a wrapper function that has many \verb|run()| invocations to
@@ -700,7 +700,7 @@ as Nornir tasks. This wrapper function is passed into \verb|run()| from the call
 function level as if it were a task itself. Be sure to include any kwargs
 needed for this wrapper to operate. The example below expands our previous
 Nornir runbook to both collect basic facts and apply configuration. For
-cleanliness, the author has added a \verb|main()| function to this runbook. \\
+cleanliness, the author has added a \verb|main()| function to this runbook.
 
 The \verb|manage_router()| function sequences the tasks to be run. Using
 NAPALM to configure network devices introduces a rich feature set of providing
@@ -708,7 +708,7 @@ a ``diff'', automatic rollback, and automatic configuration saving. Users
 should pass in a \verb|\n| delineated string, which can be assembled by joining a
 list of strengths via newline (or a variety of other techniques). Note that
 results from individual task calls are not saved inside the wrapper; Nornir
-aggregates these results at the calling function level. \\
+aggregates these results at the calling function level.
 
 In the \verb|main()| function, the calling function in this case,
 \verb|manage_router()| is treated like a task and its \verb|config_lines|
@@ -1038,13 +1038,13 @@ developer services available in public cloud (PaaS and SaaS options) is worth
 examining. This example uses the CodeCommit service, which is comparable to
 Github, acting as a remote Git repository. Additionally, CodeBuild CI services
 are integrated into the test repository, similar to Travis CI or Jenkins, for
-testing the code. \\
+testing the code.
 
 This section does not walk through all of the detailed AWS setup as there are
 many tutorials and documents detailing it. However, some key points are worth
 mentioning. First, an Identity and Access Management (IAM) group should be
 created for any developers accessing the project. The author also created a
-user called \verb|nrusso| and added him to the \verb|Development| group. \\
+user called \verb|nrusso| and added him to the \verb|Development| group.
 
 \addimg{aws-iam-devgroup.png}{0.8}{Creating a New AWS IAM User and Group}
 
@@ -1311,7 +1311,7 @@ centralized version control system whereby the \verb|commit| action pushes
 changes to the central repository. The \verb|checkout| action pulls changes
 down from the repository. In git, these two actions govern activity against
 the local repository with additional commands like push, pull (fetch and
-merge), and clone being available for interaction with remote repositories. \\
+merge), and clone being available for interaction with remote repositories.
 
 This section assumes the reader has already set up a basic SVN server. A link
 in the references provides simple instructions for building a local SVN server
@@ -1319,7 +1319,7 @@ on CentOS7. The author used this procedure, with some basic modifications for
 Amazon Linux, for hosting on AWS EC2. It's public URL is
 \verb|http://svn.njrusmc.net/| (the URL is dead at the time of this writing)
 for this demonstration. A repository called \verb|repo1| has been created on
-the server with a test user of \verb|nrusso| with full read/write permissions. \\
+the server with a test user of \verb|nrusso| with full read/write permissions.
 
 The screenshots below show the basic username/password login and the blank
 repository. Do not continue until, at a minimum, you have achieved this
@@ -1331,7 +1331,7 @@ functionality.
 
 The remainder of this section is focused on SVN client-side operations, where
 the author uses another Amazon Linux EC2 instance to represent a developer's
-workstation. \\
+workstation.
 
 First, SVN must be installed using the command below. Like git, it is a
 relatively small program with a few small dependencies. Last, ensure the

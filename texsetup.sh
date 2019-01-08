@@ -13,6 +13,7 @@
 TL_PKGS=(
     booktabs
     caption
+	parskip
     chktex
     minted
     fvextra

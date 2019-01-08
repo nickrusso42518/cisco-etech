@@ -4,7 +4,7 @@ programmable and disaggregated concurrently, ultimately providing additional
 flexibility, intelligence, and customization for the network administrators.
 Because the definition of SDN varies so widely within the network community,
 it should be thought of as a continuum of different models rather than a
-single, prescriptive solution. \\
+single, prescriptive solution.
 
 There are four main SDN models as defined in
 \href{http://www.ciscopress.com/store/art-of-network-architecture-business-driven-design-9780133259230}{The Art of Network Architecture: Business-Driven Design} by
@@ -83,7 +83,7 @@ The models are discussed briefly below.
   brite boxes) which are often inexpensive. Another value proposition of
   centralizing the control-plane is that a ``device'' can be almost anything:
   router, switch, firewall, load-balancer, etc. Emulating software functions
-  on generic hardware platforms can add flexibility to the business. \\
+  on generic hardware platforms can add flexibility to the business.
   
   The most significant drawback is the newly-introduced single point of
   failure and the inability to create failure domains as a result. Some SDN
@@ -111,7 +111,7 @@ These SDN designs warrant additional discussion, specifically around the
 communications channels that allow them to function. An SDN controller sits
 ``in the middle'' of the SDN notional architecture. It uses \textbf{northbound}
 and \textbf{southbound} communication paths to operate with other components
-of the architecture. \\
+of the architecture.
 
 The \textbf{northbound} interfaces are considered APIs which are interfaces to existing
 business applications. This is generally used so that applications can make
@@ -126,7 +126,7 @@ constrained SPF (CSPF) where a single device can source-route traffic through
 the network given a set of requirements. The logic is being extended to
 applications with a controller ``shim'' in between, ultimately providing a
 full network view for optimal routing. A REST API is an example of a
-northbound interface. \\
+northbound interface.
 
 The \textbf{southbound} interfaces include the control-plane protocol between the
 centralized controller and the network forwarding hardware. These are the less
@@ -138,7 +138,7 @@ not synonymous with SDN\@; it is just an example of one southbound control-plane
 protocol. Because the SDN controller is sandwiched between the northbound and
 southbound interfaces, it can be considered ``middleware'' in a sense. The
 controller is effectively able to evaluate application constraints and produce
-forwarding-table outputs. \\
+forwarding-table outputs.
 
 The image that follows depicts a very high-level diagram of the SDN layers as
 it relates to interaction between components.

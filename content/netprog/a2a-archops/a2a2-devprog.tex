@@ -28,7 +28,7 @@ idea of recursive acronyms popular in the open source world. The RPC concept
 is not a new one; Distributed Component Object Model (DCOM) from Microsoft has
 long existed, among others. These RPC mechanisms are both highly complex and
 considered legacy today. Despite its utility, gRPC is open source and free at
-the time of this writing. \\
+the time of this writing.
 
 gRPC attempts to solve a number of shortcomings of REST-based APIs. For
 example, there is no formal machine definition of a REST API\@. Each API is
@@ -38,7 +38,7 @@ usage specifications. Furthermore, streaming operations (sending a stream of
 messages in response to a client's request, or vice versa) are very difficult
 as HTTP 1.1, the specification upon which most REST-based APIs are built, does
 not support this. Instead, gRPC is based on HTTP/2 which supports this
-functionality. \\
+functionality.
 
 The gRPC framework also solves the time-consuming and expensive problem of
 writing client libraries. With REST-based APIs, individual client libraries
@@ -48,14 +48,14 @@ analogous to YANG, developers can identify both the service interface and the
 structure of the payload messages. Because IDL follows a standard format (it's
 a language after all), it can be compiled. The outputs from this compilation
 process include client libraries for many different languages, such as C, C\#,
-Java, and Python to name a few. \\
+Java, and Python to name a few.
 
 Error reporting in gRPC is also improved when compared to REST-based APIs.
 Rather than relying on generic HTTP status codes, gRPC has a formalized set of
 errors specific to API usage, which is better suited to machine-based
 communications. To facilitate this communication technique, gRPC forms a
 single TCP session with many API calls transported within; this allows
-multiple in-flight API calls concurrently. \\
+multiple in-flight API calls concurrently.
 
 Today, gRPC is supported on Cisco's IOS-XR platform. To follow this
 demonstration, any Linux development platform will work, assuming it has
@@ -63,7 +63,7 @@ Python installed. Testing gRPC on IOS-XR is not particularly different than
 other APIs, but requires many setup steps. Each one is covered briefly before
 the demonstration begins. First, install the necessary underlying libraries
 needed to use gRPC\@. The ``docopt'' package helps with using CLI commands and is
-used by the Cisco IOS-XR \verb|cli.py| client. \\
+used by the Cisco IOS-XR \verb|cli.py| client.
 
 \begin{minted}{text}
 [root@devbox ec2-user]# pip install grpcio docopt
@@ -675,12 +675,12 @@ service sequence-numbers
 YANG as a modeling language was discussed earlier in this document. This was
 lacking context because YANG by itself provides little value. There needs to
 be some mechanism to transport the data that conforms to these
-machine-friendly models. One of those transport options is NETCONF\@. \\
+machine-friendly models. One of those transport options is NETCONF\@.
 
 This section explores a short NETCONF/YANG example using Cisco CSR1000v on
 modern \verb|Everest| software. This router is running as an EC2 instance inside
 AWS\@. Using the EIGRP YANG model explored earlier in this document, this
-section demonstrates configuration updates relating to EIGRP\@. \\
+section demonstrates configuration updates relating to EIGRP\@.
 
 The simplest way to enable NETCONF/YANG is with the \verb|netconf-yang| global
 command with no additional arguments.
