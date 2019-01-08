@@ -57,6 +57,28 @@
 % Start of document
 \begin{document}
 
+% Macro inserts an image in the center of the screen without a caption
+% arg1: the image name (eg, header.png)
+% arg2: the textwidth percentage as a decimal (eg, 0.6)
+\newcommand{\addimgnocaption}[2]{
+  \begin{minipage}[t]{\linewidth}
+  \centering
+  \includegraphics[width=#2\textwidth]{\imgpath#1}
+  \end{minipage}
+}
+
+% Macro inserts an image in the center of the screen with caption
+% arg1: the image name (eg, header.png)
+% arg2: the textwidth percentage as a decimal (eg, 0.6)
+% arg3: the caption text (eg, Public Cloud Overview)
+\newcommand{\addimg}[3]{
+  \begin{minipage}[t]{\linewidth}
+  \centering
+  \captionsetup{type=figure}
+  \includegraphics[width=#2\textwidth]{\imgpath#1}
+  \captionof{figure}{#3}
+  \end{minipage}
+}
 % Show the preamble data on the face of the document
 \maketitle
 

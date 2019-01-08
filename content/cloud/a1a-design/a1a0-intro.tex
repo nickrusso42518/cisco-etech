@@ -43,20 +43,8 @@ Cloud architectures generally come in four variants:
   transport could be the public Internet, an Internet Exchange Point (IXP),
   a private Wide Area Network (WAN), or something else.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.3\textwidth]{\imgpath cloud-basic-public.jpg}
-      \captionof{figure}{Public Cloud High Level}
-    \end{minipage}
+  \addimg{cloud-basic-public.jpg}{0.3}{Public Cloud High Level}
 
-% 
-  % \begin{figure}[htbp!]
-  % \centering
-  % \includegraphics[width=0.3\textwidth]{\imgpath cloud-basic-public.jpg}
-  % \caption{Public Cloud High Level}
-  % \label{fig:public-cloud-high-level}
-  % \end{figure}
-% 
   \item \textbf{Private:} Like the joke above, this model is like an on-premises
   DC except it must supply the three key ingredients identified by Cisco to be
   considered a ``private cloud''. Specifically, this implies
@@ -70,11 +58,7 @@ Cloud architectures generally come in four variants:
   within that organization (as opposed to external customers). The diagram
   that follows illustrates a high-level example of a private cloud.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.3\textwidth]{\imgpath cloud-basic-private.jpg}
-      \captionof{figure}{Private Cloud High Level}
-    \end{minipage}
+  \addimg{cloud-basic-private.jpg}{0.3}{Private Cloud High Level}
 
   \item \textbf{Virtual Private:} A virtual private cloud is a combination of
   public and private clouds. An organization may decide to use this to offload
@@ -89,11 +73,7 @@ Cloud architectures generally come in four variants:
   and could, in fact, represent a business’ IT end-state. The diagram that
   follows illustrates a high-level example of a virtual-private (hybrid) cloud.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.3\textwidth]{\imgpath cloud-basic-vprivate.jpg}
-      \captionof{figure}{Virtual Private Cloud High Level}
-    \end{minipage}
+  \addimg{cloud-basic-vprivate.jpg}{0.3}{Virtual Private Cloud High Level}
 
   \item \textbf{Inter-cloud:} Like the Internet (an interconnection of various
   autonomous systems provide reachability between all attached networks),
@@ -177,11 +157,7 @@ exhaustive:
   assuming MPLS L3VPN\@. In this design, branches could directly access cloud
   resources without transiting the main site.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath cloud-private-wan.jpg}
-      \captionof{figure}{Connecting Cloud via Private WAN}
-    \end{minipage}
+  \addimg{cloud-private-wan.jpg}{0.7}{Connecting Cloud via Private WAN}
 
   \item \textbf{Internet Exchange Point (IXP):} A customer’s network is
   connected via the IXP LAN (might be a LAN/VLAN segment or a layer-2 overlay)
@@ -197,11 +173,7 @@ exhaustive:
   use internet VPNs for inter-site traffic and an IXP for public cloud access.
   A private WAN for inter-site access is also acceptable.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath cloud-ixp.jpg}
-      \captionof{figure}{Connecting Cloud via IXP}
-    \end{minipage}
+  \addimg{cloud-ixp.jpg}{0.7}{Connecting Cloud via IXP}
 
   \item \textbf{Internet VPN:} By far the most common deployment, a customer
   creates a secure VPN over the Internet (could be multipoint if outstations
@@ -223,11 +195,7 @@ exhaustive:
   Internet access (but they could), so they rely on an existing private WAN to
   reach the cloud service provider.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath cloud-internet-vpn.jpg}
-      \captionof{figure}{Connecting Cloud via Internet VPN}
-    \end{minipage}
+  \addimg{cloud-internet-vpn.jpg}{0.7}{Connecting Cloud via Internet VPN}
 \end{enumerate}
 
 The answer to the first question detailing how a cloud provider network is

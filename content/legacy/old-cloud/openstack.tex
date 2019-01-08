@@ -128,11 +128,7 @@ Horizon. Such a deployment would not have any networking or remote storage
 support, but could be used for developers looking to run code on OpenStack
 compute instances in isolation.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath openstack-high-level.jpg}
-      \captionof{figure}{Openstack Component Interconnections}
-    \end{minipage}
+\addimg{openstack-high-level.jpg}{0.7}{Openstack Component Interconnections}
 
 This section briefly explores installing OpenStack on Amazon AWS as an EC2
 instance. This is effectively ``cloud inside of cloud'' and while easy and
@@ -238,11 +234,7 @@ page after login, which is the \verb|Identity -> Projects page|. Note that a
 there is an entire sample structure built around this. This document will
 explore the demo project specifically.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.3\textwidth]{\imgpath openstack-projects.png}
-      \captionof{figure}{Openstack Projects Page}
-    \end{minipage}
+\addimg{openstack-projects.png}{0.3}{Openstack Projects Page}
 
 This demonstration begins by exploring Keystone. Click on the
 \verb|Identity -> Users| page, find the demo user, and select ``Edit''. The
@@ -252,11 +244,7 @@ an email address and select a primary project, though neither is required. For
 brevity, this demonstration does not explore groups and roles, but these
 options are useful for management of larger OpenStack deployments.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.3\textwidth]{\imgpath openstack-update-user.png}
-      \captionof{figure}{Openstack Projects Page}
-    \end{minipage}
+\addimg{openstack-update-user.png}{0.3}{Openstack Projects Page}
 
 Next, click on \verb|Identity -> Project| and edit the demo project. The
 screenshots that follow depict the demonstration configuration for
@@ -265,21 +253,13 @@ part of this project. Note that the \verb|Quota| tab can be used in a
 multi-tenant environment, such as a hosted OpenStack-as-a-service solution, to
 ensure that an individual project does not consume too many resources.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.3\textwidth]{\imgpath openstack-edit-project1.png}
-      \captionof{figure}{Openstack Edit Project Information}
-    \end{minipage}
+\addimg{openstack-edit-project1.png}{0.3}{Openstack Edit Project Information}
 
 The project members tab is shown below. Only the demo user is a member of the
 demo project by default, and this demonstration does not make any
 modifications to this.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.3\textwidth]{\imgpath openstack-edit-project2.png}
-      \captionof{figure}{Openstack Edit Project Members}
-    \end{minipage}
+\addimg{openstack-edit-project2.png}{0.3}{Openstack Edit Project Members}
 
 Nova is explored next. Navigate to \verb|Project -> Compute -> Images|. There is
 already a CirrOS image present, which is a small Linux-based OS designed for
@@ -290,11 +270,7 @@ selected. The instance name will be CirrOS1; note that there is only one
 availability zone.  The dashboard also shows the result of adding these new
 instances against the remaining limits of the system.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath openstack-launch1.png}
-      \captionof{figure}{Openstack Launch Details}
-    \end{minipage}
+\addimg{openstack-launch1.png}{0.7}{Openstack Launch Details}
 
 Under the \verb|Source| tab, select \verb|Yes| for
 \verb|Delete Volume on Instance Delete|. This ensures that when the instance
@@ -305,21 +281,13 @@ unused volumes cost money (lesson learned the hard way). Click on the up arrow
 next to the CirrOS instance to move it from the \verb|Available| menu to the
 \verb|Allocated| menu.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath openstack-launch2.png}
-      \captionof{figure}{Openstack Launch Source}
-    \end{minipage}
+\addimg{openstack-launch2.png}{0.7}{Openstack Launch Source}
 
 Under \verb|Flavor|, select \verb|m1.tiny| which is appropriate for CirrOS\@.
 These flavors are general sizing models for the instance as it relates to
 compute, memory, and storage.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath openstack-launch3.png}
-      \captionof{figure}{Openstack Launch Flavor}
-    \end{minipage}
+\addimg{openstack-launch3.png}{0.7}{Openstack Launch Flavor}
 
 At this point, it is technically possible to launch the instance, but there
 are other important fields to consider. It would be exhaustive to document
@@ -336,11 +304,7 @@ allowed outbound even if the egress rules were not explicit matched. AWS EC2
 instance security groups work similarly, except only in the ingress direction.
 No changes are needed on this page for this demonstration. \\
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath openstack-launch4.png}
-      \captionof{figure}{Openstack Launch Security Groups}
-    \end{minipage}
+\addimg{openstack-launch4.png}{0.7}{Openstack Launch Security Groups}
 
 Packstack does not come with any key pairs by default, which make sense since
 the private key is only available once at the key pair creation time. Under
@@ -350,19 +314,11 @@ availability. Any Nova instances deployed using this key pair can only be
 accessed using the private key file, much like a specific key opens a specific
 lock.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath openstack-key-create.png}
-      \captionof{figure}{Openstack Key Pair Creation}
-    \end{minipage}
+\addimg{openstack-key-create.png}{0.7}{Openstack Key Pair Creation}
 
 After the key pair is generated, it can be viewed below and downloaded.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath openstack-key-launch.png}
-      \captionof{figure}{Openstack Mapping Key Pair to Instance}
-    \end{minipage}
+\addimg{openstack-key-launch.png}{0.7}{Openstack Mapping Key Pair to Instance}
 
 The OpenSSH client program (standard on Linux and Mac OS) will refuse to use
 private keys with their SSH clients unless the file is secured in terms of
@@ -383,20 +339,12 @@ Click on \verb|Launch Instance| and navigate back to the main \verb|Instances|
 menu. The screenshot that follows shows two separate CirrOS instances
 as the author repeated the procedure twice.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath openstack-instances.png}
-      \captionof{figure}{Openstack Instances (Compute)}
-    \end{minipage}
+\addimg{openstack-instances.png}{0.7}{Openstack Instances (Compute)}
 
 Exploring the volumes for these instances shows the iSCSI disks (block storage
 on Cinder) mapped to each CirrOS compute instance.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath openstack-volumes.png}
-      \captionof{figure}{Openstack Volumes (Storage)}
-    \end{minipage}
+\addimg{openstack-volumes.png}{0.7}{Openstack Instances (Volumes)}
 
 Accessing these instances, given the ``cloud inside of cloud architecture'',
 is non-trivial. The author does not cover the advanced Neutron configuration

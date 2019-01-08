@@ -283,22 +283,14 @@ provides a quick status of resource allocation, and point-and-click hyperlinks
 to perform routine management activities, such as adding a new VNF or
 troubleshooting an existing one.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath nfvis-home.png}
-      \captionof{figure}{Cisco NFVIS Home Dashboard}
-    \end{minipage}
+\addimg{nfvis-home.png}{0.7}{Cisco NFVIS Home Dashboard}
 
 The VNF repository can store VNF images for rapid deployment. Each image can
 also be instantiated many times with different settings, know as profiles. For
 example, the system depicted in the screenshots below has two images: Cisco
 ASAv firewall and the Viptela vEdge SD-WAN router.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath nfvis-images.png}
-      \captionof{figure}{Cisco NFVIS Image Repository}
-    \end{minipage}
+\addimg{nfvis-images.png}{0.7}{Cisco NFVIS Image Repository}
 
 The Cisco ASAv, for example, has multiple performance tiers based on scale.
 The ASAv5 is better suited to small branch sites with the larger files being
@@ -307,11 +299,7 @@ processing/memory intensive activities. The NFVIS hypervisor can store many
 different ``flavors'' of a single VNF to allow for rapidly upgrading a VNF's
 performance capabilities as the organization's IT needs grow.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath nfvis-profiles.png}
-      \captionof{figure}{Cisco NFVIS Image Profiles}
-    \end{minipage}
+\addimg{nfvis-profiles.png}{0.7}{Cisco NFVIS Image Profiles}
 
 Once the images with their corresponding profiles have been created, each item
 can be dragged-and-dropped onto a topology canvas to create a virtual network
@@ -320,8 +308,8 @@ VLAN), connecting virtual NICs on different VNFs together to form the correct
 flow path. On many other hypervisors, the administrator needs to manually
 build this connectivity as VMs come and go, or possibly script it. With NFVIS,
 the intuitive GUI makes it easier for network operators to adjust the switched
-topology of the intra-NFVIS network.
-\\
+topology of the intra-NFVIS network. \\
+
 Note that the bottom of the screen has some ports identified as single root
 input/output virtualization (SR-IOV). These are high-performance connection
 points for specific VNFs to bypass the hypervisor-managed internal switching
@@ -329,19 +317,11 @@ infrastructure and connect directly to Peripheral Component Interconnect
 express (PCIe) resources. This improves performance and is especially useful
 for high bandwidth use cases.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath nfvis-topo.png}
-      \captionof{figure}{Cisco NFVIS Topology Builder}
-    \end{minipage}
+\addimg{nfvis-topo.png}{0.7}{Cisco NFVIS Topology Builder}
 
 Last, NFVIS provides local logging management for all events on the
 hypervisor. This is particularly useful for remote sites where WAN outages
 separate the NFVIS from the headend logging servers. The on-box logging and
 its ease of navigation can simplify troubleshooting during or after an outage.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath nfvis-logging.png}
-      \captionof{figure}{Cisco NFVIS Topology Builder}
-    \end{minipage}
+\addimg{nfvis-logging.png}{0.7}{Cisco NFVIS Topology Builder}

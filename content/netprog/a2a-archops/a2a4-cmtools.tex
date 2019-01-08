@@ -67,11 +67,11 @@ understood by Cisco.
   do not support the Puppet agent. The follow products support Puppet today:
 
   \begin{enumerate}
-    \item Cisco Nexus 7000 and 7700 switches running NX-OS 7.3(0)D1(1) or later
+    \item Cisco Nexus 7000 and 7700 switches running NX-OS \verb|7.3(0)D1(1)| or later
     \item Cisco Nexus 9300, 9500, 3100, and 300 switches running NX-OS
- 	7.3(0)I2(1) or later
-    \item Cisco Network Convergence System (NCS) 5500 running IOS-XR 6.0 or later
-    \item Cisco ASR9000 routers running IOS-XR 6.0 or later
+ 	\verb|7.3(0)I2(1)| or later
+    \item Cisco Network Convergence System (NCS) 5500 running IOS-XR \verb|6.0| or later
+    \item Cisco ASR9000 routers running IOS-XR \verb|6.0| or later
   \end{enumerate}
 
   \item \textbf{Chef (by Chef Software):} Chef is a systems and cloud
@@ -95,11 +95,11 @@ understood by Cisco.
   a list of supported platforms that support being managed by Chef:
 
   \begin{enumerate}
-    \item Cisco Nexus 7000 and 7700 switches running NX-OS 7.3(0)D1(1) or later
+    \item Cisco Nexus 7000 and 7700 switches running NX-OS \verb|7.3(0)D1(1)| or later
     \item Cisco Nexus 9300, 9500, 3100, and 300 switches running NX-OS
-	7.3(0)I2(1) or later
-    \item Cisco Network Convergence System (NCS) 5500 running IOS-XR 6.0 or later
-    \item Cisco ASR9000 routers running IOS-XR 6.0 or later
+ 	\verb|7.3(0)I2(1)| or later
+    \item Cisco Network Convergence System (NCS) 5500 running IOS-XR \verb|6.0| or later
+    \item Cisco ASR9000 routers running IOS-XR \verb|6.0| or later
   \end{enumerate}
 \end{enumerate}
 
@@ -1022,11 +1022,7 @@ Logging into the Github web page, one can verify the changes were successful. At
 the root directory containing all of the Google Codejam challenges, the
 comment added to the last commit is visible.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath github-folders.png}
-      \captionof{figure}{Github Changes --- Summary}
-    \end{minipage}
+\addimg{github-folders.png}{0.8}{Github Changes --- Summary}
 
 Looking into the min-scalar-prod directory and specifically the \verb|VectorPair.py|
 file, git clearly displays the additions/removals from the file. As such, git
@@ -1034,11 +1030,7 @@ is a powerful tool that can be used for scripting, data files (YAML, JSON,
 XML, YANG, etc.) and any other text documents that need to be revision
 controlled. The screenshot is shown below.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath github-diff.png}
-      \captionof{figure}{Github Changes --- Detailed Differences}
-    \end{minipage}
+\addimg{github-diff.png}{0.8}{Github Changes --- Detailed Differences}
 
 \subsubsection{Git with AWS CodeCommit and CodeBuild}
 Although AWS services are not on the blueprint, a basic understanding of
@@ -1054,31 +1046,19 @@ mentioning. First, an Identity and Access Management (IAM) group should be
 created for any developers accessing the project. The author also created a
 user called \verb|nrusso| and added him to the \verb|Development| group. \\
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath aws-iam-devgroup.png}
-      \captionof{figure}{Creating a New AWS IAM User and Group}
-    \end{minipage}
+\addimg{aws-iam-devgroup.png}{0.8}{Creating a New AWS IAM User and Group}
 
 Note that the permissions of the Development group should include
 \verb|AWSCodeCommitFullAccess|.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath aws-iam-permissions.png}
-      \captionof{figure}{Assigning AWS IAM Permissions}
-    \end{minipage}
+\addimg{aws-iam-permissions.png}{0.8}{Assigning AWS IAM Permissions}
 
 Navigating to the CodeCommit service, create a new repository called
 \verb|awsgit| without selecting any other fancy options. This initializes and
 empty repository. This is the equivalent of creating a new repository in
 Github without having pushed any files to it.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath aws-create.png}
-      \captionof{figure}{Creating a New AWS CodeCommit Repository}
-    \end{minipage}
+\addimg{aws-create.png}{0.8}{Creating a New AWS CodeCommit Repository}
 
 Next, perform a clone operation from the AWS CodeCommit repository using
 HTTPS\@. While the repository is empty, this establishes successful connectivity
@@ -1161,11 +1141,7 @@ Check the AWS console to see if the file was correctly received by the
 repository. It was, and even better, CodeCommit supports Markdown rendering
 just like Github, Gitlab, and many other GUI-based systems.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath aws-readme.png}
-      \captionof{figure}{AWS CodeCommit README File}
-    \end{minipage}
+\addimg{aws-readme.png}{0.8}{AWS CodeCommit README File}
 
 To build on this basic repository, we can enable continuous integration (CI)
 using AWS CodeBuild service. It ties in seamlessly to CodeCommit which, unlike
@@ -1279,21 +1255,13 @@ the author also added a \verb|.gitignore| file so that the Python machine code
 (\verb|.pyc|) files would be ignored by git. Verify that the source code files
 appear in CodeCommit.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath aws-repo-files.png}
-      \captionof{figure}{AWS CodeCommit Repository with Files}
-    \end{minipage}
+\addimg{aws-repo-files.png}{0.8}{AWS CodeCommit Repository with Files}
 
 Click on the \verb|fibonacci.py| file as a sanity check to ensure the text was
 transferred successfully. Notice that CodeCommit does some syntax highlighting
 to improve readability.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath aws-code.png}
-      \captionof{figure}{AWS CodeCommit Fibonacci Source Code}
-    \end{minipage}
+\addimg{aws-code.png}{0.8}{AWS CodeCommit Fibonacci Source Code}
 
 At this point, you can schedule a build in CodeBuild to test out your code.
 The author does not walk through setting up CodeBuild because there are many
@@ -1301,11 +1269,7 @@ tutorials on it, and it is simple. A basic screenshot below shows the process
 at a high level. CodeBuild will automatically spin up a test instance of sorts
 (in this case, Ubuntu Linux with Python 3.5.2) to execute the buildspec.yml file.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath aws-ci-start.png}
-      \captionof{figure}{AWS CodeBuild Build Start}
-    \end{minipage}
+\addimg{aws-ci-start.png}{0.8}{AWS CodeBuild Build Start}
 
 After the manual build (in our case, just a unit test, we didn't ``build''
 anything), the detailed results are displayed on the screen. The phases that
@@ -1315,11 +1279,7 @@ Actually testing the code in the \verb|PRE_BUILD| phase only took 1 second.
 If you want to see this test take longer, define test cases use larger numbers
 for the Fibonacci function input, such as 50.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath aws-ci-success.png}
-      \captionof{figure}{AWS CodeBuild Build Progress}
-    \end{minipage}
+\addimg{aws-ci-success.png}{0.8}{AWS CodeBuild Build Progress}
 
 Below these results is the actual machine output, which matches the test
 output we generated when running the tests manually. This indicates a
@@ -1328,22 +1288,14 @@ another way, it is a fully integrated development environment without the
 manual setup of Github + Jenkins, Bitbucket + Travis CI, or whatever other
 combination of SCM + CI you can think of.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath aws-ci-log.png}
-      \captionof{figure}{AWS CodeBuild Build Log}
-    \end{minipage}
+\addimg{aws-ci-log.png}{0.8}{AWS CodeBuild Build Log}
 
 Note that build history, as it is in every CI system, is also available. The
 author initially failed the first build test due to a configuration problem
 within buildspec.yml, which illustrates the value of maintaining build
 history.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath aws-ci-history.png}
-      \captionof{figure}{AWS CodeCommit Build History}
-    \end{minipage}
+\addimg{aws-ci-history.png}{0.8}{AWS CodeCommit Build History}
 
 The main drawback of these fully-integrated services is that they are specific
 to your cloud provider. Some would call this ``vendor lock-in'', since
@@ -1373,17 +1325,9 @@ The screenshots below show the basic username/password login and the blank
 repository. Do not continue until, at a minimum, you have achieved this
 functionality.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath svn-login.png}
-      \captionof{figure}{SVN Repository --- Initial Login}
-    \end{minipage}
+\addimg{svn-login.png}{0.8}{SVN Repository --- Initial Login}
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath svn-empty.png}
-      \captionof{figure}{SVN Repository --- Empty Project}
-    \end{minipage}
+\addimg{svn-empty.png}{0.8}{SVN Repository --- Empty Project}
 
 The remainder of this section is focused on SVN client-side operations, where
 the author uses another Amazon Linux EC2 instance to represent a developer's
@@ -1532,22 +1476,14 @@ directory'' but is implicit given the lack of output.
 Below are screenshots of the repository as viewed from a web browser. Now, our
 new file is present.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath svn-hasfile.png}
-      \captionof{figure}{SVN Repository --- Files Present}
-    \end{minipage}
+\addimg{svn-hasfile.png}{0.8}{SVN Repository --- Files Present}
 
 As in most git-based repository systems with GUIs, such as Github or Gitlab,
 you can click on the file to see its contents. While this version of SVN
 server is a simple Apache2-based, no-frills implementation, this feature still
 works. Clicking on the hyperlink reveals the source code contained in the file.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.8\textwidth]{\imgpath svn-code.png}
-      \captionof{figure}{SVN Repository --- Viewing Code}
-    \end{minipage}
+\addimg{svn-code.png}{0.8}{SVN Repository --- Viewing Code}
 
 Next, make some changes to the file. In this case, remove one test case and
 add a new one. Verify the changes were saved.

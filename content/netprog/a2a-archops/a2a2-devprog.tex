@@ -27,8 +27,8 @@ Google defined gRPC as gRPC Remote Procedure Call framework, borrowing the
 idea of recursive acronyms popular in the open source world. The RPC concept
 is not a new one; Distributed Component Object Model (DCOM) from Microsoft has
 long existed, among others. These RPC mechanisms are both highly complex and
-considered legacy today. gRPC is open source and free at the time of this
-writing. \\
+considered legacy today. Despite its utility, gRPC is open source and free at
+the time of this writing. \\
 
 gRPC attempts to solve a number of shortcomings of REST-based APIs. For
 example, there is no formal machine definition of a REST API\@. Each API is
@@ -37,7 +37,8 @@ always read documents pertaining to the specific API in order to determine its
 usage specifications. Furthermore, streaming operations (sending a stream of
 messages in response to a client's request, or vice versa) are very difficult
 as HTTP 1.1, the specification upon which most REST-based APIs are built, does
-not support this. gRPC is based on HTTP/2 which supports this functionality. \\
+not support this. Instead, gRPC is based on HTTP/2 which supports this
+functionality. \\
 
 The gRPC framework also solves the time-consuming and expensive problem of
 writing client libraries. With REST-based APIs, individual client libraries
@@ -52,8 +53,9 @@ Java, and Python to name a few. \\
 Error reporting in gRPC is also improved when compared to REST-based APIs.
 Rather than relying on generic HTTP status codes, gRPC has a formalized set of
 errors specific to API usage, which is better suited to machine-based
-communications. gRPC forms a single TCP session with many API calls
-transported within; this allows multiple in-flight API calls concurrently. \\
+communications. To facilitate this communication technique, gRPC forms a
+single TCP session with many API calls transported within; this allows
+multiple in-flight API calls concurrently. \\
 
 Today, gRPC is supported on Cisco's IOS-XR platform. To follow this
 demonstration, any Linux development platform will work, assuming it has
@@ -1350,7 +1352,7 @@ The final step is using an HTTPS POST request to write new data to the router.
 One can embed the JSON text as a single line into the curl command using the
 -d option. The command appears intimidating at a glance. Note the single
 quotes ('') surrounding the JSON data with the -d option; these are required
-since the keys and values inside the JSON structure have double quotes (``'').
+since the keys and values inside the JSON structure have ``double quotes''.
 Additionally, the username/password is omitted from the request, and
 additional headers (-H) are applied to include the authentication token string
 and the JSON content type.

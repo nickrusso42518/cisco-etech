@@ -126,11 +126,7 @@ are navigable hyperlinks, making it easy to get started. \textbf{DNA-C version 1
 is used in this demonstration.} Today, Cisco provides DNA-C as a physical UCS
 server.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath dnac-main.png}
-      \captionof{figure}{DNA-C Home Dashboard}
-    \end{minipage}
+\addimg{dnac-main.png}{0.7}{DNA-C Home Dashboard}
 
 After clicking on the \textbf{Design} option, the main design screen displays
 a geographic map of the network in the \textbf{Network Hierarchy} view. In
@@ -162,11 +158,7 @@ values (CSV) file. Each of the other subsections is worth a brief discussion:
   particular option is not discussed further.
 \end{enumerate}
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath dnac-geoview.png}
-      \captionof{figure}{DNA-C Geographic View}
-    \end{minipage}
+\addimg{dnac-geoview.png}{0.7}{DNA-C Geographic View}
 
 The Network Settings tab warrants some additional discussion. In this tab,
 there are additional options to further customize your network. Brief
@@ -196,11 +188,7 @@ at the global, regional, or site level.
   also supports integration with Meraki products without an additional license requirement.
 \end{enumerate}
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath dnac-netsettings.png}
-      \captionof{figure}{DNA-C Network Settings}
-    \end{minipage}
+\addimg{dnac-netsettings.png}{0.7}{DNA-C Network Setings}
 
 Additionally, the Network Profiles tab is particularly interesting for this
 demonstration as VNFs are being provisioned on remote ENCS platforms running
@@ -215,11 +203,7 @@ left hand side of the screen to add or remove VNFs. The virtual networking
 between VNFs is defined elsewhere in the profile and is not discussed in
 detail here.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath dnac-netprofile-vnf.png}
-      \captionof{figure}{DNA-C Network Profile for VNFs}
-    \end{minipage}
+\addimg{dnac-netprofile-vnf.png}{0.7}{DNA-C Network Profile for VNFs}
 
 After configuring all of the network settings, administrators can populate
 their \textbf{Image Repository.} This contains a list of all virtual and physical
@@ -229,17 +213,9 @@ Appliance software, such as a router IOS image, could also appear here. The
 second screenshot shows the virtual network functions (VNFs) that are present
 in DNA-C. In this example, there is a Viptela vEdge SD-WAN router and ASAv image.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath dnac-imagerepop.png}
-      \captionof{figure}{DNA-C Images for Physical Devices}
-    \end{minipage}
+\addimg{dnac-imagerepop.png}{0.7}{DNA-C Images for Physical Devices}
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath dnac-imagerepov.png}
-      \captionof{figure}{DNA-C Images for Virtual Devices}
-    \end{minipage}
+\addimg{dnac-imagerepov.png}{0.7}{DNA-C Images for Virtual Devices}
 
 After completing all of the design steps (for brevity, several were not
 discussed in detail here), navigate back to the main screen and explore the
@@ -272,11 +248,7 @@ options are summarized below:
   a blacklist policy.
 \end{enumerate}
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath dnac-policymain.png}
-      \captionof{figure}{DNA-C Policy Main Page}
-    \end{minipage}
+\addimg{dnac-policymain.png}{0.7}{DNA-C Policy Main Page}
 
 After applying any SDA-related security policies into the network, it's time
 to provision the VNFs on the remote ENCS platforms running NFVIS\@. The
@@ -284,8 +256,8 @@ screenshot below targets site 200. For the initial day 0 configuration
 bootstrapping, the administrator must tell DNA-C what the publicly-accessible
 IP address of the remote NFVIS is. This management IP could change as the ENCS
 is placed behind NAT devices or in different SP-provided DHCP pools. In this
-example, bogus IPs are used as an illustration.
-\\
+example, bogus IPs are used as an illustration. \\
+
 Note that the screenshot is on the second step of the provisioning process.
 The first step just confirms the network profile created earlier, which
 identifies the VNFs to be deployed at a specific level in the network
@@ -294,22 +266,14 @@ specific access port configuration, such as VLAN membership and interface
 descriptions. The summary tab gives the administrator a review of the
 provisioning process before deployment.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath dnac-provsite.png}
-      \captionof{figure}{DNA-C Site Topology Viewer}
-    \end{minipage}
+\addimg{dnac-provsite.png}{0.7}{DNA-C Site Topology Viewer}
 
 The screenshot that follows shows a log of the provisioning process. This
 gives the administrator confidence that all the necessary steps were
 completed, and also provides a mechanism for troubleshooting any issues that
 arise. Serial numbers and public IP addresses are masked for security.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath dnac-provlog.png}
-      \captionof{figure}{DNA-C Site Event Logging}
-    \end{minipage}
+\addimg{dnac-provlog.png}{0.7}{DNA-C Site Event Logging}
 
 In summary, DNA-C is a powerful tool that unifies network design, SDA policy
 application, and VNF provisioning across an enterprise environment.
@@ -367,7 +331,7 @@ running on that node elsewhere. \\
 
 \textbf{A service} is concept used to group pods of similar functionality
 together. For example, many database containers contain content for a web
-application. The database group could be scaled up or down (i.e. they change
+application. The database group could be scaled up or down (i.e.\ they change
 often), and the application servers must target the correct database
 containers to read/write data. The service often has a label, such as
 ``database'', which would also exist on pods. Whenever the web application
@@ -562,11 +526,7 @@ The screenshot below shows the overview dashboard of Kubernetes, focusing on
 the number of pods that are deployed. At present, there is 1 deployment called
 \verb|hello-minikube| which has 2 total pods.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath k8s-dashboard.png}
-      \captionof{figure}{Kubernetes Main Dashboard}
-    \end{minipage}
+\addimg{k8s-dashboard.png}{0.7}{Kubernetes Main Dashboard}
 
 We can scale the application further from the GUI by increasing the replicas
 from 2 to 3. On the far right of the \textbf{deployments} window, click the
@@ -574,32 +534,22 @@ three vertical dots, then \textbf{scale}. Enter the number of replicas
 desired. The screenshot below shows the prompt window. The screen reminds the
 user that there are currently 2 pods, but we desire 3 now.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath k8s-scale.png}
-      \captionof{figure}{Kubernetes Application Scaling}
-    \end{minipage}
+\addimg{k8s-scale.png}{0.7}{Kubernetes Application Scaling}
 
 After scaling this application, the dashboard changes to show new pods being
 added in the diagram that follows. After a few seconds, the dashboard reflects 3
 healthy pods (not shown for brevity). During this state, the third replica set
 is still being initialized and is not available for workload processing yet.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath k8s-workload-status.png}
-      \captionof{figure}{Kubernetes Workload Status}
-    \end{minipage}
+\addimg{k8s-workload-status.png}{0.7}{Kubernetes Application Scaling}
+
+\addimg{k8s-workload-status.png}{0.7}{Kubernetes Workload Status}
 
 Scrolling down further in the dashboard, the individual pods and replica sets
 are listed. This is similar to the output displayed earlier from the
 \verb|kubectl get pods| command.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath k8s-pods.png}
-      \captionof{figure}{Kubernetes Pods Summary}
-    \end{minipage}
+\addimg{k8s-pods.png}{0.7}{Kubernetes Pods Summary}
 
 Checking the CLI again, the new replica set (ending in \verb|cxxlg|) created
 from the dashboard appears here.
@@ -653,17 +603,9 @@ serves as a primer for the Terraform demo in the following section. Take note
 of the user Amazon Resource Name (ARN) as this can be used for verifying AWS
 CLI connectivity.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath tf-user-group.png}
-      \captionof{figure}{AWS User/Group Assignments for Terraform}
-    \end{minipage}
+\addimg{tf-user-group.png}{0.7}{AWS User/Group Assignments for Terraform}
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath tf-ec2-fullperm.png}
-      \captionof{figure}{AWS EC2 Permissions for Terraform}
-    \end{minipage}
+\addimg{tf-ec2-fullperm.png}{0.7}{AWS EC2 Permissions for Terraform}
 
 Next, generate specific programmatic credentials for the ``terraform'' user. The
 access key is used by AWS to communicate the username and other unique data
@@ -1579,20 +1521,12 @@ For those preferring visual confirmation, below is a screenshot from the AWS
 console showing these particular instances running. Note that both instances
 are in the correct AZ of us-east-1a as well.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath tf-create.png}
-      \captionof{figure}{Verifying EC2 Instances Made by Terraform}
-    \end{minipage}
+\addimg{tf-create.png}{0.7}{Verifying EC2 Instances Made By Terraform}
 
 Quickly checking the subnet details in the AWS console confirm that the subnet
 is in the correct VPC, AZ, and has the right IPv4 CIDR range.
 
-    \begin{minipage}[t]{\linewidth}
-	  \centering
-      \includegraphics[width=0.7\textwidth]{\imgpath tf-subnet.png}
-      \captionof{figure}{Verifying AWS Subnet Made by Terraform}
-    \end{minipage}
+\addimg{tf-subnet.png}{0.7}{Verifying VPC Subnet Made By Terraform}
 
 Going back to Terraform, notice that a new terraform.tfstate file has been
 created. This represents the new infrastructure state after the Terraform plan
