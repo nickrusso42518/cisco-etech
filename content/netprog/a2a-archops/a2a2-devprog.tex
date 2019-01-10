@@ -262,12 +262,15 @@ utility. The \verb|cli.py| utility can be run directly from the shell with a
 handful of CLI arguments to specify the username/password, TCP port, and gRPC
 operation. Performing a \verb|get-config| operation first will return the
 properly-structured JSON of the entire configuration. Because it is so long,
-the author redirects this into a file for further processing.
+the author redirects this into a file for further processing. The JSON shown
+below is also truncated for brevity.
 
 \begin{minted}{text}
 [root@devbox ec2-user]# cd ios-xr-grpc-python/examples/
 [root@devbox examples]# ./cli.py -i xrv_grpc -p 10033 -u root -pw grpctest \
 >  -r get-config | tee json/ospfv3.json
+\end{minted}
+\begin{minted}{json}
 {
  "data": {
   "Cisco-IOS-XR-ip-static-cfg:router-static": {
@@ -277,7 +280,6 @@ the author redirects this into a file for further processing.
       "vrf-unicast": {
        "vrf-prefixes": {
         "vrf-prefix": [
-[snip]
 \end{minted}
 
 Using the popular \verb|jq| (JSON query) utility, one can pull out the OSPFv3
@@ -285,6 +287,8 @@ configuration from the file.
 
 \begin{minted}{text}
 [root@devbox examples]# jq '.data."Cisco-IOS-XR-ipv6-ospfv3-cfg:ospfv3"' json/ospfv3.json 
+\end{minted}
+\begin{minted}{json}
 {
   "processes": {
     "process": [
@@ -348,28 +352,66 @@ file represents the configuration updates to be pushed via gRPC\@.
 Using a text editor, manually update the \verb|merge.json| file by adding the
 top-level key of ``Cisco-IOS-XR-ipv6-ospfv3-cfg:ospfv3'' and changing some
 minor parameters. In the example below, the author updates Gig0/0/0 cost,
-network type, and hello interval. Don't forget the trailing \verb|}| after
-adding the top-level key discussed above or else the JSON data will be
-syntactically incorrect.
+network type, and hello interval. Don't forget the trailing \verb|}| at
+the bottom of the file after adding the top-level key discussed above or else
+the JSON data will be syntactically incorrect.
 
 \begin{minted}{text}
 [root@devbox examples]# cat json/merge.json 
+\end{minted}
+\begin{minted}{json}
 {
   "Cisco-IOS-XR-ipv6-ospfv3-cfg:ospfv3": {
     "processes": {
       "process": [
         {
-          [snip]
+          "process-name": 42518,
+          "default-vrf": {
+            "router-id": "10.10.10.2",
+            "log-adjacency-changes": "detail",
+            "area-addresses": {
+              "area-area-id": [
+                {
+                  "area-id": 0,
+                  "enable": [
+                    null
+                  ],
                   "interfaces": {
                     "interface": [
-                      [snip]
                       {
-                        [snip]
-                        "cost": 123,
-                        "network": "broadcast",
-                        "hello-interval": 17
+                        "interface-name": "Loopback0",
+                        "enable": [
+                          null
+                        ],
+                        "passive": true
+                      },
+                      {
+                        "interface-name": "GigabitEthernet0/0/0/0",
+                        "enable": [
+                          null
+                        ],
+                          "cost": 123,
+                          "network": "broadcast",
+                          "hello-interval": 17
                       }
-[snip]
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "af": {
+            "af-name": "ipv6",
+            "saf-name": "unicast"
+          },
+          "enable": [
+            null
+          ]
+        }
+      ]
+    }
+  }
+}
 \end{minted}
 
 Use the \verb|cli.py| utility again except with the \verb|merge-config|
@@ -1232,6 +1274,8 @@ output for human readability.
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100  1417  100  1417    0     0   9572      0 --:--:-- --:--:-- --:--:--  9639
+\end{minted}
+\begin{minted}{json}
 {
   "given_cipher_suites": [
     "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",

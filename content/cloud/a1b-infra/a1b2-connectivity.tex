@@ -178,7 +178,7 @@ identifier. As such, Viptela can tie into existing networks using technologies
 like VRF + VLAN in a back-to-back fashion, much like Inter-AS MPLS Option A
 (RFC 4364 Section 10a). The diagram that follows summarizes Viptela at a high level.
 
-\addimg{viptela-hl.png}{0.7}{Viptela SD-WAN High Level}
+\addimg{viptela-hl.png}{0.8}{Viptela SD-WAN High Level}
 
 The remainder of this section walks through a high-level demonstration of the
 Viptela SD-WAN solution's various interfaces. Upon login to vManage, the
@@ -187,21 +187,21 @@ comprehensive dashboard. At its most basic, the dashboard alerts the
 administrator to any obvious issues, such as sites being down or other errors
 needing repair.
 
-\addimg{viptela-home.png}{0.7}{Viptela Home Dashboard}
+\addimg{viptela-home.png}{0.8}{Viptela Home Dashboard}
 
 Clicking on the vEdge number ``4'', one can explore the status of the four
 remote sites. While not particularly interesting in a network where everything
 is working, this provides additional details about the sites in the network,
 and is a good place to start troubleshooting when issues arise.
 
-\addimg{viptela-nodes.png}{0.7}{Viptela Node Summary}
+\addimg{viptela-nodes.png}{0.8}{Viptela Node Summary}
 
 Next, the administrator can investigate a specific node in greater detail to
 identify any faults recorded in the event log. The screenshot on the following
 page is from SDWAN4, which provides a visual representation of the current
 events and the text details in one screen.
 
-\addimg{viptela-events.png}{0.7}{Viptela Event Logging}
+\addimg{viptela-events.png}{0.8}{Viptela Event Logging}
 
 The screenshot below depicts the bandwidth consumed between different hosts on
 the network. More granular details such as ports, protocols, and IP addresses
@@ -209,7 +209,7 @@ are available between the different monitoring options from the left-hand
 pane. This screenshot provides output from the ``Flows'' option on the SDWAN4
 node, which is a physical vEdge-100m appliance.
 
-\addimg{viptela-flows.png}{0.7}{Viptela Flow Exploration}
+\addimg{viptela-flows.png}{0.8}{Viptela Flow Exploration}
 
 Last, the solution allows for granular flow-based policy control, similar to
 traditional policy-based routing, except centrally controlled and fully
@@ -226,7 +226,7 @@ ms jitter. If the wireline Internet exceeds any of these thresholds, the
 vSmart controllers with automatically start using the 4G LTE link, assuming
 that its performance is within the SLA's specification.
 
-\addimg{viptela-voice-policy.png}{0.7}{Viptela VoIP QoS Policy}
+\addimg{viptela-voice-policy.png}{0.8}{Viptela VoIP QoS Policy}
 
 For those interested in replicating this demonstration, please visit
 \href{https://dcloud.cisco.com/}{Cisco dCloud}.
@@ -408,4 +408,4 @@ Policy applied to the APIC is applied to the network using several constructs:
 
 The diagram below depicts a high level image of the ACI infrastructure provided by Cisco.
 
-\addimg{aci-overview.png}{0.7}{Cisco ACI SD-DC High Level}
+\addimg{aci-overview.png}{0.8}{Cisco ACI SD-DC High Level}

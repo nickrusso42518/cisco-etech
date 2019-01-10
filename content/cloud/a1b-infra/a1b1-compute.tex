@@ -165,8 +165,9 @@ environment setup parameters, can come later. This way, if the Ansible
 environment changes and the image needs to be rebuilt, only the layers at or
 after the point of modification must be rebuilt. The base CentOS7 image and
 original yum package installations remain unchanged, substantially reducing
-the image build time. Fewer RUN directives also results in fewer layers, which
-explains the extensive use of \&\& and \ in the Dockerfile.
+the image build time. Fewer \verb|RUN| directives also results in fewer
+layers, which explains the extensive use of \verb|&&| and \verb|\| in the
+Dockerfile.
 
 \begin{minted}{text}
 [centos@docker build]$ cat Dockerfile
@@ -220,13 +221,13 @@ HEALTHCHECK --interval=5m CMD which ansible || exit 1
 
 The Dockerfile is effectively a set of instructions used to build a custom
 image. To build the image based on the Dockerfile, issue the command below.
-The -t option specifies a tag, and in this case, ``cmd\_authz'' is used since
+The \verb|-t| option specifies a tag, and in this case, \verb|cmd\_authz| is used since
 this particular Dockerfile is using a specific branch from a specific Ansible
 developer's personal Github page. It would be unwise to call this simple
-``ansible'' or ``ansible:latest'' due to the very specific nature of this
+\verb|ansible| or \verb|ansible:latest| due to the very specific nature of this
 container and subsequent test. Because the user is in the same directory as
-the Dockerfile, specify the ``.'' to choose the current directory. Each of the 5
-steps in the Dockerfile (FROM, RUN, RUN, WORKDIR, and HEALTHCHECK) are logged
+the Dockerfile, specify the \verb|.| to choose the current directory. Each of the 5
+steps in the Dockerfile (\verb|FROM, RUN, RUN, WORKDIR, HEALTHCHECK|) are logged
 in the output below. The output looks almost identical to what one would see
 through stdout.
 
@@ -304,12 +305,13 @@ changed.
 
 \begin{minted}{text}
 [centos@docker build]$ docker image inspect a8a6ac1b44e2 | head -5
+\end{minted}
+\begin{minted}{json}
 [
     {
         "Id": "sha256:a8a6ac1b44e28f654572bfc57761aabb5a92019c[snip]",
         "RepoTags": [
             "ansible:cmd_authz"
-[snip]
 \end{minted}
 
 To run a container, use the same command shown earlier to start the CentOS7
@@ -501,9 +503,9 @@ is better than a shell script since it is more portable and easier to read. It
 is also an easy way to add volumes to Docker. There are different kinds of
 volumes, but in short, volumes allow persistent data to be passed into and
 retrieved from containers. In this example, a simple directory mapping (known
-as a ``bind mount'' in Docker) is built from the local mnt\_files/ folder to the
+as a ``bind mount'' in Docker) is built from the local \verb|mnt_files/| folder to the
 container's file system. In this folder, one can copy the Ansible files
-(issue31575.yml, ansible.cfg, and hosts.yml) so the container has immediate
+(\verb|issue31575.yml, ansible.cfg, hosts.yml|) so the container has immediate
 access. While it is possible to handle volume mounting from the commands
 viewed previously, it is tedious and complex.
 

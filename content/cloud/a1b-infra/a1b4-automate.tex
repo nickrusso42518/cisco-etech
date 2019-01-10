@@ -1153,7 +1153,7 @@ not needed, specifying the region in the Terraform plan means that Terraform
 will not interactively prompt to hand-type a region every time. Note that the
 access and secret keys are not needed because AWS CLI has already been configured.
 
-\begin{minted}{text}
+\begin{minted}{c}
 # This avoids interaction prompting. The rest of the AWS CLI
 # parameters (access and secret keys) should already be defined.
 provider "aws" {
@@ -1169,7 +1169,7 @@ These are the pieces of data returned by Terraform, such as the VPD ID and
 Amazon Resource Name (ARN). These are dynamically allocated at runtime and
 referencing these values can simply the Terraform plan later.
 
-\begin{minted}{text}
+\begin{minted}{c}
 # Create a new VPC for DMZ services
 resource "aws_vpc" "tfvpc" {
   cidr_block = "203.0.113.0/24"
@@ -1183,13 +1183,13 @@ Next, use the \verb|aws_subnet| resource to create a new IP subnet. The
 documentation indicates that \verb|cidr_block| and \verb|vpc_id| arguments are needed.
 The former is self-explanatory as it represents a subnet within the VPC
 network of 203.0.113.0/24; this demonstration uses 203.0.113.64/26. The VPC ID
-is returned from the \verb|aws_vpc| provider and can be referenced using the \verb|${}|
+is returned from the \verb|aws_vpc| resource and can be referenced using the \verb|${}|
 syntax shown below. The name \verb|tfvpc| has an attribute called \verb|id| that
 identifies the VPC in which this new subnet should be created. Like the
-\verb|aws_vpc| provider, \verb|aws_subnet| also returns an ID which can be referenced
+\verb|aws_vpc| resource, \verb|aws_subnet| also returns an ID which can be referenced
 later when creating EC2 instances.
 
-\begin{minted}{text}
+\begin{minted}{c}
 # Create subnet within the new VPC for the DMZ
 resource "aws_subnet" "dmz" {
   vpc_id            = "${aws_vpc.tfvpc.id}"
@@ -1217,7 +1217,7 @@ using the AWS CLI \verb|describe-instances|. Both instances are placed in the ne
 created subnet within the newly created VPC, keeping everything separate from
 any existing AWS resources.
 
-\begin{minted}{text}
+\begin{minted}{c}
 # Cisco ASAv BYOL
 resource "aws_instance" "dmz_asav" {
   ami           = "ami-4fbf3c30"
