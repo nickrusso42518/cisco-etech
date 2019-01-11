@@ -597,11 +597,11 @@ some AWS console screenshots.
 
 First, create a user and group with permissions to, at a minimum, create and
 delete EC2 instances. For demonstration purposes, the ``terraform'' user is
-placed in the ``terraform'' has full EC2 access (create, delete, change power
-state, etc.) Note that the word ``terraform'' is used because this section
-serves as a primer for the Terraform demo in the following section. Take note
-of the user Amazon Resource Name (ARN) as this can be used for verifying AWS
-CLI connectivity.
+placed in the ``terraform'' group which has full EC2 access (create, delete,
+change power state, etc.) Note that the word ``terraform'' is used because
+this section serves as a primer for the Terraform demo in the following
+section. Take note of the user Amazon Resource Name (ARN) as this can be used
+for verifying AWS CLI connectivity.
 
 \addimg{tf-user-group.png}{0.7}{AWS User/Group Assignments for Terraform}
 
@@ -744,6 +744,11 @@ security, apply a filter to target the specific image desired. The example
 below shows a name-based filter searching for a string containing 16.09 as the
 version followed later by BYOL, the lowest cost option. Record the \verb|ImageId|,
 which is \verb|ami-0d1e6af4c329efd82|, as this is the image to deploy.
+Note: Cisco images require the user to accept the terms of a license agreement
+before usage. One must navigate to the following page first,
+subscribe, and accept the terms prior to attempting to start this instance or
+launch will result in an error. Visit this
+\href{https://aws.amazon.com/marketplace/pp/B00NF48FI2}{link} for details.
 
 \begin{minted}{text}
 [ec2-user@devbox ~]$ aws ec2 describe-images --filters \
@@ -1215,7 +1220,12 @@ us-east-1a AZ\@. The AMI for the CSR1000v is the same one used in the AWS CLI
 demonstration. The AMI for the ASAv is the BYOL version, which was derived
 using the AWS CLI \verb|describe-instances|. Both instances are placed in the newly
 created subnet within the newly created VPC, keeping everything separate from
-any existing AWS resources.
+any existing AWS resources. Just like with the CSR1000v images, Cisco requires
+the user to accept the terms of a license agreement before usage. 
+One must navigate the the following page first, subscribe, and accept the
+terms prior to attempting to start this instance or launch will result in an
+error. Visit this
+\href{https://aws.amazon.com/marketplace/pp/B00WRGASUC}{link} for details.
 
 \begin{minted}{c}
 # Cisco ASAv BYOL
@@ -1528,10 +1538,10 @@ is in the correct VPC, AZ, and has the right IPv4 CIDR range.
 
 \addimg{tf-subnet.png}{0.7}{Verifying VPC Subnet Made By Terraform}
 
-Going back to Terraform, notice that a new terraform.tfstate file has been
-created. This represents the new infrastructure state after the Terraform plan
-was applied. Use \verb|terraform show| to view the file, which contains all the
-\verb|computed| fields filled in, such as the ARN value.
+Going back to Terraform, notice that a new \verb|terraform.tfstate| file has
+been created. This represents the new infrastructure state after the Terraform
+plan was applied. Use \verb|terraform show| to view the file, which contains
+all the \verb|computed| fields filled in, such as the ARN value.
 
 \begin{minted}{text}
 [ec2-user@devbox tf-demo]$ ls -l
