@@ -862,11 +862,11 @@ Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py \
 
 Next, a small change will be applied using NETCONF\@. Each of the three
 variables will be incremented by 10. Simply copy the \verb|eigrp| data field from
-the remote procedure call (RPC) feedback, save it to a file (eigrp-updates.xml
-for example), and hand-modify the variable values. Correcting the indentation
-by removing leading whitespace is not strictly required but is recommended for
-readability. Below is an example of the configuration parameters that NETCONF
-can push to the device.
+the remote procedure call (RPC) feedback, save it to a file
+(\verb|eigrp-updates.xml| for example), and hand-modify the variable values.
+Correcting the indentation by removing leading whitespace is not strictly
+required but is recommended for readability. Below is an example of the
+configuration parameters that NETCONF can push to the device.
 
 \begin{minted}{text}
 Nicholass-MBP:YANG nicholasrusso$ cat eigrp-updates.xml
@@ -968,7 +968,7 @@ router eigrp NCTEST
 \subsubsection{NETCONF using Python and jinja2 on IOS-XE}
 While the netconf-console.py utility is an easy way to explore using NETCONF,
 a more realistic application of the technology includes custom programming.
-The Python library ncclient, or NETCONF client for short, provides an
+The Python library \verb|ncclient|, or NETCONF client for short, provides an
 easily-consumable NETCONF API for Python programmers. The following program
 was written by \href{https://twitter.com/dmfigol}{Dmitry Figol} and was
 slightly modified by the author to fit this book's format and style. Comments

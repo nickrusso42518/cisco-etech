@@ -119,18 +119,25 @@ execution engine for network devices.
   Ansible is agent-less, and does not require a software agent to be installed
   on the target node (server or switch) in order to automate the device. By
   default, Ansible requires SSH and Python support on the target node, but
-  Ansible can also be easily extended to use any API\@.
+  Ansible can also be easily extended to use any API\@. Ansible operators
+  write most of their code in YAML, a format discussed earlier in the book.
+  \item \textbf{Nornir (community product):} Nornir has quite a lot in
+  common with Ansible at a conceptual level. It's open source and agent-less,
+  based on Python, and doesn't usually require special software on its
+  managed targets. Nornir runbooks are written in Python. Unlike many
+  other CM tools, Nornir was written primarily for network automation.
 \end{enumerate}
 
-In summary, Ansible is lighter-weight than Puppet or Chef given that
-management is agent-less. No custom software needs to be installed on any
+In summary, agent-less tools tend to be lighter-weight than their agent-based
+counterparts. No custom software needs to be installed on any
 device provided that it supports SSH\@. This can be a drawback since individual
-device CLIs must be exposed to network operators (or, at best, the Ansible
+device CLIs must be exposed to network operators (or, at best, the agent-less
 automation engine) instead of using a more abstract API design. Ansible is
 very commonly used to manage Cisco network devices as it requires no agent
-installation on the managed devices. Any Cisco device that can be accessed
-using SSH can be managed by Ansible. This includes Cisco ASA firewalls, older
-Cisco ISRs, and older Cisco Catalyst switches.
+installation on the managed devices. Nornir is rapidly gaining popularity, too.
+Any Cisco device that can be accessed using SSH can be managed by these
+agent-less tools. This includes Cisco ASA firewalls, older Cisco ISRs, and
+older Cisco Catalyst switches.
 
 \subsubsection{Agent-less Demonstration with Ansible}
 The author has deployed Ansible in production and is most familiar with
@@ -158,7 +165,7 @@ ansible-playbook 2.3.0.0
 
 Ansible playbooks are collections of plays. Each play targets a specific set
 of hosts and contains a list of tasks. In YAML, arrays/lists are denoted with
-a hyphen (-) character. The first play in the playbook begins with a hyphen
+a hyphen (\verb|-|) character. The first play in the playbook begins with a hyphen
 since it’s the first element in the array of plays. The play has a name,
 target hosts, and some other minor options. Gathering facts can provide basic
 information like time and date, which are used in this script. When
@@ -181,7 +188,7 @@ configuration. The commands in the task will forcibly overwrite whatever is
 already configured; this is not typically done in production, but is done to
 illustrate a simple example. The \verb|changed_when: false| option tells
 Ansible to always report a status of \verb|ok| rather than \verb|changed|
-which makes the script ``succeed' from an operations perspective. The \verb|>|
+which makes the script ``succeed'' from an operations perspective. The \verb|>|
 operator is used in YAML to denote folded text for readability, and the input
 is assumed to always be a string. This particular example is not idempotent.
 \textbf{Idempotent} is a term used to describe the behavior of only making the
@@ -365,7 +372,7 @@ execution engine, like Ansible, with a few key differences:
   Python is trivial. With Nornir, you get pure Python without complex
   integrations via DSL\@.
   \item	Python debugger (\verb|pdb|) works natively, simplifying debugging. In
-  Ansible, your best tools are verbosity options from the shell (i.e.,
+  Ansible, your best tools are verbosity options from the shell (i.e.\
   \verb|ansible-playbook test.yml -vvv|) or the \verb|debug| module, neither
   of which have the power of \verb|pdb|.
   \item	The number of supplemental Python support tools (such as
@@ -577,7 +584,7 @@ After running the code and seeing the pretty JSON output displayed, a \verb|(Pdb
 prompt waits for user input. Mastering pdb is outside the scope of this book
 and we will not be exploring pdb-specific commands in any depth. What pdb
 enables is a real-time Python command line environment, allowing us to inject
-arbitrary code at the trace. Let's just type \verb|facts| to start, the name
+arbitrary code at the trace. Just type \verb|facts| to start, the name
 of the object returned by the Nornir run. This alone reveals a fair amount of
 information.
 
@@ -858,7 +865,7 @@ The sections that follow include demonstrations using a variety of version
 control systems and remote repositories.
 
 \subsubsection{Git with Github}
-In the first example, a Google Codejam solution is shown in the diagram that
+In the first example, a Google Codejam solution is shown in the code that
 follows. The challenge was finding the minimal scalar product between two
 vectors of equal length. The solution is to sort both vectors: one sorted
 greatest-to-least, and one sorted least-to-greatest. Then, performing the
@@ -917,8 +924,7 @@ class VectorPair:
         return self._resolve_sp(v1sort, v2sort)
 \end{minted}
 
-The author maintains a Github page with personal code that is free from any
-copyright protection. This Github account is used to demonstrate a revision
+This Github account is used to demonstrate a revision
 control example. Suppose that a change to the Python script above is required,
 and specifically, a trivial comment change. Checking the \verb|git status first|,
 the repository is up to date as no changes have been made. It explores git at

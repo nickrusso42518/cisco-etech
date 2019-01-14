@@ -10,7 +10,7 @@ is warranted. \textbf{Hyper-convergence and disaggregation} are polar
 opposites but are both highly effective in solving specific business problems.
 
 Hyper-convergence attempts to address issues with data center management and
-resource consumption/provisioning. For example, the traditional DC
+resource provisioning. For example, the traditional DC
 architecture will consist of four main components: network, storage, compute,
 and services (firewalls, load balancers, etc.). These decoupled items could be
 combined into a single and unified management infrastructure. The
@@ -101,10 +101,10 @@ example, this machine has not run any containers yet, and no images have been
 explicitly downloaded. Thus, Docker is smart enough to pull the proper image
 from DockerHub and spin up a new container. This only takes a few seconds on a
 high-speed Internet connection. Once complete, Docker drops the user into a
-new shell as the root user inside the container. The -i and -t options enable
-an interactive TTY session, respectively, which is great for demonstrations.
-Note that running Docker containers in the background is much more common as
-there are typically many containers.
+new shell as the root user inside the container. The \verb|-i| and \verb|-t|
+options enable an interactive TTY session, respectively, which is great for
+demonstrations.  Note that running Docker containers in the background is much
+more common as there are typically many containers.
 
 \begin{minted}{text}
 [centos@docker build]$ docker container run -it centos:7
@@ -221,7 +221,7 @@ HEALTHCHECK --interval=5m CMD which ansible || exit 1
 
 The Dockerfile is effectively a set of instructions used to build a custom
 image. To build the image based on the Dockerfile, issue the command below.
-The \verb|-t| option specifies a tag, and in this case, \verb|cmd\_authz| is used since
+The \verb|-t| option specifies a tag, and in this case, \verb|cmd_authz| is used since
 this particular Dockerfile is using a specific branch from a specific Ansible
 developer's personal Github page. It would be unwise to call this simple
 \verb|ansible| or \verb|ansible:latest| due to the very specific nature of this
@@ -435,8 +435,8 @@ illustrates the original issue that the ios\_config module, at the time of this
 writing, does not return device output. The author's personal preference is to
 always print the Ansible version number before running playbooks designed to
 test issues. This reduces the likelihood of invalid test results due to
-version confusion. In the DEBUG step below, there is no date/time output,
-which helps illustrate the Ansible issue that is being investigated.
+version confusion. In the \verb|DEBUG| step below, there is no date/time
+output, which helps illustrate the Ansible issue that is being investigated.
 
 \begin{minted}{text}
 [root@9bc07956b416 examples]# ansible --version | head -1
@@ -487,9 +487,9 @@ This manual ``start and stop'' approach to containerization has several
 drawbacks. Two are listed below:
 \begin{enumerate}
   \item	To retest this solution, the playbook would have to be created again,
-  and the Ansible environment files (ansible.cfg, hosts.yml) would need to be
-  updated again. Because containers are ephemeral, this information is not
-  stored automatically.
+  and the Ansible environment files (\verb|ansible.cfg, hosts.yml|) would need
+  to be updated again. Because containers are ephemeral, this information is
+  not stored automatically.
   \item	The commands are difficult to remember and it can be a lot to type,
   especially when starting many containers. Since containers were designed for
   microservices and expected to be deployed in dependent groups, this
@@ -526,8 +526,8 @@ services:
 \end{minted}
 
 The contents of these files was shown earlier, but ensure they are all placed
-in the mnt\_files/ directory with relation to where the docker-compose.yml file
-is located.
+in the \verb|mnt_files/| directory with relation to where the
+\verb|docker-compose.yml| file is located.
 
 \begin{minted}{text}
 [centos@docker compose]$ tree --charset=ascii
@@ -542,11 +542,11 @@ is located.
 To run the docker-compose file, use the command below. It will build
 containers for all keys specified under the \verb|services| dictionary. In this
 case, there is only one container called \verb|ansible| which is based on the
-\verb|ansible:cmd\_authz| image created earlier from the custom Dockerfile. The -i
-and -t options are enabled to allow for interactive shell access. The -d
-option with the docker-compose command specifies the \verb|detach| operation, which
-runs the containers in the background. View the list of containers to see the
-new Ansible container running successfully.
+\verb|ansible:cmd_authz| image created earlier from the custom Dockerfile. The
+\verb|-i| and -t options are enabled to allow for interactive shell access.
+The \verb|-d| option with the docker-compose command specifies the
+``detach'' operation, which runs the containers in the background. View the
+list of containers to see the new Ansible container running successfully.
 
 \begin{minted}{text}
 [centos@docker compose]$ docker-compose up -d
@@ -558,9 +558,10 @@ d3f1365f3145   ans:cmd_authz   "/bin/bash"    1 m ago   Up 32 s (health: ...)   
 \end{minted}
 
 The command below says ``execute, on the ansible container, the bash command''
-which grants shell access. Ensure that the mnt\_files/ directory exists and
+which grants shell access. Ensure that the \verb|mnt_files/| directory exists and
 contains all the necessary files. Copy the contents to the current directly,
-which will overwrite the basic ansible.cfg and hosts.yml files provided by
+which will overwrite the basic \verb|ansible.cfg| and \verb|hosts.yml| files
+provided by
 Ansible.
 
 \begin{minted}{text}
@@ -591,7 +592,7 @@ TASK [SYS >> Define router credentials] ************************
 
 Exit from the container and check the container list again. Notice that,
 despite exiting, the container continues to run. This is because
-docker-compose created the container in a detached state, meaning the absence
+\verb|docker-compose| created the container in a detached state, meaning the absence
 of the shell does not cause the container to stop. Manually stop the container
 using the commands below. Note that only the first few characters of the
 container ID can be used for these operations.
@@ -737,8 +738,8 @@ IOS equivalent of the Ansible ping module which is used primarily for testing
 SSH reachability to Linux hosts. The source code is shown below. Note that
 there are only two variables defined. The first tells Ansible which Python
 binary to use to ensure the proper libraries are used. A fully qualified file
-name must be used as shortcuts like ``~'' are not allowed. The second variable
-is a nested login credentials dictionary.
+name must be used as shortcuts like \verb|~| are not allowed. The second
+variable is a nested login credentials dictionary.
 
 \begin{minted}{text}
 (ansible242) [ec2-user@devbox login]$ tree --charset=ascii
@@ -807,8 +808,8 @@ csr1                       : ok=1    changed=0    unreachable=0    failed=0
 
 With the first test complete, exit the venv using the deactivate command,
 which is a custom binary specific to venv that effectively reverses what the
-source bin/activate command did. The shell returns to normal. Note that the
-deactivate command only exists inside of the venv.
+\verb|source bin/activate| command did. The shell returns to normal. Note that
+the deactivate command only exists inside of the venv.
 
 \begin{minted}{text}
 (ansible242) [ec2-user@devbox login]$ deactivate
@@ -867,9 +868,9 @@ Modify the group variables and playbook files according to the code shown
 below. Rather than define a custom dictionary with login credentials, one can
 specify some values for the well-known Ansible login parameters. At the
 playbook, the connection changes from local to \verb|network_cli| and the inclusion
-of the provider key under \verb|ios_command| is no longer needed. Last, note that the
-Python interpreter path is updated for this specific venv using the directory
-\verb|ansible263/|.
+of the \verb|provider| key under \verb|ios_command| is no longer needed. Last,
+note that the Python interpreter path is updated for this specific venv using
+the directory \verb|ansible263/|.
 
 \begin{minted}{yaml}
 ---

@@ -69,38 +69,38 @@ jenkins (pid  2666) is running...
 1.649
 \end{minted}
 
-Once Jenkins installed, log into Jenkins at http://jenkins.njrusmc.net:8080/,
-substituting the correct hostname or IP address. Enable the relevant Git
-plugins by navigating to \verb|Manage Jenkins > Manage Plugins > Available tab|.
+Once installed, log into Jenkins at \verb|http://jenkins.njrusmc.net:8080/|,
+substituting the correct host address. Enable the Git plugins via
+\verb|Manage Jenkins > Manage Plugins > Available tab|.
 Enter \verb|git| in the search bar. Select the plugs shown below and install
 them. Each one will be installed, along with all their dependencies.
 
-\addimg{jenkins-gitplugins.png}{0.3}{Jenkins git Plugins}
+\addimg{jenkins-gitplugins.png}{0.6}{Jenkins git Plugins}
 
-Once complete, log into Github and navigate to the user
+Log into Github and navigate to
 \verb|Settings > Developer settings > Personal access tokens|. These tokens
 can be used as an easy authentication method via shared-secret to access
 Github's API\@. When generating a new token, \verb|admin:org_hook| must be granted at a
 minimum, but in the interest of experimentation, the author selected a few
 other options as depicted in the image that follows.
 
-\addimg{jenkins-makegithubtoken.png}{0.3}{Jenkins Personal Github Access Token}
+\addimg{jenkins-makegithubtoken.png}{0.6}{Jenkins Personal Github Access Token}
 
-After the token has been generated and the secret text properly copied,
-navigate to \verb|Credentials > Global Credentials| and create a new
+After the token has been generated and the secret copied,
+go to \verb|Credentials > Global Credentials| and create a new
 credential. The graphic below depicts all parameters. This credential will be
 used for the Github API integration.
 
-\addimg{jenkins-tokencreds.png}{0.3}{Jenkins Personal Access Tokens}
+\addimg{jenkins-tokencreds.png}{0.6}{Jenkins Personal Access Tokens}
 
 Next, navigate to \verb|Manage Jenkins > Configure System|, then scroll down
 to the Git and Github configurations. Configure the Git username and email
 under the Git section. For the Github section, the secret text authentication
 method should be used to allow Github API access.
 
-\addimg{jenkins-gitpluginuser.png}{0.3}{Jenkins User-specific Plugins}
+\addimg{jenkins-gitpluginuser.png}{0.6}{Jenkins User-specific Plugins}
 
-\addimg{jenkins-githubglobalconfig.png}{0.3}{jenkins-Setting up Github Integration.png}
+\addimg{jenkins-githubglobalconfig.png}{0.6}{Setting up Github Integration on Jenkins}
 
 The global Jenkins configuration for Git/Github integration is complete. Next,
 create a new repository (or use an existing one) within Github. This process
@@ -195,10 +195,14 @@ username for brevity in this example shown in the diagram that follows.
 
 \begin{minted}{text}
 [root@ip-10-125-0-85 .ssh]# cat id_rsa.pub
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDd6qISM3f/mhmSeauR6DSFMhvlT8QkXyyY73Tk8Nuf+SytelhP15gqTao3iA08LlpOBOnvtGXVwHEyQhMu0JTfFwRsTOGRRl3Yp9n6Y2/8AGGNTp+Q4tGpczZkh/Xs7LFyQAK3DIVBBnfF0eOiX20/dC5W72aF3IzZBIsNyc9Bcka8wmVb2gdYkj1nQg6VQI1C6yayLwyjFxEDgArGbWk0Z4GbWqgfJno5gLT844SvWmOWEJ1jNIw1ipoxSioVSSc/rsA0A3e9nWZ/HQGUbbhIOGx7k4ruQLTCPeduU+VgIIj3Iws1tFRwc+lXEn58qicJ6nFlIbAW1kJj8I/+1fEj jenkins-ssh-key
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDd6qISM3f/mhmSeauR6DSFMhvlT8QkXyyY73Tk8Nu
+f+SytelhP15gqTao3iA08LlpOBOnvtGXVwHEyQhMu0JTfFwRsTOGRRl3Yp9n6Y2/8AGGNTp+Q4tGpcz
+Zkh/Xs7LFyQAK3DIVBBnfF0eOiX20/dC5W72aF3IzZBIsNyc9Bcka8wmVb2gdYkj1nQg6VQI1C6yayL
+wyjFxEDgArGbWk0Z4GbWqgfJno5gLT844SvWmOWEJ1jNIw1ipoxSioVSSc/rsA0A3e9nWZ/HQGUbbhI
+OGx7k4ruQLTCPeduU+VgIIj3Iws1tFRwc+lXEn58qicJ6nFlIbAW1kJj8I/+1fEj jenkins-ssh-key
 \end{minted}
 
-\addimg{jenkins-gitsshkey.png}{0.3}{Github SSH Keys for Jenkins Access}
+\addimg{jenkins-gitsshkey.png}{0.6}{Github SSH Keys for Jenkins Access}
 
 The commands below verify that the keys are functional. Note that the
 \verb|-i| flag must be used because the command is run as root, and a
@@ -246,7 +250,7 @@ bash-4.2$ echo $?
 The URL above can be copied by starting to clone the Github repository as
 shown below. Be sure to select SSH to get the correct repository link.
 
-\addimg{jenkins-repourl.png}{0.3}{Github Repository URL for Jenkins Demo}
+\addimg{jenkins-repourl.png}{0.4}{Github Repository URL for Jenkins Demo}
 
 At this point, adding a new Jenkins project should succeed when the repository
 link is supplied. This is an option under SCM for the project whereby the only
@@ -255,7 +259,7 @@ displayed on the screen and the error is normally related to SSH setup. Do not
 specify any credentials for this because the SSH public key method is inherent
 with the setup earlier. The screenshot that follows depicts this process.
 
-\addimg{jenkins-projectscm.png}{0.3}{Jenkins Source Code Management via git}
+\addimg{jenkins-projectscm.png}{0.6}{Jenkins Source Code Management via git}
 
 As a final check, you can view the \verb|Console Output| for this
 project/build by clicking the icon on the left. It reveals the git commands
@@ -283,7 +287,7 @@ Finished: SUCCESS
 The project workspace shows the files in the repository, which includes
 the newly created Ansible playbook.
 
-\addimg{jenkins-projectworkspace.png}{0.3}{Jenkins Project Workspace}
+\addimg{jenkins-projectworkspace.png}{0.6}{Jenkins Project Workspace}
 
 This section briefly explores configuring Jenkins integration with AWS EC2.
 There are many more detailed guides on the Internet which describe this
@@ -302,19 +306,19 @@ in-house cluster, then spill the spiky build/test loads into EC2 or another
 EC2 compatible cloud.
 }
 
-\addimg{jenkins-ec2plugins.png}{0.3}{AWS EC2 Plugin for Jenkins Integration}
+\addimg{jenkins-ec2plugins.png}{0.6}{AWS EC2 Plugin for Jenkins Integration}
 
 Log into the AWS console and navigate to the Identity Access Management (IAM)
 service. Create a new user that has full EC2 access which effectively grants
 API access to EC2 for Jenkins. The user will come with an access ID and secret
 access key. Copy both pieces of information as Jenkins must know both.
 
-\addimg{jenkins-iamuser.png}{0.3}{Adding Jenkins User in AWS IAM}
+\addimg{jenkins-iamuser.png}{0.6}{Adding Jenkins User in AWS IAM}
 
 Next, create a new credential of type \verb|AWS credential|. Populate the
 fields as shown below.
 
-\addimg{jenkins-awscreds.png}{0.3}{Jenkins AWS Credential Creation}
+\addimg{jenkins-awscreds.png}{0.6}{Jenkins AWS Credential Creation}
 
 Navigate back to \verb|Manage Jenkins > Configure System > Add a new cloud|.
 Choose Amazon EC2 and populate the credentials option with the recently
@@ -326,12 +330,12 @@ instances in order to control them. For security, you can create a new key
 pair within AWS (recommended but not shown) for Jenkins-based hosts in case
 the general-purpose EC2 private key is stolen.
 
-\addimg{jenkins-addcloud.png}{0.3}{Adding AWS Cloud Option via Jenkins}
+\addimg{jenkins-addcloud.png}{0.6}{Adding AWS Cloud Option via Jenkins}
 
 You can validate the connection using the \verb|Test Connection| button which
 should result in success.
 
-\addimg{jenkins-awstestcon.png}{0.3}{Testing Connection from AWS to Jenkins}
+\addimg{jenkins-awstestcon.png}{0.6}{Testing Connection from AWS to Jenkins}
 
 The final step is determining what kind of AMIs Jenkins should create within
 AWS\@. There can be multiple AMIs for different operating systems, including
@@ -343,7 +347,7 @@ subset of options is shown here; note that you can validate the spelling of
 the AMI codes (accessible from the AWS EC2 console) using the \verb|Check AMI|
 button. More details on this process can be found in the references.
 
-\addimg{jenkins-ami.png}{0.3}{Jenkins AMIs within EC2}
+\addimg{jenkins-ami.png}{0.6}{Jenkins AMIs within EC2}
 
 With both Github and AWS EC2 integration set up, a developer can create large
 projects complete with automated testing from SCM repository and automatic

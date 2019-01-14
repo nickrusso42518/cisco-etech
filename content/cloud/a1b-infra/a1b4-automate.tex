@@ -348,12 +348,12 @@ deployment model for an organization. This architecture has two identical
 production-capable software instances (blue and green), and one is in
 production while the other is upgraded/changed. Using JSON syntax, one set of
 pods (or perhaps an entire deployment) might be labeled as \verb|{"color": "blue"}|
-while the other is \verb|{"color": "green"}|. The key of ``color' is the same so
+while the other is \verb|{"color": "green"}|. The key of ``color'' is the same so
 the administrator can query for ``color'' label to get the value, and then make
-a decision based on that. One engineer described labels as ``flexible and
+a decision based on that. One Cisco engineer described labels as \textit{flexible and
 extensible source of metadata. They can reference releases of code, locations,
 or any sort of logical groupings. There is no limitation of how many labels
-can be applied.'' In this way, labels are similar to tags in Ansible which can
+can be applied.} In this way, labels are similar to tags in Ansible which can
 be used to pick-and-choose certain tasks to execute or skip, depending.
 
 The \verb|minikube| solution provides a relatively easy way to get started
@@ -584,7 +584,7 @@ difficult due to coordination between multiple masters in a common cluster.
 With the SaaS offerings, the cloud providers offer a fully managed service
 with which users interface directly. Specifically for EKS, the hostname
 provided to a customer would look something like
-``mycluster.eks.amazonaws.com''. Administrators can SSH to this hostname and
+\verb|mycluster.eks.amazonaws.com|. Administrators can SSH to this hostname and
 issue \verb|kubectl| commands as usual, along with all dashboard functionality
 one would expect.
 

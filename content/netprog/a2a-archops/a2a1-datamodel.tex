@@ -309,8 +309,9 @@ similar to YAML in concept. It was designed to be simpler than traditional
 markup languages and uses key/value pairs to store information. The ``value'' of
 a given pair can be another key/value pair, which enables hierarchical data
 nesting. The key/value pair structure and syntax is very similar to the
-\verb|dict| data type in Python. JSON is even lighter than YAML and is also
-commonly used for maintaining configuration files. The next page displays a
+\verb|dict| data type in Python. Like YAML, JSON is also
+commonly used for maintaining configuration files or as a form of structured
+feedback from a query or API call. The next page displays a
 syntax example of JSON which represents the same data and same structure as
 the YAML example.
 
@@ -412,7 +413,8 @@ Data structured in XML is very common and has been popular for decades. XML is
 very verbose and explicit, relying on starting and ending tags to identify the
 size/scope of specific data fields. The next page shows an example of XML code
 resembling a similar structure as the previous YAML and JSON examples. Note
-that the topmost ``root'' wrapper key is needed in XML but not for YAML or JSON\@.
+that the topmost \verb|root| wrapper key is needed in XML but not for YAML or
+JSON\@.
 
 \begin{minted}{xml}
 <?xml version="1.0" encoding="UTF-8" ?>
