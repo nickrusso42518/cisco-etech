@@ -129,9 +129,3 @@ __A__: I will preserve the legacy delivery method on Cisco Learning Network
 by manually updating a new PDF every few months. However, I recommend
 downloading the book directly from my website to ensure you always have
 the most updated version available.
-
-__Q__: Who covers your operating expenses for maintenance/updates?\
-__A__: Given that the book is and always will be free, I fund everything with
-the help of generous donations from others. If you like the book, like the
-cause, like the concept, or just like me as a person, __please donate__
-[here](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=KA9QZVDMVYN26&lc=US&item_name=Evolving%20Technology%20Study%20Guide&item_number=42518&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted).
