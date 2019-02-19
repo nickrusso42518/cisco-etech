@@ -119,7 +119,8 @@ execution engine for network devices.
   Ansible is agent-less, and does not require a software agent to be installed
   on the target node (server or switch) in order to automate the device. By
   default, Ansible requires SSH and Python support on the target node, but
-  Ansible can also be easily extended to use any API\@. Ansible operators
+  Ansible can also be easily extended to use any API\@. Ansible
+  operators
   write most of their code in YAML, a format discussed earlier in the book.
   \item \textbf{Nornir (community product):} Nornir has quite a lot in
   common with Ansible at a conceptual level. It's open source and agent-less,
@@ -139,7 +140,7 @@ Any Cisco device that can be accessed using SSH can be managed by these
 agent-less tools. This includes Cisco ASA firewalls, older Cisco ISRs, and
 older Cisco Catalyst switches.
 
-\subsubsection{Agent-less Demonstration with Ansible}
+\subsubsection{Agent-less Demonstration with Ansible (SSH/CLI)}
 The author has deployed Ansible in production and is most familiar with
 Ansible when compared against Puppet or Chef. This section will illustrate the
 value of automation using a simple but powerful playbook. These tests were
@@ -354,6 +355,573 @@ section. There are many other, unrelated Ansible playbooks available at the
 author's Github page as well.
 
 Nick's OSPF TroubleShooter (nots) --- \url{https://github.com/nickrusso42518/nots}
+
+\subsubsection{NETCONF-based Infrastructure as Code with Ansible}
+Earlier sections of this book introduced NETCONF, both as a protocol and
+integrated into a Python programmability demonstration. Ansible can also
+utilize  NETCONF for managing network devices, and this is quickly becoming
+a common infrastructure-as-code alternative to legacy SSH/CLI administration.
+
+This demonstration will solve the same problem as my popular open-source
+\href{https://github.com/nickrusso42518/vpnm}{vpnm} repository available on Github.
+The playbook ensures that the correct MPLS layer-3 VPN route-targets are configured,
+intelligently adding and removing import and export route-targets where needed.
+The playbook above is SSH/CLI based, which makes it universally consumable by
+devices of any age, but is quite complex to understand and maintain. Using
+NETCONF, operators can simplify the maintenance of their desired state.
+
+Ansible allows for any arbitrary NETCONF RPC calls using the \verb|netconf_rpc|
+module, but effectively using this module is tricky. The author recommends
+first trying \verb|netconf_get| and \verb|netconf_config| modules for read and
+write operations, respectively, and falling back to \verb|netconf_rpc| for
+more customized actions if the wrapper modules don't work.
+
+Presumably, readers already have some familiarity with Ansible at this point, so
+I won't explain every detail. The variables file contains a list of VRFs that
+should exist on a target router, such as an MPLS provider edge (PE). Each item
+in the list is a dictionary, which contains two keys of interest,
+\verb|route_import| and \verb|route_export|. These are lists of strings where
+each element is a route-target. If an RT is present in this list, it will be
+present on the device. If an RT is absent from this list, it will be removed
+from the device. Operators can determine RT membership simply by editing this
+file and running the Ansible playbook, which is how infrastructure as code
+is supposed to work.
+
+\begin{minted}{yaml}
+---
+# host_vars/csr1.yml
+vrfs:
+  - name: "VPN1"
+    description: "FIRST VRF"
+    rd: "1:1"
+    route_import:
+      - "100:1"
+    route_export:
+      - "100:2"
+  - name: "VPN2"
+    description: "SECOND VRF"
+    rd: "2:2"
+    route_import:
+      - "200:1"
+      - "200:2"
+    route_export: []
+\end{minted}
+
+Let's explore the playbook next to see how the modules are used. Thankfully,
+Ansible makes this very easy. All the operator must do is specify the XML
+text to pass in. Coming up with the XML can be challenging, but we will visit
+that soon. For now, assume that we ``just know'' it. Just like using jinja2 for
+plain-text templating, it works well for XML templates, too.
+
+\begin{minted}{yaml}
+---
+# nc_update.yml
+- name: "Infrastructure-as-code using NETCONF"
+  hosts: routers
+  connection: netconf
+  tasks:
+    - name: "Update VRF config with NETCONF from XML template"
+      netconf_config:
+        content: "{{ lookup('template', 'templates/vpn.j2') }}"
+\end{minted}
+
+Admittedly, the template is the most complex part of the solution, but such is
+the price (sometimes) paid for having nicely structured data. This structure
+is based on the ``native'' YANG model, as opposed to something like OpenConfig,
+so that needs to be specified. Notice the jinja2 \verb|for| loops. The outer
+loop iterates over each VRF, creating a new \verb|<definition>| block for each.
+Basic data, such as \verb|name|, \verb|description|, and \verb|rd| are applied
+for each VRF\@. Then, a pair of nested \verb|for| loops iterate over the export
+and import route targets, adding the appropriate XML blocks for each one. As
+such, the size and composition of the template changes every time the operator
+changes the ``desired state'' in the YAML variables files.
+
+\begin{minted}{xml}
+<config>
+  <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <vrf operation="replace">
+{% for vrf in vrfs %}
+      <definition>
+        <name>{{ vrf.name }}</name>
+        <description>{{ vrf.description }}</description>
+        <rd>{{ vrf.rd }}</rd>
+        <address-family>
+          <ipv4/>
+          <ipv6/>
+        </address-family>
+        <route-target>
+{% for rte in vrf.route_export %}
+          <export>
+            <asn-ip>{{ rte }}</asn-ip>
+          </export>
+{% endfor %}
+{% for rti in vrf.route_import %}
+          <import>
+            <asn-ip>{{ rti }}</asn-ip>
+          </import>
+{% endfor %}
+        </route-target>
+      </definition>
+{% endfor %}
+    </vrf>
+  </native>
+</config>
+\end{minted}
+
+First, check the router configuration. There are no VRFs on the device at all.
+Be sure \verb|netconf-yang| is enabled, not \verb|netconf|, in order for
+this technology to work correctly.
+
+\begin{minted}{text}
+CSR1#show vrf
+[no output]
+CSR1#show running-config | include netconf-yang
+netconf-yang
+\end{minted}
+
+Next, run the playbook. Notice that the system reports \verb|changed|. At present,
+the author cannot find an obvious way to report exactly what changed, but these
+modules are rather new and are likely to be updated over time. At least we know
+that a change was made, and in Ansible land, that means notifying handlers and
+other useful activities.
+
+\begin{minted}{text}
+[centos@devbox netconf]$ ansible-playbook nc_update.yml
+
+PLAY [Infrastructure-as-code using NETCONF] *******************************
+
+TASK [Update VRF config with NETCONF] *************************************
+changed: [csr1]
+
+PLAY RECAP ****************************************************************
+csr1                       : ok=1    changed=1    unreachable=0    failed=0
+\end{minted}
+
+Run the playbook once more and the task reports \verb|ok|, implying that there
+were no necessary changes since the state did not change.
+
+\begin{minted}{text}
+[centos@devbox netconf]$ ansible-playbook nc_update.yml
+
+PLAY [Infrastructure-as-code using NETCONF] *******************************
+
+TASK [Update VRF config with NETCONF] *************************************
+ok: [csr1]
+
+PLAY RECAP ****************************************************************
+csr1                       : ok=1    changed=0    unreachable=0    failed=0
+\end{minted}
+
+Using SSH, log into the router's CLI and check the VRF configuration. Notice
+that both VPNs have the exactly correct VPN configuration. Any changes to
+this configuration will be reverted anytime the playbook runs again.
+
+\begin{minted}{text}
+CSR1#show running-config | section vrf_definition
+vrf definition VPN1
+ description FIRST VRF
+ rd 1:1
+ route-target export 100:1
+ route-target import 100:2
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+vrf definition VPN2
+ description SECOND VRF
+ rd 2:2
+ route-target import 200:1
+ route-target import 200:2
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+\end{minted}
+
+Let's grab the current VRF configuration using NETCONF\@. This is how the author
+grabbed the initial XML snippet to build the jinja2 template above. Another
+approach could be converting the native YANG model to XML using \verb|pyang| or
+something like it. This playbook is a little more involved since there are
+some post-processing steps needed to beautify the XML for human readability
+and write it to disk. Using the \verb|filter| option with \verb|netconf_get|
+can limit the output just to a certain section, in this case, just VRFs.
+Omitting this option captures the entire configuration.
+
+\begin{minted}{yaml}
+---
+# nc_get.yml
+- name: "Update VRF state via NETCONF"
+  hosts: routers
+  connection: netconf
+  tasks:
+    - name: "Get VRF config with NETCONF"
+      netconf_get:
+        source: running
+        lock: always
+        filter: "<native><vrf></vrf></native>"
+      register: nc_vrf
+
+    - name: "Format XML for easy viewing"
+      xml:
+        xmlstring: "{{ nc_vrf.stdout }}"
+        pretty_print: true
+      register: pretty_config
+      changed_when: false
+
+    - name: "Ensure vrf_configs/ folder exists"
+      file:
+        path: "{{ playbook_dir }}/vrf_configs"
+        state: directory
+
+    - name: "Write XML to disk"
+      copy:
+        content: "{{ pretty_config.xmlstring }}"
+        dest: "vrf_configs/{{ inventory_hostname }}_netconf.xml"
+\end{minted}
+
+Running this playbook grabs the VRF configuration as represented by YANG
+and encoded as XML data.
+
+\begin{minted}{text}
+[centos@devbox netconf]$ ansible-playbook nc_get.yml
+
+PLAY [Update VRF state via NETCONF] **********************************
+
+TASK [Get VRF config with NETCONF] ****************************************
+ok: [csr1]
+
+TASK [Format XML for easy viewing] ****************************************
+ok: [csr1]
+
+TASK [Ensure vrf_configs/ folder exists] **********************************
+ok: [csr1]
+
+TASK [Write XML to disk] **************************************************
+changed: [csr1]
+
+PLAY RECAP ****************************************************************
+csr1                       : ok=4    changed=1    unreachable=0    failed=0
+\end{minted}
+
+Look at the contents of the file to see how the pieces fit together. Also notice
+how the proper route-target state is in place. The \verb|ns| numbering is
+referencing XML namespaces, which like programming namespaces, can provide uniqueness
+when same-named constructs are referenced from a single program. The namespaces
+shouldn't be included when building XML templates, though. Administrators
+can use these NETCONF captures as a way of doing configuration state
+backups also.
+
+\begin{minted}{text}
+[centos@devbox netconf]$ cat vrf_configs/csr1_netconf.xml
+\end{minted}
+
+\begin{minted}{xml}
+<?xml version='1.0' encoding='UTF-8'?>
+<ns0:data xmlns:ns0="urn:ietf:params:xml:ns:netconf:base:1.0"
+  xmlns:ns1="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <ns1:native>
+    <ns1:vrf>
+      <ns1:definition>
+        <ns1:name>VPN1</ns1:name>
+        <ns1:description>FIRST VRF</ns1:description>
+        <ns1:rd>1:1</ns1:rd>
+        <ns1:address-family>
+          <ns1:ipv4/>
+          <ns1:ipv6/>
+        </ns1:address-family>
+        <ns1:route-target>
+          <ns1:export>
+            <ns1:asn-ip>100:2</ns1:asn-ip>
+          </ns1:export>
+          <ns1:import>
+            <ns1:asn-ip>100:1</ns1:asn-ip>
+          </ns1:import>
+        </ns1:route-target>
+      </ns1:definition>
+      <ns1:definition>
+        <ns1:name>VPN2</ns1:name>
+        <ns1:description>SECOND VRF</ns1:description>
+        <ns1:rd>2:2</ns1:rd>
+        <ns1:address-family>
+          <ns1:ipv4/>
+          <ns1:ipv6/>
+        </ns1:address-family>
+        <ns1:route-target>
+          <ns1:import>
+            <ns1:asn-ip>200:1</ns1:asn-ip>
+          </ns1:import>
+          <ns1:import>
+            <ns1:asn-ip>200:2</ns1:asn-ip>
+          </ns1:import>
+        </ns1:route-target>
+      </ns1:definition>
+    </ns1:vrf>
+  </ns1:native>
+</ns0:data>
+\end{minted}
+
+\subsubsection{RESTCONF-based Infrastructure as Code with Ansible}
+Suppose you love the idea of using something better than SSH/CLI but
+find the XML templating within NETCONF to be rather confusing. While it is
+possible to write some kind of translation from YAML/JSON Ansible variables
+directly into XML, this would be rather complex for the average network
+automation engineer. RESTCONF offers an alternative. Using Ansible's
+generic \verb|uri| module to run HTTP-based operations on network devices,
+operators can pass variables directly into the message body of an HTTP PUT
+to configure a device as JSON data.
+
+The variables structure has to change a bit to fit the YANG model we saw
+above, except using YAML (or JSON) formatting. I'll use YAML for brevity,
+and assuming operators are willing to restructure the state variables files,
+this data can be passed straight into \verb|uri| by referencing the topmost
+dictionary key of \verb|vrfs| from the \verb|body| option.
+
+\begin{minted}{yaml}
+---
+# host_vars/csr1.yml
+vrfs:
+  vrf:
+    definition:
+      - name: "VPN1"
+        description: "FIRST VRF"
+        rd: "1:1"
+        address-family:
+          ipv4: {}
+          ipv6: {}
+        route-target:
+          export:
+            - asn-ip: "100:2"
+          import:
+            - asn-ip: "100:1"
+      - name: "VPN2"
+        description: "SECOND VRF"
+        rd: "2:2"
+        address-family:
+          ipv4: {}
+          ipv6: {}
+        route-target:
+          import:
+            - asn-ip: "200:1"
+            - asn-ip: "200:2"
+\end{minted}
+
+Next, examine the playbook. Like NETCONF, there is only one task to perform
+the update. This module requires quite a bit more data, including login
+information given \verb|connection: local| at the play level. The other
+fields help construct the correct HTTP headers needed to configure the
+device via RESTCONF\@. There are no jinja2 templates required at all.
+
+\begin{minted}{yaml}
+---
+# rc_update.yml
+- name: "Infrastructure-as-code using RESTCONF"
+  hosts: routers
+  connection: local
+  tasks:
+    - name: "Update VRF config with HTTP PUT"
+      uri:
+        # YAML folded syntax won't work here, shown for readability only
+        url: >-
+          https://{{ ansible_host }}/restconf/data/
+          Cisco-IOS-XE-native:native/Cisco-IOS-XE-native:vrf
+        user: "ansible"
+        password: "ansible"
+        method: PUT
+        headers:
+          Content-Type: "application/yang-data+json"
+          Accept: "application/yang-data+json, application/yang-data.errors+json"
+        body_format: json
+        body: "{{ vrfs }}"
+        validate_certs: false
+        return_content: true
+        status_code:
+          - 200  # OK
+          - 204  # NO CONTENT
+\end{minted}
+
+The device has no VRFs on it, just like before. RESTCONF will add them.
+Be sure \verb|restconf| is enabled!
+
+\begin{minted}{text}
+CSR1#show vrf
+[no output]
+CSR1#show running-config | include restconf
+restconf
+\end{minted}
+
+Run the playbook, and notice that the task reports \verb|ok|. Like NETCONF,
+RESTCONF is idempotent and easy to prgrom using Ansible. Unlike NETCONF,
+there is no notification in the HTTP response message that indicates whether
+a change was made or not. This could be problematic if there are handlers
+requiring notification, but often times is not a big issue. Administrators can
+see if changes were made using an HTTP GET operation which is coming up next.
+It is possible that Cisco will update their RESTCONF API to include this
+in the future.
+
+\begin{minted}{text}
+[centos@devbox restconf]$ ansible-playbook rc_update.yml
+
+PLAY [Infrastructure-as-code using RESTCONF] ******************************
+
+TASK [Update VRF config with HTTP PUT] ************************************
+ok: [csr1]
+
+PLAY RECAP ****************************************************************
+csr1                       : ok=1    changed=0    unreachable=0    failed=0
+\end{minted}
+
+Quickly check the VRF configuration on the CLI to ensure it matches
+the declarative state from the variables file. This output should be
+identical to the output what NETCONF returned, since both methods
+do the exact same thing.
+
+\begin{minted}{text}
+CSR1#show run | section vrf definition
+vrf definition VPN1
+ description FIRST VRF
+ rd 1:1
+ route-target export 100:2
+ route-target import 100:1
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+vrf definition VPN2
+ description SECOND VRF
+ rd 2:2
+ route-target import 200:1
+ route-target import 200:2
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+\end{minted}
+
+In case operators don't know what the correct data structure looks like,
+use the \verb|uri| module again for the HTTP GET operation. The playbook
+below allows operators to execute an HTTP GET, collect data, and write it
+to a file. It doesn't require quite as much post-processing as XML since
+Ansible can beautify JSON rather easily.
+
+\begin{minted}{yaml}
+---
+# rc_get.yml
+- name: "Collect VRF config with RESTCONF"
+  hosts: routers
+  connection: local
+    - name: "Get VRF config with RESTCONF"
+      uri:
+        # YAML folded syntax won't work here, shown for readability only
+        url: >-
+          https://{{ ansible_host }}/restconf/data/
+          Cisco-IOS-XE-native:native/Cisco-IOS-XE-native:vrf
+        user: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        method: GET
+        return_content: true
+        headers:
+          Accept: 'application/yang-data+json'
+        validate_certs: false
+      register: rc_vrf
+
+    - name: "Ensure vrf_configs/ folder exists"
+      file:
+        path: "{{ playbook_dir }}/vrf_configs"
+        state: directory
+
+    - name: "Write JSON to disk"
+      copy:
+        content: "{{ rc_vrf.json | to_nice_json }}"
+        dest: "vrf_configs/{{ inventory_hostname }}_restconf.json"
+\end{minted}
+
+Quickly run the playbook to gather the current VRF state and store it
+as a JSON file.
+
+\begin{minted}{text}
+[centos@devbox restconf]$ ansible-playbook rc_get.yml
+
+PLAY [Collect VRF config with RESTCONF] ***********************************
+
+TASK [Get VRF config with RESTCONF] ***************************************
+ok: [csr1]
+
+TASK [Ensure vrf_configs/ folder exists] **********************************
+ok: [csr1]
+
+TASK [Write JSON to disk] *************************************************
+changed: [csr1]
+
+PLAY RECAP ****************************************************************
+csr1                       : ok=3    changed=1    unreachable=0    failed=0
+\end{minted}
+
+Check the contents of the file to see the JSON returned from RESTCONF\@.
+Operators can use this as their variables template starting point. Simply
+modify this JSON structure, optionally converting to YAML first if that
+is easier, and pass the result into Ansible to manage your infrastructure
+as code using JSON instead of CLI commands.
+
+\begin{minted}{text}
+[centos@devbox restconf]$ cat vrf_configs/csr1_restconf.json
+\end{minted}
+
+\begin{minted}{json}
+{
+    "Cisco-IOS-XE-native:vrf": {
+        "definition": [
+            {
+                "address-family": {
+                    "ipv4": {},
+                    "ipv6": {}
+                },
+                "description": "FIRST VRF",
+                "name": "VPN1",
+                "rd": "1:1",
+                "route-target": {
+                    "export": [
+                        {
+                            "asn-ip": "100:2"
+                        }
+                    ],
+                    "import": [
+                        {
+                            "asn-ip": "100:1"
+                        }
+                    ]
+                }
+            },
+            {
+                "address-family": {
+                    "ipv4": {},
+                    "ipv6": {}
+                },
+                "description": "SECOND VRF",
+                "name": "VPN2",
+                "rd": "2:2",
+                "route-target": {
+                    "import": [
+                        {
+                            "asn-ip": "200:1"
+                        },
+                        {
+                            "asn-ip": "200:2"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
+\end{minted}
 
 \subsubsection{Agent-less Demonstration with Nornir}
 Nornir is an open source project created by
