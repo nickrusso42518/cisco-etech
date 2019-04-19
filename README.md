@@ -2,6 +2,10 @@
 https://travis-ci.org/nickrusso42518/cisco-etech.svg?branch=master)](
 https://travis-ci.org/nickrusso42518/cisco-etech)
 
+[![published](
+http://cs.co/codeex-badge)](
+https://developer.cisco.com/codeexchange/github/repo/nickrusso42518/cisco-etech)
+
 # Cisco CCIE/CCDE Evolving Technologies
 This book covers the Cisco Evolving Technologies version 1.1 blueprint
 and includes detailed explanations of modern cloud, network programmability,
