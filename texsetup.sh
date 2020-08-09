@@ -132,7 +132,7 @@ tar -xzvf install-tl-unx.tar.gz --strip-components 1
 ./install-tl -profile texlive.profile
 
 # root needs its PATH updated for tlmgr to work
-PATH=$PATH:/usr/local/texlive/2020/bin/x86_64-linux
+PATH=$PATH:/usr/local/texlive/2018/bin/x86_64-linux
 
 # Quickly test to see if the PATH was properly updated
 tlmgr --version
