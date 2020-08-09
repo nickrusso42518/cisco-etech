@@ -103,7 +103,7 @@
 TL_PKGS=(
     booktabs
     caption
-    cachefile
+    catchfile
     chktex
     etoolbox
     fancyvrb
