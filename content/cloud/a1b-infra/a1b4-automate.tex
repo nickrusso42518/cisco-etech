@@ -93,7 +93,7 @@ workflow types:
 
 \begin{enumerate}
   \item \textbf{Design:} This is where the administrators define the ``intent'' for the
-  network. For example, an administrator may region a geographical region
+  network. For example, an administrator may define a geographical region
   everywhere the company operates, and add sites into each region. There can be
   regionally-significant variables and design criteria which are supplemented by
   site-specified design criteria. One example could be IP pools, whereby the
@@ -103,7 +103,7 @@ workflow types:
   upcoming demonstration.
   \item \textbf{Policy:} Generally relates to SDA security policies and gives granular
   control to the administrator. Access and LAN security technologies are
-  configured here, such as 802.1x, Trustsec using security group tags (SGT),
+  configured here, such as 802.1X, Trustsec using Scalable Group Tags (SGT),
   virtual networking and segmentation, and traffic copying via encapsulated
   remote switch port analyzer (ERSPAN). Some of these features require ISE
   integration, such as Trustsec, but not all do. As such, DNA-C can provide
@@ -150,11 +150,11 @@ values (CSV) file. Each of the other subsections is worth a brief discussion:
   this demonstration, the ``Routing \& NFV'' profile is used, but DNA-C also
   supports a ``Switching'' profile and a ``Wireless'' profile, both of which
   simplify SDA operations.
-  \item Auth Template: These templates enable faster IEEE 802.1x
+  \item Auth Template: These templates enable faster IEEE 802.1X
   configuration. The 3 main options include closed authentication (strict mode),
   easy connect (low impact mode), and open authentication (anyone can connect).
   Administrators can add their own port-based authentication profiles here for
-  more granularity. Since 802.1x is not used in this demonstration, this
+  more granularity. Since 802.1X is not used in this demonstration, this
   particular option is not discussed further.
 \end{enumerate}
 
@@ -228,7 +228,7 @@ options are summarized below:
 
 \begin{enumerate}
   \item \textbf{Group-Based Access Control:} This performs ACL style filtering based
-  on group tags or SGTs defined earlier. This is the core element of Cisco's
+  on the SGTs defined earlier. This is the core element of Cisco's
   Trustsec model, which is a technique for deployment stateless traffic filters
   throughout the network without the operational burden that normally follows
   it. This option requires Cisco ISE integration.
