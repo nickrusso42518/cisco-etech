@@ -486,7 +486,7 @@ that a change was made, and in Ansible land, that means notifying handlers and
 other useful activities.
 
 \begin{minted}{text}
-[centos@devbox netconf]$ ansible-playbook nc_update.yml
+[centos@devbox netconf]# ansible-playbook nc_update.yml
 
 PLAY [Infrastructure-as-code using NETCONF] *******************************
 
@@ -501,7 +501,7 @@ Run the playbook once more and the task reports \verb|ok|, implying that there
 were no necessary changes since the state did not change.
 
 \begin{minted}{text}
-[centos@devbox netconf]$ ansible-playbook nc_update.yml
+[centos@devbox netconf]# ansible-playbook nc_update.yml
 
 PLAY [Infrastructure-as-code using NETCONF] *******************************
 
@@ -587,7 +587,7 @@ Running this playbook grabs the VRF configuration as represented by YANG
 and encoded as XML data.
 
 \begin{minted}{text}
-[centos@devbox netconf]$ ansible-playbook nc_get.yml
+[centos@devbox netconf]# ansible-playbook nc_get.yml
 
 PLAY [Update VRF state via NETCONF] **********************************
 
@@ -616,7 +616,7 @@ can use these NETCONF captures as a way of doing configuration state
 backups also.
 
 \begin{minted}{text}
-[centos@devbox netconf]$ cat vrf_configs/csr1_netconf.xml
+[centos@devbox netconf]# cat vrf_configs/csr1_netconf.xml
 \end{minted}
 
 \begin{minted}{xml}
@@ -763,7 +763,7 @@ It is possible that Cisco will update their RESTCONF API to include this
 in the future.
 
 \begin{minted}{text}
-[centos@devbox restconf]$ ansible-playbook rc_update.yml
+[centos@devbox restconf]# ansible-playbook rc_update.yml
 
 PLAY [Infrastructure-as-code using RESTCONF] ******************************
 
@@ -847,7 +847,7 @@ Quickly run the playbook to gather the current VRF state and store it
 as a JSON file.
 
 \begin{minted}{text}
-[centos@devbox restconf]$ ansible-playbook rc_get.yml
+[centos@devbox restconf]# ansible-playbook rc_get.yml
 
 PLAY [Collect VRF config with RESTCONF] ***********************************
 
@@ -871,7 +871,7 @@ is easier, and pass the result into Ansible to manage your infrastructure
 as code using JSON instead of CLI commands.
 
 \begin{minted}{text}
-[centos@devbox restconf]$ cat vrf_configs/csr1_restconf.json
+[centos@devbox restconf]# cat vrf_configs/csr1_restconf.json
 \end{minted}
 
 \begin{minted}{json}
@@ -962,13 +962,13 @@ or newer and Nornir 2.0.0 or newer. The Linux and Cisco CSR1000v versions are
 the same as those shown in the previous Ansible demonstration, and thus are not repeated.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ python3 --version
+[ec2-user@devbox ~]# python3 --version
 Python 3.6.5
 
-[ec2-user@devbox ~]$ python3 -m pip install nornir
+[ec2-user@devbox ~]# python3 -m pip install nornir
 [snip, installation output]
 
-[ec2-user@devbox nornir-test]$ python3 -m pip list | grep nornir
+[ec2-user@devbox nornir-test]# python3 -m pip list | grep nornir
 nornir (2.0.0)
 \end{minted}
 
@@ -1070,7 +1070,7 @@ simple method is great for troubleshooting but often times, programmers will
 have to perform specific actions on specific pieces of data.
 
 \begin{minted}{text}
-[ec2-user@devbox nornir-test]$ python3 get_facts_ios.py 
+[ec2-user@devbox nornir-test]# python3 get_facts_ios.py 
 
 napalm_get**************************************************************
 * csr1000v ** changed : False ******************************************
@@ -1334,7 +1334,7 @@ sequence-number services to be enabled, and needed to have the PAD service
 disabled, per the diff included in the output.
 
 \begin{minted}{text}
-[ec2-user@devbox nornir-test]$ python3 manage_router_ios.py
+[ec2-user@devbox nornir-test]# python3 manage_router_ios.py
 
 manage_router***********************************************************
 * csr1000v ** changed : True ***************************************************
@@ -1364,7 +1364,7 @@ changes from \verb|True| in the previous output to \verb|False| below. No diff
 is supplied as a result.
 
 \begin{minted}{text}
-[ec2-user@devbox nornir-test]$ python3 manage_router_ios.py
+[ec2-user@devbox nornir-test]# python3 manage_router_ios.py
 
 manage_router***********************************************************
 * csr1000v ** changed : False **************************************************
@@ -1394,7 +1394,7 @@ diff returned by NAPALM from the second task, an indicator that our network
 hasn't experienced any changes since the last Nornir run.
 
 \begin{minted}{text}
-[ec2-user@devbox nornir-test]$ python3 manage_router_ios.py
+[ec2-user@devbox nornir-test]# python3 manage_router_ios.py
 > /home/ec2-user/nornir-test/manage_router_ios.py(31)main()
 -> print_result(from_tasks)
 
@@ -1443,7 +1443,7 @@ modular and readable. The example below was written in Python 3.5.2 and
 the name of the file is \verb|VectorPair.py|.
 
 \begin{minted}{text}
-Nicholass-MBP:min-scalar-prod nicholasrusso$ python3 --version
+Nicholass-MBP:min-scalar-prod nicholasrusso# python3 --version
 Python 3.5.2
 \end{minted}
 
@@ -1499,7 +1499,7 @@ the repository is up to date as no changes have been made. It explores git at
 a very basic level and does not include branches, forks, pull requests, etc.
 
 \begin{minted}{text}
-Nicholass-MBP:min-scalar-prod nicholasrusso$ git status
+Nicholass-MBP:min-scalar-prod nicholasrusso# git status
 On branch master
 Your branch is up-to-date with 'origin/master'.
 nothing to commit, working directory clean
@@ -1508,12 +1508,12 @@ nothing to commit, working directory clean
 The verbiage of a comment relating to the constructor method is now changed.
 
 \begin{minted}{text}
-Nicholass-MBP:min-scalar-prod nicholasrusso$ grep Constructor VectorPair.py
+Nicholass-MBP:min-scalar-prod nicholasrusso# grep Constructor VectorPair.py
     Constructor takes in the vector length and two vectors.
 
 ### OPEN THE TEXT EDITOR AND MAKE CHANGES (NOT SHOWN) ###
 
-Nicholass-MBP:min-scalar-prod nicholasrusso$ grep Constructor VectorPair.py
+Nicholass-MBP:min-scalar-prod nicholasrusso# grep Constructor VectorPair.py
     Constructor takes in two vectors and the vector length.
 \end{minted}
 
@@ -1523,7 +1523,7 @@ The \verb|changes not staged for commit| indicates that the files are
 not currently in the staging area.
 
 \begin{minted}{text}
-Nicholass-MBP:min-scalar-prod nicholasrusso$ git status
+Nicholass-MBP:min-scalar-prod nicholasrusso# git status
 On branch master
 Your branch is up-to-date with 'origin/master'.
 Changes not staged for commit:
@@ -1540,9 +1540,9 @@ commitment to the repository. The \verb|changes to be committed| verbiage
 word from the terminal indicates this.
 
 \begin{minted}{text}
-Nicholass-MBP:min-scalar-prod nicholasrusso$ git add VectorPair.py
+Nicholass-MBP:min-scalar-prod nicholasrusso# git add VectorPair.py
 
-Nicholass-MBP:min-scalar-prod nicholasrusso$ git status
+Nicholass-MBP:min-scalar-prod nicholasrusso# git status
 On branch master
 Your branch is up-to-date with 'origin/master'.
 Changes to be committed:
@@ -1559,11 +1559,11 @@ locally for some time. This is why git is considered a ``distributed'' version
 control system.
 
 \begin{minted}{text}
-Nicholass-MBP:min-scalar-prod nicholasrusso$ git commit -m "evolving tech comment update"
+Nicholass-MBP:min-scalar-prod nicholasrusso# git commit -m "evolving tech comment update"
 [master 74ed39a] evolving tech comment update
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-Nicholass-MBP:min-scalar-prod nicholasrusso$ git status
+Nicholass-MBP:min-scalar-prod nicholasrusso# git status
 On branch master
 Your branch is ahead of 'origin/master' by 1 commit.
   (use "git push" to publish your local commits)
@@ -1575,7 +1575,7 @@ this is complete, the \verb|git status| utility informs us that there are no
 longer any changes.
 
 \begin{minted}{text}
-Nicholass-MBP:min-scalar-prod nicholasrusso$ git push -u
+Nicholass-MBP:min-scalar-prod nicholasrusso# git push -u
 Counting objects: 4, done.
 Delta compression using up to 8 threads.
 Compressing objects: 100% (4/4), done.
@@ -1586,7 +1586,7 @@ To https://github.com/nickrusso42518/google-codejam.git
    e8d0c54..74ed39a  master -> master
 Branch master set up to track remote branch master from origin.
 
-Nicholass-MBP:min-scalar-prod nicholasrusso$ git status
+Nicholass-MBP:min-scalar-prod nicholasrusso# git status
 On branch master
 Your branch is up-to-date with 'origin/master'.
 nothing to commit, working directory clean
@@ -1639,7 +1639,7 @@ HTTPS\@. While the repository is empty, this establishes successful connectivity
 with AWS CodeCommit.
 
 \begin{minted}{text}
-Nicholass-MBP:projects nicholasrusso$ git clone \
+Nicholass-MBP:projects nicholasrusso# git clone \
 >  https://git-codecommit.us-east-1.amazonaws.com/v1/repos/awsgit
 Cloning into 'awsgit'...
 Username for 'https://git-codecommit.us-east-1.amazonaws.com': nrusso-at-043535020805
@@ -1647,8 +1647,8 @@ Password for 'https://nrusso-at-043535020805@git-codecommit.us-east-1.amazonaws.
 warning: You appear to have cloned an empty repository.
 Checking connectivity... done.
 
-Nicholass-MBP:projects nicholasrusso$ ls -l awsgit/
-Nicholass-MBP:projects nicholasrusso$
+Nicholass-MBP:projects nicholasrusso# ls -l awsgit/
+Nicholass-MBP:projects nicholasrusso#
 \end{minted}
 
 Change into the directory and check the Git remote repositories. The AWS
@@ -1657,12 +1657,12 @@ the clone operation. We can tell this is a Git repository since it contains
 the \verb|.git| hidden folder.
 
 \begin{minted}{text}
-Nicholass-MBP:projects nicholasrusso$ cd awsgit/
-Nicholass-MBP:awsgit nicholasrusso$ git remote -v
+Nicholass-MBP:projects nicholasrusso# cd awsgit/
+Nicholass-MBP:awsgit nicholasrusso# git remote -v
 origin https://git-codecommit.us-east-1.amazonaws.com/v1/repos/awsgit (fetch)
 origin https://git-codecommit.us-east-1.amazonaws.com/v1/repos/awsgit (push)
 
-Nicholass-MBP:awsgit nicholasrusso$ ls -la
+Nicholass-MBP:awsgit nicholasrusso# ls -la
 total 0
 drwxr-xr-x   3 nicholasrusso  staff  102 May  5 14:45 .
 drwxr-xr-x   8 nicholasrusso  staff  272 May  5 14:45 ..
@@ -1693,14 +1693,14 @@ it to the local repository, then push it to AWS CodeCommit repository called
 \verb|awsgit|.
 
 \begin{minted}{text}
-Nicholass-MBP:awsgit nicholasrusso$ git add .
+Nicholass-MBP:awsgit nicholasrusso# git add .
 
-Nicholass-MBP:awsgit nicholasrusso$ git commit -m "added readme"
+Nicholass-MBP:awsgit nicholasrusso# git commit -m "added readme"
 [master (root-commit) 99bfff2] added readme
  1 file changed, 12 insertions(+)
  create mode 100644 README.md
 
-Nicholass-MBP:awsgit nicholasrusso$ git push -u origin master
+Nicholass-MBP:awsgit nicholasrusso# git push -u origin master
 Counting objects: 3, done.
 Delta compression using up to 8 threads.
 Compressing objects: 100% (2/2), done.
@@ -1800,7 +1800,7 @@ could have been to use \verb|pytest| but using the \verb|unittest| strategy
 is just as effective.
 
 \begin{minted}{text}
-Nicholass-MBP:awsgit nicholasrusso$ python runtest.py
+Nicholass-MBP:awsgit nicholasrusso# python runtest.py
 ...
 ----------------------------------------------------------------------
 Ran 3 tests in 0.970s
@@ -2207,3 +2207,449 @@ Tortoise SVN plugin is a good option
 \bottomrule
 \caption{Git and SVN Comparison}
 \end{longtable}
+
+\subsubsection{Network Validation with Batfish}
+Given a set of network configurations, can you determine how the network
+will behave? In the context of CI/CD, engineers will frequently spin up
+virtual instances dynamically, interconnect them according to the topological
+specifications, then load the configurations. Once complete, some automated
+script will test for compliance on the simulated devices. While powerful, this
+approach can be time consuming, resource intensive, and complex to build.
+Batfish offers a comparable capability except operates offline, ingesting
+configurations and inferring the network's behavior sans simulation. Batfish
+is a great ``first step'' in a network test pipeline to catch any errors before
+the simulations begin. In some environments, Batfish alone may be adequate to
+determine the validity of a network, depending on the organizational goals.
+
+The public documentation for Batfish is clear and concise. This demonstration
+focuses primary on Batfish with Python using \verb|pybatfish|, linked
+\href{https://pybatfish.readthedocs.io/en/latest/}{here}. The first several
+steps are straightforward and leverage technologies discussed elsewhere in
+this book, such as Python virtual environments and Docker containers. After
+creating a new \verb|venv| for Batfish testing, install the \verb|pybatfish|
+package. This provides a client interface into the Batfish server, which is
+downloaded and run using Docker on the local development machine.
+
+\begin{minted}{text}
+[ec2-user@devbox bf]# cat snmp.yml 
+[ec2-user@devbox bf]# python3.6 -m venv ~/environments/batfish
+[ec2-user@devbox bf]# source ~/environments/batfish/bin/activate
+
+[ec2-user@devbox bf]# pip install pybatfish
+Collecting pybatfish
+  Downloading https: (snip)
+Successfully installed pybatfish-2020.10.8.667 (snip)
+
+[ec2-user@devbox bf]# sudo docker pull batfish/allinone
+Using default tag: latest
+latest: Pulling from batfish/allinone
+(snip)
+Status: Downloaded newer image for batfish/allinone:latest
+docker.io/batfish/allinone:latest
+
+[ec2-user@devbox bf]# sudo docker run --name batfish \
+  -v batfish-data:/data \
+  -p 8888:8888 -p 9997:9997 -p 9996:9996 \
+  -d batfish/allinone
+be9782adbd7e5ec64(snip)
+\end{minted}
+
+In a production environment, one might leverage Kubernetes to maintain
+several pods, each of which runs one instance of Batfish, to provide
+increased scale and availability. Putting all of the Batfish pods behind
+a common Kubernetes service (effectively a DNS hostname) is one approach
+to building an enterprise-grade Batfish deployment. In the interest
+of simplicity, this demo will employ Batfish to analyze two large OSPF
+networks. These are Cisco Live presentations that I've delivered in the
+past and each one has roughly 20 network devices. The
+\href{https://github.com/nickrusso42518/ospf_brkrst3310}{BRKRST-3310}
+session focuses on troubleshooting and automation while the
+\href{https://github.com/nickrusso42518/ospf_digrst2337}{DIGRST-2337}
+session focuses on design and deployment. The hyperlinks lead to the
+configuration repositories for each session. Those repositories are
+cloned from GitHub below.
+
+\begin{minted}{text}
+[ec2-user@devbox bf]# git clone https://github.com/nickrusso42518/ospf_brkrst3310.git
+Cloning into 'ospf_brkrst3310'...
+remote: Enumerating objects: 133, done.
+remote: Total 133 (delta 0), reused 0 (delta 0), pack-reused 133
+Receiving objects: 100% (133/133), 342.87 KiB | 0 bytes/s, done.
+Resolving deltas: 100% (90/90), done.
+
+[ec2-user@devbox bf]# git clone https://github.com/nickrusso42518/ospf_digrst2337.git
+Cloning into 'ospf_digrst2337'...
+remote: Enumerating objects: 45, done.
+remote: Counting objects: 100% (45/45), done.
+remote: Compressing objects: 100% (22/22), done.
+remote: Total 45 (delta 27), reused 41 (delta 23), pack-reused 0
+Unpacking objects: 100% (45/45), done.
+\end{minted}
+
+Batfish consumes information by encapsulating the relevant data into
+``snapshots''. A snapshot is represented on the filesystem as a
+hierarchical directory structure with a variety of subdirectories. The
+only relevant directory in this demo is \verb|configs/| which contains
+network device configurations using \verb|.cfg| file extensions. The
+files in my repository use \verb|.txt|, so after copying them, let's
+rename them appropriately to be compliant with the documentation.
+
+\begin{minted}{text}
+[ec2-user@devbox bf]# mkdir -p snapshots/brkrst3310/configs
+[ec2-user@devbox bf]# cp ospf_brkrst3310/final-configs/*.txt snapshots/brkrst3310/configs/
+[ec2-user@devbox bf]# rename .txt .cfg snapshots/brkrst3310/configs/*.txt
+[ec2-user@devbox bf]# ls -1 snapshots/brkrst3310/configs/
+R10.cfg
+R11.cfg
+R12.cfg
+(snip)
+\end{minted}
+
+The output below reveals the full tree structure. The snapshot directory
+is named \verb|brkrst3310| and the \verb|configs/| subdirectory contains
+all of the network device configurations. To add additional snapshots for
+other networks, simply create a new directory under the \verb|snapshots/|
+parent directory. For now, ignore the other (empty) directories.
+
+\begin{minted}{text}
+[ec2-user@devbox bf]# tree snapshots/ --charset==ascii
+snapshots/
+`-- brkrst3310
+    |-- batfish
+    |-- configs
+    |   |-- R10.cfg
+    |   |-- R11.cfg
+    (snip)
+    |   |-- R8.cfg
+    |   `-- R9.cfg
+    |-- hosts
+    `-- iptables
+\end{minted}
+
+Next, let's write some Python code to interact with the local Batfish server.
+The full script is shown below and is well-commented. In summary, the script
+takes in a single command-line argument, which should match the name of the
+snapshot directory (``brkrst3310'' in this case). The code connects to the
+Batfish server, initializes a snapshot from the proper directory, then asks
+a series of OSPF-related questions. A ``question'' is the mechanism by which
+an engineer tasks Batfish. Batfish will ``answer'' the question and return a
+\verb|pandas| data frame, commonly used for data manipulation and analysis.
+The script converts the \verb|pandas| data frame into three common file
+formats: JSON, HTML, and CSV\@. These three are used for demonstration only;
+many additional formats are available per the \verb|pandas| documentation.
+
+\begin{minted}{text}
+[ec2-user@devbox bf]# cat bf.py
+\end{minted}
+
+\begin{minted}{python}
+#!/usr/bin/env python
+
+"""
+Author: Nick Russo
+Purpose: Tests Batfish on sample Cisco Live sessions focused
+on the OSPF routing protocol using archived configurations.
+"""
+
+import sys
+import json
+from pybatfish.client.commands import *
+from pybatfish.question import bfq, load_questions
+
+def main(directory):
+    """
+    Tests Batfish logic on a specific snapshot directory.
+    """
+
+    # Perform basic initialization per documentation
+    bf_session.host = "localhost"
+    bf_set_network(directory)
+    bf_init_snapshot(f"snapshots/{directory}", name=directory, overwrite=True)
+    load_questions()
+
+    # Identify the questions to ask (not calling methods yet)
+    bf_questions = {
+        "proc": bfq.ospfProcessConfiguration,
+        "intf": bfq.ospfInterfaceConfiguration,
+        "area": bfq.ospfAreaConfiguration,
+    }
+
+    # Unpack dictionary tuples and iterate over them
+    for short_name, bf_question in bf_questions.items():
+
+        # Ask the question and store the response pandas frame
+        pandas_frame = bf_question().answer().frame()
+
+        # Assemble the generic file name prefix
+        file_name = f"outputs/{short_name}_{directory}"
+
+        # Generate JSON data for programmatic consumption
+        json_data = json.loads(pandas_frame.to_json(orient="records"))
+        with open(f"{file_name}.json", "w") as handle:
+            json.dump(json_data, handle, indent=2)
+
+        # Generate HTML data for web browser viewing
+        html_data = pandas_frame.to_html()
+        with open(f"{file_name}.html", "w") as handle:
+            handle.write(html_data)
+
+        # Generate CSV data using pipe separator (bf data has commas)
+        csv_data = pandas_frame.to_csv(sep="|")
+        with open(f"{file_name}.csv", "w") as handle:
+            handle.write(csv_data)
+
+if __name__ == "__main__":
+    # Check for at least 2 CLI args; fail if absent
+    if len(sys.argv) < 2:
+        print("usage: python bf.py <snapshot_dir_name>")
+        sys.exit(1)
+
+    # Snapshot directory was specified; pass it into main
+    else:
+        main(sys.argv[1])
+\end{minted}
+
+You'll notice that the script writes all artifacts to the \verb|outputs/|
+directory, so we'll quickly create that first. Then, we'll run the
+\verb|bf.py| script, passing in ``brkrst3310'' as a CLI argument. By default,
+Batfish logs its actions to the console for easy troubleshooting.
+
+\begin{minted}{text}
+[ec2-user@devbox bf]# mkdir outputs
+[ec2-user@devbox bf]# python bf.py brkrst3310
+status: TRYINGTOASSIGN
+.... no task information
+status: ASSIGNED
+.... 2020-12-20 14:42:22.439000+00:00 Parse network configs 0 / 19.
+status: ASSIGNED
+.... 2020-12-20 14:42:22.439000+00:00 Convert configurations
+  to vendor-independent format 1 / 20.
+status: TERMINATEDNORMALLY
+.... 2020-12-20 14:42:22.439000+00:00 Deserializing objects of type
+  'org.batfish.datamodel.Configuration' from files 19 / 19.
+Default snapshot is now set to brkrst3310
+status: TRYINGTOASSIGN
+.... no task information
+status: CHECKINGSTATUS
+.... no task information
+status: TERMINATEDNORMALLY
+.... 2020-12-20 14:42:22.955000+00:00 Parse environment BGP tables.
+Successfully loaded 65 questions from remote
+Successfully loaded 65 questions from remote
+status: TRYINGTOASSIGN
+.... no task information
+status: CHECKINGSTATUS
+.... no task information
+status: TERMINATEDNORMALLY
+.... 2020-12-20 14:42:23.356000+00:00 Begin job.
+status: TRYINGTOASSIGN
+.... no task information
+status: TERMINATEDNORMALLY
+.... 2020-12-20 14:42:23.674000+00:00 Begin job.
+status: ASSIGNED
+.... no task information
+status: TERMINATEDNORMALLY
+.... 2020-12-20 14:42:23.833000+00:00 Begin job.
+\end{minted}
+
+After a few seconds, the script completes, and the \verb|outputs/| directory
+contains 9 new files (3 questions asked * 3 output formats). The script asked
+Batfish for OSPF area, interface, and process information specifically. The
+full list of supported Batfish questions is listed in the documentation.
+
+\begin{minted}{text}
+[ec2-user@devbox bf]# ls -1 outputs/
+area_brkrst3310.csv
+area_brkrst3310.html
+area_brkrst3310.json
+intf_brkrst3310.csv
+intf_brkrst3310.html
+intf_brkrst3310.json
+proc_brkrst3310.csv
+proc_brkrst3310.html
+proc_brkrst3310.json
+\end{minted}
+
+We'll examine one of each file corresponding to one of each feature. Starting
+with the OSPF area JSON file, we see a list of dictionaries. Each dictionary
+describes a different OSPF area from the perspective of a network device.
+In this case, Batfish says R6 has area 4 configured as an NSSA\@. R4 also has
+three interfaces in that area, one of which is passive. Regarding R2, it
+has area 1 configured as a standard area with only one active interface
+participating in that area. All of these statements are true; you can
+check the GitHub configurations or topology diagram yourself if you like.
+
+\begin{minted}{text}
+[ec2-user@devbox bf]# head -n 26 outputs/area_brkrst3310.json
+\end{minted}
+
+\begin{minted}{json}
+[
+  {
+    "Node": "r6",
+    "VRF": "default",
+    "Process_ID": "1",
+    "Area": "4",
+    "Area_Type": "NSSA",
+    "Active_Interfaces": [
+      "Ethernet0/0",
+      "Serial1/1"
+    ],
+    "Passive_Interfaces": [
+      "Loopback0"
+    ]
+  },
+  {
+    "Node": "r2",
+    "VRF": "default",
+    "Process_ID": "1",
+    "Area": "1",
+    "Area_Type": "NONE",
+    "Active_Interfaces": [
+      "Ethernet0/0"
+    ],
+    "Passive_Interfaces": []
+  },
+\end{minted}
+
+Next, let's examine the OSPF interface HTML file. This uses a table format to
+represent the data, making it easy to view for non-technical people to view
+using their web browsers. The beginning of the file identifies the column
+names and includes common OSPF interface-level parameters.
+
+\begin{minted}{text}
+[ec2-user@devbox bf]# head -n 15 outputs/intf_brkrst3310.html
+\end{minted}
+
+\begin{minted}{html}
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Interface</th>
+      <th>VRF</th>
+      <th>Process_ID</th>
+      <th>OSPF_Area_Name</th>
+      <th>OSPF_Enabled</th>
+      <th>OSPF_Passive</th>
+      <th>OSPF_Cost</th>
+      <th>OSPF_Network_Type</th>
+      <th>OSPF_Hello_Interval</th>
+      <th>OSPF_Dead_Interval</th>
+    </tr>
+\end{minted}
+
+Rather than scrub the file, it makes more sense to examine a web browser
+screenshot as shown below. Some rows have been deleted for brevity.
+Because the table is very wide and will be hard to read in this book, the
+author has manually shortened some column names. At a glance, the data
+looks correct, as all Ethernet interfaces in the topology typically have
+a cost of 10, use standard OSPF hello/dead timers, are not passive
+(i.e., links between devices), and use the P2P network type.
+
+\addimg{batfish-html.png}{0.8}{Batfish pandas Data Frame in HTML Format}
+
+Last, let's examine the OSPF process CSV file. Using the \verb|column|
+command, an engineer can view a tabular file without needing a spreadsheet
+application. Note that this particular ``answer'' embeds commas in the data,
+so the Python script used the pipe (\verb:|:) character instead. Again, the
+author has shortened some column names to keep the table clean. Like the JSON
+and HTML files, this data is correct per the network topology.
+
+\begin{minted}{text}
+[ec2-user@devbox bf]# column -s'|' -t outputs/proc_brkrst3310.csv | less -S
+
+Node  vrf      PID  Areas      Reference_BW  Router_ID  Export_Policy_Sources  ABR
+r13   default  1    [3]        100000000.0   10.0.0.13  []                     False
+r6    default  1    [4]        100000000.0   10.0.0.6   ['RM_EIGRP_TO_OSPF']   False
+r15   default  1    [2]        100000000.0   10.0.0.15  []                     False
+r4    default  1    [0, 1, 4]  100000000.0   10.0.0.4   []                     True
+r7    default  1    [4]        100000000.0   10.0.0.7   ['RM_EIGRP_TO_OSPF']   False
+r14   default  1    [0, 3]     100000000.0   10.0.0.14  []                     True
+r16   default  1    [2]        100000000.0   10.0.0.16  []                     False
+r11   default  1    [0, 1]     100000000.0   10.0.0.11  []                     True
+r2    default  1    [0, 1]     100000000.0   10.0.0.2   []                     True
+r10   default  1    [0, 1]     100000000.0   10.0.0.10  []                     True
+r5    default  1    [0, 4]     100000000.0   10.0.0.5   []                     True
+r12   default  1    [3]        100000000.0   10.0.0.12  []                     False
+r19   default  1    [1]        100000000.0   10.0.0.19  []                     False
+r3    default  1    [0, 2]     100000000.0   10.0.0.3   []                     True
+r9    default  1    [0]        100000000.0   10.0.0.9   []                     False
+r1    default  1    [0, 3]     100000000.0   10.0.0.1   []                     True
+\end{minted}
+
+The advantage of writing a general-purpose script to test Batfish is that
+you can pass in a variety of snapshot names. Let's run another quick
+test using the second OSPF-focused Cisco Live session we cloned earlier.
+The output below reviews the basic process for seeding a snapshot with
+the proper directories and files.
+
+\begin{minted}{text}
+[ec2-user@devbox bf]# mkdir snapshots/digrst2337/configs/  (snip; make other dirs too)
+[ec2-user@devbox bf]# cp ospf_digrst2337/configs/*.txt snapshots/digrst2337/configs/
+[ec2-user@devbox bf]# rename .txt .cfg snapshots/digrst2337/configs/*.txt
+[ec2-user@devbox bf]# tree snapshots/ --charset==ascii
+snapshots/
+|-- brkrst3310
+|   |-- batfish
+|   |-- configs
+|   |   |-- R10.cfg
+|   |   |-- R11.cfg
+|   (snip)
+|   |   |-- R8.cfg
+|   |   `-- R9.cfg
+|   |-- hosts
+|   `-- iptables
+`-- digrst2337
+    |-- batfish
+    |-- configs
+    |   |-- R10.cfg
+    |   |-- R11.cfg
+    (snip)
+    |   |-- R8.cfg
+    |   `-- R9.cfg
+    |-- hosts
+    `-- iptables
+\end{minted}
+
+Then, run the \verb|bf.py| script and pass in ``digrst2337'', the directory
+name, as a command-line argument. Some output has been omitted for brevity.
+
+\begin{minted}{text}
+[ec2-user@devbox bf]# python bf.py digrst2337
+status: TRYINGTOASSIGN
+.... no task information
+status: ASSIGNED
+.... 2020-12-20 14:56:39.149000+00:00 Begin job.
+status: ASSIGNED
+.... 2020-12-20 14:56:39.149000+00:00 Parse network configs 1 / 20.
+status: ASSIGNED
+.... 2020-12-20 14:56:39.149000+00:00 Parse network configs 2 / 20.
+(snip)
+status: TERMINATEDNORMALLY
+.... 2020-12-20 14:56:43.849000+00:00 Begin job.
+\end{minted}
+
+Last, review the output files generated by the script as it relates to
+the specified snapshot. For those interested in scrubbing the data in
+greater depth, all of these files have been uploaded to their respective
+Cisco Live GitHub repositories in the \verb|batfish_answers/| directory.
+
+\begin{minted}{text}
+[ec2-user@devbox bf]# ls -1 outputs/*2337*
+outputs/area_digrst2337.csv
+outputs/area_digrst2337.html
+outputs/area_digrst2337.json
+outputs/intf_digrst2337.csv
+outputs/intf_digrst2337.html
+outputs/intf_digrst2337.json
+outputs/proc_digrst2337.csv
+outputs/proc_digrst2337.html
+outputs/proc_digrst2337.json
+\end{minted}
+
+As a final note, Batfish has uses beyond just network configuration analysis.
+As evidenced by the empty directories above, it can trace traffic flows between
+hosts, even with complex \verb|iptables| rulesets. More recently, it can
+analyze Amazon Web Services (AWS) architectures within a Virtual Private
+Cloud (VPC) instance.
