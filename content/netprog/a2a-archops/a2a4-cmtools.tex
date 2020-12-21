@@ -2213,12 +2213,12 @@ Given a set of network configurations, can you determine how the network
 will behave? In the context of CI/CD, engineers will frequently spin up
 virtual instances dynamically, interconnect them according to the topological
 specifications, then load the configurations. Once complete, some automated
-script will test for compliance on the simulated devices. While powerful, this
+script will test for compliance on the emulated devices. While powerful, this
 approach can be time consuming, resource intensive, and complex to build.
 Batfish offers a comparable capability except operates offline, ingesting
-configurations and inferring the network's behavior sans simulation. Batfish
+configurations and inferring the network's behavior sans emulation. Batfish
 is a great ``first step'' in a network test pipeline to catch any errors before
-the simulations begin. In some environments, Batfish alone may be adequate to
+the emulations begin. In some environments, Batfish alone may be adequate to
 determine the validity of a network, depending on the organizational goals.
 
 The public documentation for Batfish is clear and concise. This demonstration
@@ -2290,18 +2290,19 @@ Batfish consumes information by encapsulating the relevant data into
 ``snapshots''. A snapshot is represented on the filesystem as a
 hierarchical directory structure with a variety of subdirectories. The
 only relevant directory in this demo is \verb|configs/| which contains
-network device configurations using \verb|.cfg| file extensions. The
-files in the repository use \verb|.txt|, so after copying them, let's
-rename them appropriately to be compliant with the documentation.
+network device configurations (Batfish does not care about file extensions).
+More generally, a snapshot is a collection of configurations for a given
+network at a given point in time. Batfish can operate on multiple networks
+independently, each with many snapshots. Within a given network, you can
+analyze the differences between any pair of snapshots.
 
 \begin{minted}{text}
 [ec2-user@devbox bf]# mkdir -p snapshots/brkrst3310/configs
 [ec2-user@devbox bf]# cp ospf_brkrst3310/final-configs/*.txt snapshots/brkrst3310/configs/
-[ec2-user@devbox bf]# rename .txt .cfg snapshots/brkrst3310/configs/*.txt
 [ec2-user@devbox bf]# ls -1 snapshots/brkrst3310/configs/
-R10.cfg
-R11.cfg
-R12.cfg
+R10.txt
+R11.txt
+R12.txt
 (snip)
 \end{minted}
 
@@ -2317,11 +2318,11 @@ snapshots/
 `-- brkrst3310
     |-- batfish
     |-- configs
-    |   |-- R10.cfg
-    |   |-- R11.cfg
+    |   |-- R10.txt
+    |   |-- R11.txt
     (snip)
-    |   |-- R8.cfg
-    |   `-- R9.cfg
+    |   |-- R8.txt
+    |   `-- R9.txt
     |-- hosts
     `-- iptables
 \end{minted}
@@ -2354,8 +2355,15 @@ on the OSPF routing protocol using archived configurations.
 
 import sys
 import json
+import pandas
 from pybatfish.client.commands import *
 from pybatfish.question import bfq, load_questions
+
+# Global pandas formatting for string display
+pandas.set_option("display.width", 1000)
+pandas.set_option("display.max_columns", 20)
+pandas.set_option("display.max_rows", 1000)
+pandas.set_option("display.max_colwidth", -1)
 
 def main(directory):
     """
@@ -2635,27 +2643,26 @@ the proper directories and files.
 \begin{minted}{text}
 [ec2-user@devbox bf]# mkdir snapshots/digrst2337/configs/  (snip; make other dirs too)
 [ec2-user@devbox bf]# cp ospf_digrst2337/configs/*.txt snapshots/digrst2337/configs/
-[ec2-user@devbox bf]# rename .txt .cfg snapshots/digrst2337/configs/*.txt
 [ec2-user@devbox bf]# tree snapshots/ --charset==ascii
 snapshots/
 |-- brkrst3310
 |   |-- batfish
 |   |-- configs
-|   |   |-- R10.cfg
-|   |   |-- R11.cfg
+|   |   |-- R10.txt
+|   |   |-- R11.txt
 |   (snip)
-|   |   |-- R8.cfg
-|   |   `-- R9.cfg
+|   |   |-- R8.txt
+|   |   `-- R9.txt
 |   |-- hosts
 |   `-- iptables
 `-- digrst2337
     |-- batfish
     |-- configs
-    |   |-- R10.cfg
-    |   |-- R11.cfg
+    |   |-- R10.txt
+    |   |-- R11.txt
     (snip)
-    |   |-- R8.cfg
-    |   `-- R9.cfg
+    |   |-- R8.txt
+    |   `-- R9.txt
     |-- hosts
     `-- iptables
 \end{minted}
