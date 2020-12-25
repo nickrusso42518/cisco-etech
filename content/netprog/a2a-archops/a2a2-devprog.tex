@@ -22,7 +22,7 @@ which means the server does not store session information for individual
 flows; REST API calls retain this stateless functionality as well. This allows
 for seamless REST operation across HTTP proxies and gateways.
 
-\subsubsection{Google Remote Procedure Call (gRPC) on IOS-XR}
+\subsubsection{Google Remote Procedure Call (gRPC) on IOS-XR using iosxr\_grpc}
 Google defined gRPC as gRPC Remote Procedure Call framework, borrowing the
 idea of recursive acronyms popular in the open source world. The RPC concept
 is not a new one; Distributed Component Object Model (DCOM) from Microsoft has
@@ -424,7 +424,7 @@ checking the return code indicates it succeeded.
 >  -r merge-config --file json/merge.json
 
 \begin{minted}{text}
-[root@devbox examples]# echo $?
+[root@devbox examples]# echo #?
 0
 \end{minted}
 
@@ -481,6 +481,786 @@ _______________________________________________________________
 *************************End of showing statistics*************
 \end{minted}
 
+\subsubsection{gRPC on IOS-XR using grpcio and Manual Compilation}
+The previous section introduced gRPC but masked much of the complexity
+within the \verb|iosxr_grpc| package. Sometimes, individual client libraries
+do not exist, and programmers must generate their own based on a
+\verb|.proto| service defintion file. As discussed earlier, gRPC
+differs from REST because it defines a clear set of operations
+that are supported between client and server. Below is an example
+service definition file for the Cisco IOS-XR router (v6.3.1). The
+\verb|gRPCConfigOper| service describes the RPCs available to the client,
+along with their arguments and return values. The arguments and return
+values are called ``messages'' and are defined later in the file. Most of
+these objects are simple with only a few fields, such as ``yangjson'' or
+``errors''. These \verb|proto| files should be supplied by the vendor;
+in this case, check Cisco's documentation for your current IOS-XR version
+to find the corresponding protocol definition file. This section focuses
+less on basic gRPC enablement and YANG models and more on the
+inner workings of gRPC itself.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# cat xr.proto
+\end{minted}
+
+\begin{minted}{protobuf}
+syntax = "proto3";
+
+package IOSXRExtensibleManagabilityService;
+
+service gRPCConfigOper {
+    rpc GetConfig(ConfigGetArgs) returns(stream ConfigGetReply) {};
+    rpc MergeConfig(ConfigArgs) returns(ConfigReply) {};
+    rpc DeleteConfig(ConfigArgs) returns(ConfigReply) {};
+    rpc ReplaceConfig(ConfigArgs) returns(ConfigReply) {};
+    rpc CliConfig(CliConfigArgs) returns(CliConfigReply) {};
+    rpc CommitReplace(CommitReplaceArgs) returns (CommitReplaceReply) {};
+    rpc CommitConfig(CommitArgs) returns(CommitReply) {};
+    rpc ConfigDiscardChanges(DiscardChangesArgs) returns(DiscardChangesReply) {};
+    rpc GetOper(GetOperArgs) returns(stream GetOperReply) {};
+    rpc CreateSubs(CreateSubsArgs) returns(stream CreateSubsReply) {};
+}
+service gRPCExec {
+    rpc ShowCmdTextOutput(ShowCmdArgs) returns(stream ShowCmdTextReply) {};
+    rpc ShowCmdJSONOutput(ShowCmdArgs) returns(stream ShowCmdJSONReply) {};
+    rpc ActionJSON(ActionJSONArgs) returns(stream ActionJSONReply) {};
+}
+message ConfigGetArgs {
+    int64 ReqId = 1;
+    string yangpathjson = 2;
+}
+message ConfigGetReply {
+    int64 ResReqId = 1;
+    string yangjson = 2;
+    string errors = 3;
+}
+message GetOperArgs {
+    int64 ReqId = 1;
+    string yangpathjson = 2;
+}
+message GetOperReply {
+    int64 ResReqId = 1;
+    string yangjson = 2;
+    string errors = 3;
+}
+message ConfigArgs {
+    int64 ReqId = 1;
+    string yangjson = 2;
+}
+message ConfigReply {
+    int64 ResReqId = 1;
+    string errors = 2;
+}
+message CliConfigArgs {
+    int64 ReqId = 1;
+    string cli = 2;
+}
+message CliConfigReply {
+    int64 ResReqId = 1;
+    string errors = 2;
+}
+message CommitReplaceArgs {
+    int64 ReqId = 1;
+    string cli = 2;
+    string yangjson = 3;
+}
+message CommitReplaceReply {
+    int64 ResReqId = 1;
+    string errors = 2;
+}
+message CommitMsg {
+    string label = 1;
+    string comment = 2;
+}
+enum CommitResult {
+    CHANGE = 0;
+    NO_CHANGE = 1;
+    FAIL = 2;
+}
+message CommitArgs {
+    CommitMsg msg = 1;
+    int64 ReqId = 2;
+}
+message CommitReply {
+    CommitResult result = 1;
+    int64 ResReqId = 2;
+    string errors = 3;
+}
+message DiscardChangesArgs {
+    int64 ReqId = 1;
+}
+message DiscardChangesReply {
+    int64 ResReqId = 1;
+    string errors = 2;
+}
+message ShowCmdArgs {
+    int64 ReqId = 1;
+    string cli = 2;
+}
+message ShowCmdTextReply {
+    int64 ResReqId = 1;
+    string output = 2;
+    string errors = 3;
+}
+message ShowCmdJSONReply {
+    int64 ResReqId = 1;
+    string jsonoutput = 2;
+    string errors = 3;
+}
+message CreateSubsArgs {
+    int64 ReqId = 1;
+    int64 encode = 2;
+    string subidstr = 3;
+}
+message CreateSubsReply {
+    int64 ResReqId = 1;
+    bytes data = 2;
+    string errors = 3;
+}
+message ActionJSONArgs {
+    int64 ReqId = 1;
+    string yangpathjson = 2;
+}
+message ActionJSONReply {
+    int64 ResReqId = 1;
+    string yangjson = 2;
+    string errors = 3;
+}
+\end{minted}
+
+
+
+To get started, we must install two gRPC-related packages which allow us
+to create the required Python code from a gRPC \verb|.proto| file.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# pip install grpcio grpcio-tools
+Collecting grpcio
+Collecting grpcio-tools
+(snip)
+Successfully installed grpcio-1.34.0 grpcio-tools-1.34.0
+\end{minted}
+
+With the proper tools installed, we must ``compile'' the \verb|xr.proto| file
+which yields two output files. One file is \verb|xr_pb2.py| which defines
+the request and response objects, such as \verb|ConfigArgs| and
+\verb|ConfigReply|. These objects represent the input and output data
+structures used by gRPC for a specific platform, providing a clear
+and well-defined contract of communications. The second file is
+\verb|xr_pb2_grpc.py| which defines gRPC client and server interfaces.
+In our case, the server is the IOS-XR device, so we have little use for it
+at present, but it might be useful for CI/CD testing or offline development.
+The compilation process is only one command, but I've created a small Bash
+script to summarize the process and the artifacts.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# cat compile.sh
+#!/bin/bash
+# Compiles the protobuf definition and generates two Python files
+#  1. xr_pb2.py: generated request and response classes
+#  2. xr_pb2_grpc.py: generated client and server classes
+python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. xr.proto
+
+Nicholass-MBP:grpc_xr nicholasrusso# ./compile.sh
+Nicholass-MBP:grpc_xr nicholasrusso#
+\end{minted}
+
+After compilation, the two Python files are present alongside the original
+protobuf-defined service file. We can include these in our Python scripts.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# ls -1 xr*
+xr.proto
+xr_pb2.py
+xr_pb2_grpc.py
+\end{minted}
+
+Let's quickly explore the attributes and methods in each Python module. From
+the Python REPL, we \verb|import xr_pb2| to view the request and response
+objects available. Some unrelated items have been omitted for brevity.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# python
+>>> import xr_pb2
+>>> dir(xr_pb2)
+['ActionJSONArgs', 'ActionJSONReply', 'CliConfigArgs', 'CliConfigReply',
+'CommitArgs', 'CommitMsg', 'CommitReplaceArgs', 'CommitReplaceReply',
+'CommitReply', 'CommitResult', 'ConfigArgs', 'ConfigGetArgs',
+'ConfigGetReply', 'ConfigReply', 'CreateSubsArgs', 'CreateSubsReply',
+'DiscardChangesArgs', 'DiscardChangesReply',  'GetOperArgs', 'GetOperReply',
+'ShowCmdArgs', 'ShowCmdJSONReply', 'ShowCmdTextReply', (snip)]
+\end{minted}
+
+Repeat the process for the second module using \verb|import xr_pb2_grpc|.
+This one contains the client and service interface objects. For our demo,
+the \verb|gRPCConfigOperStub| feature is most important to us.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# python
+>>> import xr_pb2_grpc
+>>> dir(xr_pb2_grpc)
+['gRPCConfigOper', 'gRPCConfigOperServicer', 'gRPCConfigOperStub',
+'gRPCExec', 'gRPCExecServicer', 'gRPCExecStub', (snip)]
+\end{minted}
+
+Next, let's create a simple Python class that exposes a subset of the
+gRPC functionality. We'll limit it to the CRUD operations, allowing
+us to perform a variety of basic configuration management tasks. The
+\verb|__enter__()| and \verb|__exit__()| methods allow instances of this
+class to act as context managers, simplifying the process of connecting
+and disconnecting. As seen earlier in our review of \verb|xr.proto|,
+the \verb|GetConfig| RPC returns a stream of \verb|ConfigGetReply|
+objects, making it slightly different than the other RPCs. The others
+all consume \verb|ConfigArgs| and return \verb|ConfigReply| objects.
+Note that while gRPC helps formalize the client/service communications,
+it still relies on YANG-modeled data, much like NETCONF and RESTCONF\@.
+This is best handled using Python structures (dictionaries, lists, etc.)
+and converting them to strings as required by the gRPC service definition.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# cat cisco_xr_grpc.py
+\end{minted}
+
+\begin{minted}{python}
+#!/usr/bin/env python
+
+"""
+Author: Nick Russo
+Purpose: Define a simple Cisco IOS-XR gRPC interface using OOP.
+"""
+
+import json
+import grpc
+import xr_pb2
+import xr_pb2_grpc
+
+class CiscoXRgRPC:
+    """
+    Define a simple Cisco IOS-XR gRPC interface using OOP.
+    """
+
+    def __init__(self, host, port, username, password):
+        """
+        Create a new object with the specific hostname/IP, gRPC port,
+        username, and password.
+        """
+        self.creds = [("username", username), ("password", password)]
+        self.host = host
+        self.port = port
+
+    def __enter__(self):
+        """
+        Establish a gRPC connection to the device and instantiate the
+        stub object from which RPCs can be issued.
+        """
+        self.channel = grpc.insecure_channel(f"{self.host}:{self.port}")
+        self.stub = xr_pb2_grpc.gRPCConfigOperStub(self.channel)
+        return self
+
+    def __exit__(self, type, value, traceback):
+        """
+        Gracefully close the gRPC connection.
+        """
+        self.channel.close()
+
+    def _make_config_args(self, data):
+        """
+        Internal-only method to create a ConfigArgs object based
+        on a YANG-modeled Python dictionary.
+        """
+        return xr_pb2.ConfigArgs(yangjson=json.dumps(data))
+
+    def get_config(self, yangpathjson_dict):
+        """
+        Issue a GetConfig RPC and transform result into a list of
+        ConfigGetReply objects for each consumption.
+        """
+        responses = self.stub.GetConfig(
+            xr_pb2.ConfigGetArgs(yangpathjson=json.dumps(yangpathjson_dict)),
+            metadata=self.creds,
+        )
+        return [json.loads(resp.yangjson) for resp in responses if resp.yangjson]
+
+    def merge_config(self, yangjson_dict):
+        """
+        Issue a MergeConfig RPC based on the YANG data supplied.
+        """
+        response = self.stub.MergeConfig(
+            self._make_config_args(yangjson_dict), metadata=self.creds
+        )
+        return response
+
+    def replace_config(self, yangjson_dict):
+        """
+        Issue a ReplaceConfig RPC based on the YANG data supplied.
+        """
+        response = self.stub.ReplaceConfig(
+            self._make_config_args(yangjson_dict), metadata=self.creds
+        )
+        return response
+
+    def delete_config(self, yangjson_dict):
+        """
+        Issue a DeleteConfig RPC based on the YANG data supplied.
+        """
+        response = self.stub.DeleteConfig(
+            self._make_config_args(yangjson_dict), metadata=self.creds
+        )
+        return response
+\end{minted}
+
+Next, let's create a test script that leverages this new class. This script
+behaves like a quick-and-dirty CLI tool for testing, providing options for
+GetConfig, MergeConfig, ReplaceConfig, and DeleteConfig operations. The
+\verb|xr1| device is available in a free, publicly-accessible sandbox
+hosted by Cisco DevNet. Readers can replace the credential information
+as required to suit their test environments.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# cat grpc_config.py
+\end{minted}
+
+\begin{minted}{python}
+#!/usr/bin/env python
+
+"""
+Author: Nick Russo
+Purpose: Test the CiscoXRgRPC class using the IOS-XR DevNet sandbox.
+"""
+
+import argparse
+import json
+from cisco_xr_grpc import CiscoXRgRPC
+
+def main(args):
+    """
+    CiscoXRgRPC tests begin here.
+    """
+
+    # Define connectivity information for Cisco DevNet sandbox XR1
+    xr1 = {
+        "host": "10.10.20.70",
+        "port": 57021,
+        "username": "admin",
+        "password": "admin",
+    }
+
+    # Open a new connection to XR1 by unpacking dict into kwargs
+    with CiscoXRgRPC(**xr1) as conn:
+
+        # Issue GetConfig RPC
+        if args.getconfig:
+            vrf_path = {"Cisco-IOS-XR-infra-rsi-cfg:vrfs": [None]}
+            response = conn.get_config(yangpathjson_dict=vrf_path)
+
+            # Response is a list of ConfigGetReply objects
+            for resp in response:
+                for vrf in resp["Cisco-IOS-XR-infra-rsi-cfg:vrfs"]["vrf"]:
+
+                    # Print VRF summary output for simple confirmation. Example:
+                    # VRF name: A / RTI 1:1 RTE 1:1
+                    print(f"VRF name: {vrf['vrf-name']} /", end="")
+                    bgp = vrf["afs"]["af"][0]["Cisco-IOS-XR-ipv4-bgp-cfg:bgp"]
+                    rti = bgp["import-route-targets"]["route-targets"]
+                    rte = bgp["export-route-targets"]["route-targets"]
+                    ihalf = rti["route-target"][0]["as-or-four-byte-as"][0]
+                    ehalf = rte["route-target"][0]["as-or-four-byte-as"][0]
+                    print(f" RTI {ihalf['as']}:{ihalf['as-index']}", end="")
+                    print(f" RTE {ehalf['as']}:{ehalf['as-index']}")
+
+        # Issue MergeConfig RPC
+        if args.mergeconfig:
+            with open("vrf_b.json", "r") as handle:
+                vrf_b = json.load(handle)
+            response = conn.merge_config(yangjson_dict=vrf_b)
+            print(f"Errors: {response.errors if response.errors else 'N/A'}")
+
+        # Issue ReplaceConfig RPC
+        if args.replaceconfig:
+            with open("vrf_b.json", "r") as handle:
+                vrf_b = json.load(handle)
+            response = conn.replace_config(yangjson_dict=vrf_b)
+            print(f"Errors: {response.errors if response.errors else 'N/A'}")
+
+        # Issue DeleteConfig RPC
+        if args.deleteconfig:
+            vrf_b = {
+                "Cisco-IOS-XR-infra-rsi-cfg:vrfs": {"vrf": [{"vrf-name": "B"}]}
+            }
+            response = conn.delete_config(yangjson_dict=vrf_b)
+            print(f"Errors: {response.errors if response.errors else 'N/A'}")
+
+if __name__ == "__main__":
+
+    # Define CLI arguments for Get, Merge, Replace, and Delete operations
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-g", "--getconfig", action="store_true")
+    parser.add_argument("-m", "--mergeconfig", action="store_true")
+    parser.add_argument("-r", "--replaceconfig", action="store_true")
+    parser.add_argument("-d", "--deleteconfig", action="store_true")
+
+    # Pass arguments into the main() function for evaluation
+    main(parser.parse_args())
+\end{minted}
+
+To begin, we'll add VRF A to the router manually using SSH\@. This will
+give us something to collect using \verb|GetConfig|. Keeping things
+simple, each VRF in this demo will only use a single AFI and single
+pair of route-targets.
+
+\begin{minted}{text}
+RP/0/RP0/CPU0:r1#show running-config vrf
+vrf A
+ address-family ipv4 unicast
+  import route-target
+   1:1
+  export route-target
+   1:1
+\end{minted}
+
+Running the script using the \verb|-g| option, this instructs Python
+to connect using gRPC and issue the \verb|GetConfig| RPC\@. The script
+hardcodes the YANG path to \verb|{"Cisco-IOS-XR-infra-rsi-cfg:vrfs": [None]}|
+which collects all VRFs on the device. Each VRF is compressed to a single
+line of over-simplified output for demo purposes.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# python grpc_config.py -g
+VRF name: A / RTI 1:1 RTE 1:1
+\end{minted}
+
+Next, let's add VRF B, a new VRF defined in a JSON file. This structure
+follows the IOS-XR ``native'' YANG model, which is extremely hierarchical.
+The VRF imports and exports route-target 2:2 with no other attributes set.
+You can review the IOS-XR YANG models for your current software version
+\href{https://github.com/YangModels/yang/tree/master/vendor/cisco/xr}{here}.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# cat vrf_b.json
+\end{minted}
+
+\begin{minted}{json}
+{
+  "Cisco-IOS-XR-infra-rsi-cfg:vrfs": {
+    "vrf": [
+      {
+        "vrf-name": "B",
+        "afs": {
+          "af": [
+            {
+              "af-name": "ipv4",
+              "saf-name": "unicast",
+              "topology-name": "default",
+              "Cisco-IOS-XR-ipv4-bgp-cfg:bgp": {
+                "import-route-targets": {
+                  "route-targets": {
+                    "route-target": [
+                      {
+                        "type": "as",
+                        "as-or-four-byte-as": [
+                          {
+                            "as-xx": 0,
+                            "as": 2,
+                            "as-index": 2,
+                            "stitching-rt": 0
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "export-route-targets": {
+                  "route-targets": {
+                    "route-target": [
+                      {
+                        "type": "as",
+                        "as-or-four-byte-as": [
+                          {
+                            "as-xx": 0,
+                            "as": 2,
+                            "as-index": 2,
+                            "stitching-rt": 0
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+\end{minted}
+
+The script is hardcoded to load the JSON data from this file into a
+a Python dictionary. The \verb|MergeConfig| RPC includes this data as
+an argument, effectively adding it to the configuration. Per the
+services definition, the response only contains an ``errors'' attribute.
+When no errors occur, it is set to the empty string, so the script prints
+``N/A'' when no errors occur. Otherwise, the error string is displayed. To
+confirm that the merge succeeded, we'll run another \verb|GetConfig| RPC
+immediately afterwards to confirm VRFs A and B exist.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# python grpc_config.py -m
+Errors: N/A
+
+Nicholass-MBP:grpc_xr nicholasrusso# python grpc_config.py -g
+VRF name: A / RTI 1:1 RTE 1:1
+VRF name: B / RTI 2:2 RTE 2:2
+\end{minted}
+
+The \verb|ReplaceConfig| operation will overwrite the existing VRFs with
+whatever is specified in the supplied \verb|ConfigArgs| object. We can
+delete all VRFs other than VRF B using this approach when we supply the
+same JSON input file. After the replacement, only VRF B remains.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# python grpc_config.py -r
+Errors: N/A
+
+Nicholass-MBP:grpc_xr nicholasrusso# python grpc_config.py -g
+VRF name: B / RTI 2:2 RTE 2:2
+\end{minted}
+
+Last, we can delete VRF B by specifying it by name in a \verb|DeleteConfig|
+RPC\@. It is not necessary to specify the entire VRF B payload. Now, there
+are no VRFs remaining as evidenced by an lack of \verb|GetConfig| responses.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# python grpc_config.py -d
+Errors: N/A
+Nicholass-MBP:grpc_xr nicholasrusso# python grpc_config.py -g
+Nicholass-MBP:grpc_xr nicholasrusso#
+\end{minted}
+
+Note that if you try to delete a nonexistent object, gRPC will raise an
+error, which is in JSON format. In this example, VRF B has already
+been deleted and so cannot be deleted again.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# python grpc_config.py -d
+Errors: {
+ "cisco-grpc:errors": {
+  "error": [
+   {
+    "error-type": "application",
+    "error-tag": "data-missing",
+    "error-severity": "error",
+    "error-path": "Cisco-IOS-XR-infra-rsi-cfg:ns1:vrfs/ns1:vrf[vrf-name='B']"
+   }
+  ]
+ }
+}
+\end{minted}
+
+In addition to configuration management, we can also collect streaming
+telemetry using the \verb|CreateSubs| RPC\@. This leverages gRPC in a dial-in
+design whereby the router dynamically accepts connections from collectors.
+On the router, the author has pre-configured a sample telemetry subscription
+which collects memory statistics. This periodic subscription will yield a new
+measurement every 10,000 milliseconds (10 seconds).
+
+\begin{minted}{text}
+RP/0/RP0/CPU0:r1#show running-config telemetry model-driven
+telemetry model-driven
+ sensor-group mem
+  sensor-path Cisco-IOS-XR-nto-misc-oper:memory-summary/nodes/node/summary
+ subscription sub1
+  sensor-group-id mem sample-interval 10000
+\end{minted}
+
+We'll update our \verb|cisco_xr_grpc.py| module with a new \verb|Encode|
+class to enumerate the variety of telemetry formats supported by IOS-XR\@.
+These formats are discussed more later. Additionally, we'll create a method
+to create a new subscription using the proper RPC and proper arguments. The
+\verb|create_subs()| method will block indefinitely or until the connection
+is broken, constantly listening for telemetry updates.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# cat cisco_xr_grpc.py
+\end{minted}
+
+\begin{minted}{python}
+from enum import IntEnum
+
+class Encode(IntEnum):
+    """
+    Enumerated encoding types for streaming telemetry.
+    This isn't well documented today ...
+    """
+    TEST = 1
+    GPB = 2
+    KVGPB = 3
+    JSON = 4
+
+class CiscoXRgRPC:
+
+    # snip; other methods omitted for brevity
+
+    def create_subs(self, sub_id, encode):
+        """
+        Subscribe to a telemetry topic using a specific encoding
+        (see Encode class for options) and unique subscription ID.
+        Returns a generator object which is built as messages arrive.
+        """
+        sub_args = xr_pb2.CreateSubsArgs(ReqId=1, encode=encode, subidstr=sub_id)
+        stream = self.stub.CreateSubs(sub_args, metadata=self.creds)
+        for segment in stream:
+            yield segment
+\end{minted}
+
+Next, we'll create a new script to test the telemetry subscriptions
+which is separate from the configuration management script. We can continue
+to use the \verb|xr1| device, except this time, we'll establish a telemetry
+subscription using JSON encoding for readability.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# cat grpc_telemetry.py
+\end{minted}
+
+\begin{minted}{python}
+#!/usr/bin/env python
+
+"""
+Author: Nick Russo
+Purpose: Test the CiscoXRgRPC telemetry subscription functionality.
+"""
+
+from cisco_xr_grpc import CiscoXRgRPC, Encode
+
+def main():
+    """
+    Test the CiscoXRgRPC telemetry subscription functionality.
+    """
+
+    # Define connectivity information for Cisco DevNet sandbox XR1
+    xr1 = {
+        "host": "10.10.20.70",
+        "port": 57021,
+        "username": "admin",
+        "password": "admin",
+    }
+
+    # Open a new connection to XR1 by unpacking dict into kwargs
+    with CiscoXRgRPC(**xr1) as conn:
+
+        # Collect telemetry responses using JSON for readability
+        responses = conn.create_subs("sub1", encode=Encode.JSON)
+        for response in responses:
+            print(response)
+
+if __name__ == "__main__":
+    main()
+\end{minted}
+
+Running the script for at least 20 seconds, you'll see some telemetry
+metrics collected and displayed as a giant JSON structure enclosed
+in a string. In a real application, one might parse this information
+for further analysis, ultimately displaying it on a dashboard.
+
+\begin{minted}{text}
+Nicholass-MBP:grpc_xr nicholasrusso# python grpc_telemetry.py
+ResReqId: 3
+data: "{"node_id_str":"r1","subscription_id_str":"sub1","encoding_path":
+"Cisco-IOS-XR-nto-misc-oper:memory-summary/nodes/node/summary","collection_id":3,
+"collection_start_time":1608911695372,"msg_timestamp":1608911695387,"data_json":
+[{"timestamp":1608911695386,"keys":{"node-name":"0/RP0/CPU0"},"content":
+{"page-size":4096,"ram-memory":5368709120,"free-physical-memory":640364544,
+"system-ram-memory":5368709120,"free-application-memory":726900736,
+"image-memory":4194304,"boot-ram-size":0,"reserved-memory":0,"io-memory":0,
+"flash-system":0}},{"timestamp":1608911695395,"keys":{"node-name":"0/0/CPU0"},
+"content":{"page-size":4096,"ram-memory":8589934592,"free-physical-memory":
+6210064384,"system-ram-memory":8589934592,"free-application-memory":6296834048,
+"image-memory":4194304,"boot-ram-size":0,"reserved-memory":0,"io-memory":0,
+"flash-system":0}}],"collection_end_time":1608911695399}"
+
+ResReqId: 3
+data: "{"node_id_str":"r1","subscription_id_str":"sub1","encoding_path":
+"Cisco-IOS-XR-nto-misc-oper:memory-summary/nodes/node/summary","collection_id":4,
+"collection_start_time":1608911705405,"msg_timestamp":1608911705437,"data_json":
+[{"timestamp":1608911705437,"keys":{"node-name":"0/RP0/CPU0"},"content":
+{"page-size":4096,"ram-memory":5368709120,"free-physical-memory":634781696,
+"system-ram-memory":5368709120,"free-application-memory":721137664,
+"image-memory":4194304,"boot-ram-size":0,"reserved-memory":0,"io-memory":0,
+"flash-system":0}},{"timestamp":1608911705442,"keys":{"node-name":"0/0/CPU0"},
+"content":{"page-size":4096,"ram-memory":8589934592,"free-physical-memory":
+6210449408,"system-ram-memory":8589934592,"free-application-memory":6296985600,
+"image-memory":4194304,"boot-ram-size":0,"reserved-memory":0,"io-memory":0,
+"flash-system":0}}],"collection_end_time":1608911705443}"
+\end{minted}
+
+Before breaking the connecting with Control-C, you can verify that the
+session is active by running the following command on the IOS-XR device.
+This reveals the current dial-in connection information for confirmation.
+
+\begin{minted}{text}
+RP/0/RP0/CPU0:r1#show telemetry model-driven subscription
+Subscription:  sub1                     State: ACTIVE
+-------------
+  Sensor groups:
+  Id                               Interval(ms)        State
+  mem                              10000               Resolved
+
+  Destination Groups:
+  Id            Encoding   Transport   State   Port    Vrf     IP
+  DialIn_1002   json       dialin      Active  37588           192.168.122.1
+    No TLS
+\end{minted}
+
+For completeness, here are the outputs from the remaining formats. The ``test''
+option is for connectivity verification only and is effectively a null/empty
+encoding. Google Protocol Buffers, or GPB, is a compact, binary-only format
+that is very high performance but is generally not human readable. Key/value
+GPB is a hybrid of GBP and JSON, allowing keys to be human readable but
+dictionaries are encoded in binary for improved performance. As seen earlier,
+JSON is the easiest to read but is the worst performing given that it is
+pure text.
+
+\begin{minted}{text}
+# Using test encoding
+Nicholass-MBP:grpc_xr nicholasrusso# python grpc_telemetry.py
+(no output)
+
+# Using GPB encoding
+Nicholass-MBP:grpc_xr nicholasrusso# python grpc_telemetry.py
+ResReqId: 5
+data:
+"\n\002r1\032\004sub12<Cisco-IOS-XR-nto-misc-oper:memory-summary/nodes/node/summary:
+\n2015-11-09@\010H\262\315\360\325\351.P\262\315\360\325\351.h\302\315\360\325\351.b
+\224\001\nI\010\271\315\360\325\351.R\014\n\n0/RP0/CPU0Z2\220\003\200 \230\003\200\200\200\200\024\240\003\200\200\366\272\002\250\003\200\200\200\200
+\024\260\003\200\340\227\344\002\270\003\200\200\200\002\300\003\000\310\003\000
+\320\003\000\330\003\000\nG\010\300\315\360\325\351.R\n\n\0100/0/CPU0Z2\220\003
+\200 \230\003\200\200\200\200 \240\003\200\200\236\221\027\250\003\200\200\200\200 \260\003\200\340\277\272\027\270\003\200\200\200\002\300\003\000\310\003
+\000\320\003\000\330\003\000"
+
+# Using KV-GPB encoding
+Nicholass-MBP:grpc_xr nicholasrusso# python grpc_telemetry.py
+ResReqId: 6
+data:
+"\n\002r1\032\004sub12<Cisco-IOS-XR-nto-misc-oper:memory-summary/nodes/node/summary:
+\n2015-11-09@\tH\370\223\361\325\351.P\370\223\361\325\351.Z\220\002\010\203\224\361
+\325\351.z\037\022\004keysz\027\022\tnode-name*\n0/RP0/CPU0z\345\001\022\007contentz
+\016\022\tpage-size8\200z\022\022\nram-memory@\200\200\200\200\024z\034\022\024
+free-physical-memory@\200\300\347\272\002z\031\022\021system-ram-memory@
+\200\200\200\200\024z\037\022\027free-application-memory@\200\240\211\344\002z
+\023\022\014image-memory@\200\200\200\002z\021\022\rboot-ram-size@\000z\023\022
+\017reserved-memory@\000z\r\022\tio-memory@\000z\020\022\014flash-system@\000Z\216
+\002\010\206\224\361\325\351.z\035\022\004keysz\025\022\tnode-name*\0100/0/CPU0z\345
+\001\022\007contentz\016\022\tpage-size8\200 z\022\022\nram-memory@\200\200\200\200z
+\034\022\024free-physical-memory@\200\300\246\221\027z\031\022\021system-ram-memory@
+\200\200\200\200z\037\022\027free-application-memory@\200\240\310\272\027z\023\022
+\014image-memory@\200\200\200\002z\021\022\rboot-ram-size@\000z\023\022
+\017reserved-memory@\000z\r\022\tio-memory@\000z\020\022\014flash-system@\000h
+\210\224\361\325\351."
+\end{minted}
+
+Feel free to explore these scripts or expand upon them to suit your needs.
+
 \subsubsection{Python paramiko Library on IOS-XE}
 Many of the traditional scripts that network engineers have written to
 interact with devices have used Python's paramiko library. Before simplified
@@ -492,10 +1272,10 @@ information to, a Cisco CSR1000v running in AWS\@. The relevant version and
 package information is listed below. You may need to use pip to install paramiko.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ python3 --version
+[ec2-user@devbox ~]# python3 --version
 Python 3.6.5
 
-[ec2-user@devbox ~]$ python3 -m pip list | grep paramiko
+[ec2-user@devbox ~]# python3 -m pip list | grep paramiko
 paramiko (2.4.2)
 \end{minted}
 
@@ -569,7 +1349,7 @@ Run the script using the command below, which logs into the router, gathers
 some basic information, and applies some configuration updates.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ python3 cisco_paramiko.py
+[ec2-user@devbox ~]# python3 cisco_paramiko.py
 Logged into CSR1000V# successfully
 terminal length 0
 CSR1000V#
@@ -624,10 +1404,10 @@ coders. The version and package information is below. The netmiko package can
 be installed using pip.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ python3 --version
+[ec2-user@devbox ~]# python3 --version
 Python 3.6.5
 
-[ec2-user@devbox ~]$ python3 -m pip list | grep netmiko
+[ec2-user@devbox ~]# python3 -m pip list | grep netmiko
 netmiko (2.3.0)
 \end{minted}
 
@@ -681,7 +1461,7 @@ shell prompt from being returned with each command output, instead only
 returning the relevant/useful data.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ python3 cisco_netmiko.py
+[ec2-user@devbox ~]# python3 cisco_netmiko.py
 Logged into CSR1000V# successfully
 
 Cisco IOS XE Software, Version 16.09.01
@@ -739,7 +1519,7 @@ understanding what this data means, the names of several YANG modules are
 returned, including the EIGRP one of interest.
 
 \begin{minted}{text}
-Nicholass-MBP:ssh nicholasrusso$ ssh -p 830 nctest@netconf.njrusmc.net
+Nicholass-MBP:ssh nicholasrusso# ssh -p 830 nctest@netconf.njrusmc.net
 nctest@netconf.njrusmc.net's password:
 \end{minted}
 
@@ -783,7 +1563,7 @@ present. This output is similar to the native SSH shell test from above except
 it is handled through the \verb|netconf-console.py| tool.
 
 \begin{minted}{text}
-Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py --hello
+Nicholass-MBP:YANG nicholasrusso# python netconf-console.py --hello
 \end{minted}
 
 \begin{minted}{xml}
@@ -828,7 +1608,7 @@ current \verb|router eigrp| configuration on the device using the
 finding out what the structure of the different CLI stanzas are.
 
 \begin{minted}{text}
-Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py \
+Nicholass-MBP:YANG nicholasrusso# python netconf-console.py \
 >  --get-config -x "native/router/eigrp"
 \end{minted}
 
@@ -869,7 +1649,7 @@ required but is recommended for readability. Below is an example of the
 configuration parameters that NETCONF can push to the device.
 
 \begin{minted}{text}
-Nicholass-MBP:YANG nicholasrusso$ cat eigrp-updates.xml
+Nicholass-MBP:YANG nicholasrusso# cat eigrp-updates.xml
 \end{minted}
 
 \begin{minted}{xml}
@@ -899,7 +1679,7 @@ Using the \verb|--edit-config| option, write these changes to the device. NETCON
 will return an \verb|ok| message when complete.
 
 \begin{minted}{text}
-Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py \
+Nicholass-MBP:YANG nicholasrusso# python netconf-console.py \
 >  --edit-config=./eigrp-updates.xml
 \end{minted}
 
@@ -914,7 +1694,7 @@ Perform the \verb|get| operation once more to ensure the value were updated
 correctly by NETCONF\@.
  
 \begin{minted}{text}
-Nicholass-MBP:YANG nicholasrusso$ python netconf-console.py \
+Nicholass-MBP:YANG nicholasrusso# python netconf-console.py \
 >  --get-config -x "native/router/eigrp"
 \end{minted}
 
@@ -1088,7 +1868,7 @@ options available. Collecting information via NETCONF is far superior to
 CLI-based screen scraping via regular expressions for text parsing.
 
 \begin{minted}{text}
-[ec2-user@devbox]$ python3 pynetconf.py 
+[ec2-user@devbox]# python3 pynetconf.py 
 SW version: 16.9
 Hostname: CSR1000v
 top level keys: ['@xmlns', 'version', 'boot-start-marker', 'boot-end-marker',
