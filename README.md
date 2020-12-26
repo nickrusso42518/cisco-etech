@@ -1,13 +1,13 @@
 [![Build Status](
-https://travis-ci.org/nickrusso42518/cisco-etech.svg?branch=master)](
-https://travis-ci.org/nickrusso42518/cisco-etech)
+https://travis-ci.com/nickrusso42518/cisco-etech.svg?branch=master)](
+https://travis-ci.com/nickrusso42518/cisco-etech)
 
 [![published](
 http://cs.co/codeex-badge)](
 https://developer.cisco.com/codeexchange/github/repo/nickrusso42518/cisco-etech)
 
-# Cisco CCIE/CCDE Evolving Technologies
-This book covers the Cisco Evolving Technologies version 1.1 blueprint
+# Cisco DevNet Evolving Technologies
+This book covers moderm Cisco Evolving Technologies (DevNet oriented)
 and includes detailed explanations of modern cloud, network programmability,
 and Internet of Things (IoT) technologies. The book includes a mix of
 high level explanations, detailed diagrams, and hands-on demonstrations
@@ -26,10 +26,11 @@ You can get the newest PDF of the book from my publications page:
   * [FAQ](#faq)
 
 ## Purpose
-This book is designed for anyone studying for the CCIE or CCDE certification
-written exams. Since summer 2016, Cisco expert level written exams have
+This book is designed for anyone studying for Cisco DevNet certifications
+or other written exams. Since summer 2016, Cisco expert level written exams have
 included 10% of their questions pulled from a new "evolving techologies"
-topic domain. This book seeks to address the technologies in that new section.
+topic domain. This book seeks to address the technologies in that new section,
+as well as dedicated DevNet exams which focus heavily on these topics.
 
 ## Structure
 The simplified tree structure below outlines how the TeX source files are
@@ -57,6 +58,7 @@ beyond importing the required TeX packages and including all the `*.tex`
 source files for individual sections.
 
 ```
+$ tree --charset=ascii
 |-- content
 |   |-- cloud
 |   |   |-- a1a-design
@@ -125,11 +127,11 @@ __Q__: How often is the book updated with new content?\
 __A__: Traditionally, the book has been updated every 6 months, starting
 in the summer of 2016 and continuing until the summer of 2018 (5 releases).
 Given the new version control and pipeline design, releases happen
-more frequently. Whenever I have changes, I'll push them here and an
+more frequently. Whenever I have changes, I'll push them here. An
 updated PDF will be automatically generated and uploaded to my website.
 
 __Q__: Will your book still be available on Cisco Learning Network?\
-__A__: I will preserve the legacy delivery method on Cisco Learning Network
-by manually updating a new PDF every few months. However, I recommend
-downloading the book directly from my website to ensure you always have
-the most updated version available.
+__A__: I have phased out the legacy delivery method on Cisco Learning Network
+after having updated the original page with a new reference to the current
+book location. I recommend downloading the book directly from my website
+(avoid third-party distributors) for your security.
