@@ -1261,6 +1261,491 @@ free-physical-memory@\200\300\347\272\002z\031\022\021system-ram-memory@
 
 Feel free to explore these scripts or expand upon them to suit your needs.
 
+\subsubsection{gRPC Network Management Interface (gNMI) on IOS-XR using gNMIc}
+In general, gRPC service definition files are application or platform-specific.
+The files are individually compiled and generate specific Python (or whatever
+language) output files for programmatic access. As it relates to networking,
+however, there is only a small set of generic actions that are relevant.
+Using gNMI (also developed by Google) simplifies this process as it
+defines only four actions:
+
+\begin{enumerate}
+  \item Identify gNMI-supported features (\verb|Capabilities| RPC)
+  \item Read network configuration and operational data (\verb|Get| RPC)
+  \item Modify network configuration (\verb|Set| RPC)
+  \item Subscribe to a telemetry topic (\verb|Subscribe| RPC)
+\end{enumerate}
+
+This standardized RPC list unifies and simplifies access to network devices.
+This strategy is comparable to standards-based YANG models such as those
+published by the IETF or by the OpenConfig project. You can view the gNMI
+service definition file
+\href{https://github.com/openconfig/gnmi/blob/master/proto/gnmi/gnmi.proto}{here}.
+
+Boiling down the proto file to just the core gNMI RPCs, we see four:
+
+\begin{minted}{protobuf}
+service gNMI {
+  rpc Capabilities(CapabilityRequest) returns (CapabilityResponse);
+  rpc Get(GetRequest) returns (GetResponse);
+  rpc Set(SetRequest) returns (SetResponse);
+  rpc Subscribe(stream SubscribeRequest) returns (stream SubscribeResponse);
+}
+\end{minted}
+
+Rather than go through the same \verb|grpcio| compilation process using
+the gNMI proto file, we'll use a popular CLI utility named \verb|gnmic|
+to interactively communicate with an IOS-XR device which must be running
+version 6.5.1 or newer. According to the documentation, let's begin
+by installing \verb|gnmic| with a single command shown below. The output
+also displays the current version as well as relevant documentation URLs.
+
+\begin{minted}{text}
+Nicholass-MBP:gnmi_xr nicholasrusso# curl -sL \
+  https://github.com/karimra/gnmic/raw/master/install.sh | sudo bash
+Downloading https://github.com/karimra/gnmic/releases/download/(snip)
+Preparing to install gnmic 0.6.0 into /usr/local/bin
+gnmic installed into /usr/local/bin/gnmic
+version : 0.6.0
+ commit : 6c3bab3
+   date : 2020-12-14T15:13:54Z
+ gitURL : https://github.com/karimra/gnmic
+   docs : https://gnmic.kmrd.dev
+\end{minted}
+
+Like most interactive CLI tools, we'll need to specify basic connectivity
+parameters with each invocation. We can avoid the extra typing by creating
+a configuration file. \verb|gnmic| looks for a YAML (or JSON or TOML) file
+in the user's home directory named \verb|gnmic.yml|. The configuration file
+used for this demo is shown below.
+
+\begin{minted}{text}
+Nicholass-MBP:gnmi_xr nicholasrusso# cat ~/gnmic.yml
+\end{minted}
+
+\begin{minted}{yaml}
+---
+address: "xrgnmi.njrusmc.net:57400"
+username: "admin"
+password: "Cisco123"
+insecure: true
+encoding: "json_ietf"
+log-file: "/tmp/gnmic.log"
+...
+\end{minted}
+
+%%% requests coming to devbox:5740 are forwarded to XR on gRPC port
+% scp /usr/local/bin/socat developer@10.10.20.50:/home/developer/
+% ssh developer@10.10.20.50  (password cisco123)
+% ./socat tcp-listen:5740,reuseaddr,fork tcp:10.10.20.35:57400
+
+First, let's test the \verb|Capabilities| RPC\@. This RPC does not require any
+arguments, so we'll keep it simple. This returns all of the YANG models
+supported via gNMI, which is a very long list. It also includes the supported
+encodings. Note that the \verb|Cisco-IOS-XR-infra-rsi-cfg| YANG model
+is explicitly supported, which can be used to manage IOS-XR VRF instances.
+
+\begin{minted}{text}
+Nicholass-MBP:gnmi_xr nicholasrusso# gnmic capabilities
+Capabilities Response:
+gNMI version: 0.4.0
+supported models:
+  - Cisco-IOS-XR-mpls-io-oper, Cisco Systems, Inc., 2017-05-18
+  - Cisco-IOS-XR-mpls-io-oper-sub1, Cisco Systems, Inc., 2017-05-18
+  - Cisco-IOS-XR-infra-tc-oper, Cisco Systems, Inc., 2015-11-09
+  - Cisco-IOS-XR-infra-tc-oper-sub1, Cisco Systems, Inc., 2015-11-09
+  (snip)
+  - Cisco-IOS-XR-infra-rsi-cfg, Cisco Systems, Inc., 2017-05-01
+  (snip)
+  - Cisco-IOS-XR-sysadmin-show-trace-cm, Cisco Systems, Inc., 2017-04-12
+  - Cisco-IOS-XR-sysadmin-fpd-infra-cli-fpdserv-ctrace, Cisco Systems, Inc., 2017-05-01
+supported encodings:
+  - JSON_IETF
+  - ASCII
+\end{minted}
+
+Next, we can issue a \verb|Get| RPC to collect the VRFs already configured.
+Like the previous section, VRF A has been configured as follows:
+
+\begin{minted}{text}
+RP/0/RP0/CPU0:r1#show running-config vrf
+vrf A
+ address-family ipv4 unicast
+  import route-target
+   1:1
+  export route-target
+   1:1
+\end{minted}
+
+To send a \verb|Get| RPC, we must specify at least one YANG path, expression
+in XPATH format, to query. We'll use the same VRF path from the gRPC example.
+Rather than extract only specific pieces of the output, the full return value
+is included below. A few irrelevant fields were deleted for brevity.
+
+\begin{minted}{text}
+Nicholass-MBP:gnmi_xr nicholasrusso# gnmic get \
+  --path "Cisco-IOS-XR-infra-rsi-cfg:vrfs"
+Get Response:
+[
+  {
+    "timestamp": 1608946038505033147,
+    "time": "2020-12-25T20:27:18.505033147-05:00",
+    "updates": [
+      {
+        "Path": "Cisco-IOS-XR-infra-rsi-cfg:vrfs",
+        "values": {
+          "vrfs": {
+            "vrf": [
+              {
+                "afs": {
+                  "af": [
+                    {
+                      "Cisco-IOS-XR-ipv4-bgp-cfg:bgp": {
+                        "export-route-targets": {
+                          "route-targets": {
+                            "route-target": [
+                              {
+                                "as-or-four-byte-as": [
+                                  {
+                                    "as": 1,
+                                    "as-index": 1
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        "import-route-targets": {
+                          "route-targets": {
+                            "route-target": [
+                              {
+                                "as-or-four-byte-as": [
+                                  {
+                                    "as": 1,
+                                    "as-index": 1
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "af-name": "ipv4",
+                      "saf-name": "unicast",
+                      "topology-name": "default"
+                    }
+                  ]
+                },
+                "vrf-name": "A"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+]
+\end{minted}
+
+To add an new VRF from a file, we'll prepare a \verb|Set| RPC\@. Since this
+operation is used for configuration merging/updating, replacing, and deleting,
+gNMIc provides explicit options for each. The ``update'' operation will add the
+new VRF B which uses import and export route-target of 2:2. The exact payload
+has changed a bit as the ``Cisco-IOS-XR-infra-rsi-cfg:vrfs'' top-level key was
+removed since that string is explicitly specified in the path parameter.
+
+\begin{minted}{text}
+Nicholass-MBP:gnmi_xr nicholasrusso# cat vrf_b.json
+\end{minted}
+
+\begin{minted}{json}
+{
+  "vrf": [
+    {
+      "vrf-name": "B",
+      "afs": {
+        "af": [
+          {
+            "af-name": "ipv4",
+            "saf-name": "unicast",
+            "topology-name": "default",
+            "Cisco-IOS-XR-ipv4-bgp-cfg:bgp": {
+              "import-route-targets": {
+                "route-targets": {
+                  "route-target": [
+                    {
+                      "type": "as",
+                      "as-or-four-byte-as": [
+                        {
+                          "as-xx": 0,
+                          "as": 2,
+                          "as-index": 2,
+                          "stitching-rt": 0
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              "export-route-targets": {
+                "route-targets": {
+                  "route-target": [
+                    {
+                      "type": "as",
+                      "as-or-four-byte-as": [
+                        {
+                          "as-xx": 0,
+                          "as": 2,
+                          "as-index": 2,
+                          "stitching-rt": 0
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+\end{minted}
+
+With the JSON file prepared, we can issue the \verb|Set| RPC\@. gNMIc can read
+from the file automatically, making it easy to transfer large payloads.
+
+\begin{minted}{text}
+Nicholass-MBP:gnmi_xr nicholasrusso# gnmic set \
+  --update-path "Cisco-IOS-XR-infra-rsi-cfg:vrfs" --update-file vrf_b.json
+Set Response:
+{
+  "timestamp": 1608946522461572145,
+  "time": "2020-12-25T20:35:22.461572145-05:00",
+  "results": [
+    {
+      "operation": "UPDATE",
+      "path": "Cisco-IOS-XR-infra-rsi-cfg:vrfs"
+    }
+  ]
+}
+\end{minted}
+
+The response indicates that an ``UPDATE'' operation occurred, which implies
+there should be two VRFs on the device. Let's verify it using another
+\verb|Get| RPC combined with \verb|egrep| with a regex for brevity.
+
+\begin{minted}{text}
+Nicholass-MBP:gnmi_xr nicholasrusso# gnmic get \
+  --path "Cisco-IOS-XR-infra-rsi-cfg:vrfs/vrf" | egrep 'as-index|vrf-name'
+Get Response:
+                                  "as-index": 1,
+                                  "as-index": 1,
+              "vrf-name": "A"
+                                  "as-index": 2,
+                                  "as-index": 2,
+              "vrf-name": "B"
+\end{minted}
+
+Next, we can use the \verb|Set| RPC to replace the current VRF list
+with only VRF B by changing the options from ``update'' to ``replace''.
+A follow-up \verb|Get| RPC confirms that only VRF B remains.
+
+\begin{minted}{text}
+Nicholass-MBP:gnmi_xr nicholasrusso# gnmic set \
+  --replace-path "Cisco-IOS-XR-infra-rsi-cfg:vrfs" --replace-file vrf_b.json
+Set Response:
+{
+  "timestamp": 1608947077037654967,
+  "time": "2020-12-25T20:44:37.037654967-05:00",
+  "results": [
+    {
+      "operation": "REPLACE",
+      "path": "Cisco-IOS-XR-infra-rsi-cfg:vrfs"
+    }
+  ]
+}
+
+Nicholass-MBP:gnmi_xr nicholasrusso# gnmic get \
+  --path "Cisco-IOS-XR-infra-rsi-cfg:vrfs/vrf" | egrep 'as-index|vrf-name'
+Get Response:
+                                  "as-index": 2,
+                                  "as-index": 2,
+              "vrf-name": "B"
+\end{minted}
+
+It's worth taking a short detour to examine a gNMIc log entry to see how
+the \verb|Set| RPC works. Each RPC can contain multiple paths, but also
+multiple concurrent operations of different types. The log entry has
+been expanded over multiple lines for readability, and you'll see
+a \verb|delete| list, a \verb|replace| list, and an \verb|update| list.
+This particular operation was the most recent \verb|Set| RPC which
+contained a single configuration replacement path.
+
+\begin{minted}{text}
+Nicholass-MBP:gnmi_xr nicholasrusso# grep SetRequest /tmp/gnmic.log
+gnmic 2020/12/25 20:44:36.350321 sending gNMI SetRequest:
+  prefix='<nil>',
+  delete='[]',
+  replace='[path:{origin:"Cisco-IOS-XR-infra-rsi-cfg" elem:{name:"vrfs"}}
+    val:{json_ietf_val:"(snip; JSON data loaded from file)"}]',
+  update='[]',
+  extension='[]'
+  to xrgnmi.njrusmc.net:57400
+\end{minted}
+
+To clean up, we'll issue a final \verb|Set| RPC to delete VRF B\@. It's
+important to escape the quotes around the B, the YANG key in the \verb|vrf|
+list. Failure to do so (assuming the value is a string like ``B'') will result
+in JSON lexical errors in the gNMIc log file. Additionally, the \verb|Get| RPC
+does not return any VRFs since all of them have been deleted.
+
+\begin{minted}{text}
+Nicholass-MBP:gnmi_xr nicholasrusso# gnmic set
+  \ --delete /Cisco-IOS-XR-infra-rsi-cfg:vrfs/vrf[vrf-name=\"B\"]
+Set Response:
+{
+  "timestamp": 1608949839770079703,
+  "time": "2020-12-25T21:30:39.770079703-05:00",
+  "results": [
+    {
+      "operation": "DELETE",
+      "path": "Cisco-IOS-XR-infra-rsi-cfg:vrfs/vrf[vrf-name=\"B\"]"
+    }
+  ]
+}
+
+Nicholass-MBP:gnmi_xr nicholasrusso# gnmic get \
+  --path "Cisco-IOS-XR-infra-rsi-cfg:vrfs/vrf"
+Get Response:
+[
+  {
+    "timestamp": 1608950007851961061,
+    "time": "2020-12-25T21:33:27.851961061-05:00",
+    "updates": [
+      {
+        "Path": "Cisco-IOS-XR-infra-rsi-cfg:vrfs/vrf",
+        "values": {
+          "vrfs/vrf": null
+        }
+      }
+    ]
+  }
+]
+\end{minted}
+
+Last, we can subscribe to telemetry topics using a \verb|Subscribe|
+RPC\@. gNMI-based telemetry subscriptions on IOS-XR only support ``PROTO''
+encoding, so we'll need to adjust this setting using the global flag
+\verb|--encoding| to override our \verb|~/gnmic.yml| default configuration
+file.
+
+\begin{minted}{text}
+gnmic 2020/12/25 21:38:01.931052 target 'xrgnmi.njrusmc.net:57400',
+  subscription default-1608950271 rcv error: rpc error: code = Unknown
+  desc = GNMI Subscribe only supports PROTO encoding.
+\end{minted}
+
+Several other RPC-specific options are useful to constrain the
+operation of the subscription. Note that these gNMI subscriptions did not
+require any pre-configuration on IOS-XR, which seemed to be required for
+the Cisco-specific gRPC service definition.
+
+\begin{minted}{text}
+Nicholass-MBP:gnmi_xr nicholasrusso# gnmic sub --encoding PROTO \
+  --path "Cisco-IOS-XR-nto-misc-oper:memory-summary/nodes/node/summary" \
+  --mode STREAM \
+  --stream-mode SAMPLE \
+  --sample-interval 10s
+\end{minted}
+
+\begin{minted}{json}
+{
+  "source": "xrgnmi.njrusmc.net:57400",
+  "subscription-name": "default-1608951157",
+  "timestamp": 1608951167365000000,
+  "time": "2020-12-25T21:52:47.365-05:00",
+  "prefix": "Cisco-IOS-XR-nto-misc-oper:memory-summary/nodes/node[node-name=0]/summary",
+  "updates": [
+    {
+      "Path": "page-size",
+      "values": {
+        "page-size": 4096
+      }
+    },
+    {
+      "Path": "ram-memory",
+      "values": {
+        "ram-memory": 15032385536
+      }
+    },
+    {
+      "Path": "free-physical-memory",
+      "values": {
+        "free-physical-memory": 10985316352
+      }
+    },
+    {
+      "Path": "system-ram-memory",
+      "values": {
+        "system-ram-memory": 15032385536
+      }
+    },
+    {
+      "Path": "free-application-memory",
+      "values": {
+        "free-application-memory": 11347812352
+      }
+    },
+    {
+      "Path": "image-memory",
+      "values": {
+        "image-memory": 4194304
+      }
+    },
+    {
+      "Path": "boot-ram-size",
+      "values": {
+        "boot-ram-size": 0
+      }
+    },
+    {
+      "Path": "reserved-memory",
+      "values": {
+        "reserved-memory": 0
+      }
+    },
+    {
+      "Path": "io-memory",
+      "values": {
+        "io-memory": 0
+      }
+    },
+    {
+      "Path": "flash-system",
+      "values": {
+        "flash-system": 0
+      }
+    }
+  ]
+}
+
+{
+  "source": "xrgnmi.njrusmc.net:57400",
+  "subscription-name": "default-1608951157",
+  "timestamp": 1608951167369000000,
+  "time": "2020-12-25T21:52:47.369-05:00",
+  "prefix": "Cisco-IOS-XR-nto-misc-oper:memory-summary/nodes/node[node-name=0]/summary",
+  "updates": ["(snip)"]
+}
+\end{minted}
+
+Be sure to explore the gNMI protobuf definition files in greater depth, too.
+For those interested in programmatic gNMI frameworks for Cisco products, the
+\href{https://github.com/cisco-ie/cisco-gnmi-python}{cisco-gnmi-python}
+project is a good choice, which can be installed using \verb|pip|.
+
 \subsubsection{Python paramiko Library on IOS-XE}
 Many of the traditional scripts that network engineers have written to
 interact with devices have used Python's paramiko library. Before simplified
