@@ -1276,11 +1276,10 @@ defines only four actions:
   \item Subscribe to a telemetry topic (\verb|Subscribe| RPC)
 \end{enumerate}
 
-This standardized RPC list unifies and simplifies access to network devices.
-This strategy is comparable to standards-based YANG models such as those
-published by the IETF or by the OpenConfig project. You can view the gNMI
-service definition file
-\href{https://github.com/openconfig/gnmi/blob/master/proto/gnmi/gnmi.proto}{here}.
+This standardized RPC list unifies and simplifies access to network devices
+across many vendors and feature sets. For reference, you can review the gNMI
+\href{https://github.com/openconfig/gnmi/blob/master/proto/gnmi/gnmi.proto}{service definition file} and
+\href{https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi-specification.md}{main reference documentation}.
 
 Boiling down the proto file to just the core gNMI RPCs, we see four:
 
@@ -1294,7 +1293,8 @@ service gNMI {
 \end{minted}
 
 Rather than go through the same \verb|grpcio| compilation process using
-the gNMI proto file, we'll use a popular CLI utility named \verb|gnmic|
+the gNMI \verb|.proto| file, we'll use a popular CLI utility named
+\href{https://gnmic.kmrd.dev}{gNMIc} (using the \verb|gnmic| shell command)
 to interactively communicate with an IOS-XR device which must be running
 version 6.5.1 or newer. According to the documentation, let's begin
 by installing \verb|gnmic| with a single command shown below. The output
@@ -1314,10 +1314,23 @@ version : 0.6.0
 \end{minted}
 
 Like most interactive CLI tools, we'll need to specify basic connectivity
-parameters with each invocation. We can avoid the extra typing by creating
-a configuration file. \verb|gnmic| looks for a YAML (or JSON or TOML) file
-in the user's home directory named \verb|gnmic.yml|. The configuration file
-used for this demo is shown below.
+parameters with each invocation. \verb|gnmic| supports a variety of
+command-line arguments, some of which are shown below.
+
+\begin{minted}{text}
+Nicholass-MBP:gnmi_xr nicholasrusso# gnmic \
+  --address xrgnmi.njrusmc.net:57400 \
+  --username admin \
+  --password Cisco123 \
+  --insecure \
+  --encoding json_ietf \
+  --log-file "/tmp/gnmic.log" \
+  <command> 
+\end{minted}
+
+We can avoid the extra typing by creating a configuration file. \verb|gnmic|
+looks for a YAML (or JSON or TOML) file in the user's home directory named
+\verb|gnmic.yml|. The configuration file used for this demo is shown below.
 
 \begin{minted}{text}
 Nicholass-MBP:gnmi_xr nicholasrusso# cat ~/gnmic.yml
@@ -1344,6 +1357,8 @@ arguments, so we'll keep it simple. This returns all of the YANG models
 supported via gNMI, which is a very long list. It also includes the supported
 encodings. Note that the \verb|Cisco-IOS-XR-infra-rsi-cfg| YANG model
 is explicitly supported, which can be used to manage IOS-XR VRF instances.
+Notice that gNMI is versioned and the device announce its version in
+response to the \verb|Capabilities| RPC\@.
 
 \begin{minted}{text}
 Nicholass-MBP:gnmi_xr nicholasrusso# gnmic capabilities
@@ -1380,7 +1395,8 @@ vrf A
 To send a \verb|Get| RPC, we must specify at least one YANG path, expression
 in XPATH format, to query. We'll use the same VRF path from the gRPC example.
 Rather than extract only specific pieces of the output, the full return value
-is included below. A few irrelevant fields were deleted for brevity.
+is included below. A few irrelevant fields were deleted for brevity and
+\verb|gnmic| defaults to using JSON as an output format.
 
 \begin{minted}{text}
 Nicholass-MBP:gnmi_xr nicholasrusso# gnmic get \
@@ -1513,7 +1529,8 @@ Nicholass-MBP:gnmi_xr nicholasrusso# cat vrf_b.json
 }
 \end{minted}
 
-With the JSON file prepared, we can issue the \verb|Set| RPC\@. gNMIc can read
+With the JSON file prepared (note that \verb|gnmic| also supports YAML
+in this context), we can issue the \verb|Set| RPC\@. gNMIc can read
 from the file automatically, making it easy to transfer large payloads.
 
 \begin{minted}{text}
@@ -1598,8 +1615,10 @@ gnmic 2020/12/25 20:44:36.350321 sending gNMI SetRequest:
 To clean up, we'll issue a final \verb|Set| RPC to delete VRF B\@. It's
 important to escape the quotes around the B, the YANG key in the \verb|vrf|
 list. Failure to do so (assuming the value is a string like ``B'') will result
-in JSON lexical errors in the gNMIc log file. Additionally, the \verb|Get| RPC
-does not return any VRFs since all of them have been deleted.
+in JSON lexical errors in the gNMIc log file. These errors appear specific to
+IOS-XR and are not a behavior of \verb|gnmic| or gNMI in general.
+Additionally, the \verb|Get| RPC does not return any VRFs since all of them
+have been deleted.
 
 \begin{minted}{text}
 Nicholass-MBP:gnmi_xr nicholasrusso# gnmic set
@@ -1635,7 +1654,7 @@ Get Response:
 ]
 \end{minted}
 
-Last, we can subscribe to telemetry topics using a \verb|Subscribe|
+Last, we can collect network telemetry data using a \verb|Subscribe|
 RPC\@. gNMI-based telemetry subscriptions on IOS-XR only support ``PROTO''
 encoding, so we'll need to adjust this setting using the global flag
 \verb|--encoding| to override our \verb|~/gnmic.yml| default configuration
