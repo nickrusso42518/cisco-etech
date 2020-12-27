@@ -369,7 +369,7 @@ the latter options working. After installation, ensure both binaries exist and
 are in the shell \verb|PATH| environment variable.
 
 \begin{minted}{bash}
-Nicholass-MBP:localkube nicholasrusso$ which minikube kubectl
+Nicholass-MBP:localkube nicholasrusso# which minikube kubectl
 /usr/local/bin/minikube
 /usr/local/bin/kubectl
 \end{minted}
@@ -380,7 +380,7 @@ is allocated to minikube to support outside-in access to pods and the cluster
 dashboard.
 
 \begin{minted}{bash}
-Nicholass-MBP:localkube nicholasrusso$ minikube start
+Nicholass-MBP:localkube nicholasrusso# minikube start
 Starting local Kubernetes v1.10.0 cluster...
 Starting VM...
 Getting VM IP address...
@@ -392,7 +392,7 @@ Starting cluster components...
 Kubectl is now configured to use the cluster.
 Loading cached images from config file.
 
-Nicholass-MBP:localkube nicholasrusso$ minikube status
+Nicholass-MBP:localkube nicholasrusso# minikube status
 minikube: Running
 cluster: Running
 kubectl: Correctly Configured: pointing to minikube-vm at 192.168.99.100
@@ -401,7 +401,7 @@ kubectl: Correctly Configured: pointing to minikube-vm at 192.168.99.100
 Next, check on the cluster to ensure it resolves to the minikube IP address.
 
 \begin{minted}{bash}
-Nicholass-MBP:localkube nicholasrusso$ kubectl cluster-info
+Nicholass-MBP:localkube nicholasrusso# kubectl cluster-info
 Kubernetes master is running at https://192.168.99.100:8443
 KubeDNS is running at https://192.168.99.100:8443/api/v1/
   namespaces/kube-system/services/kube-dns:dns/proxy
@@ -414,7 +414,7 @@ Google's container repository and is accessible on TCP port 8080. The name of
 the deployment is \verb|hello-minikube| and, at this point, contains one pod.
 
 \begin{minted}{bash}
-Nicholass-MBP:localkube nicholasrusso$ kubectl run hello-minikube \
+Nicholass-MBP:localkube nicholasrusso# kubectl run hello-minikube \
 >  --image=gcr.io/google_containers/echoserver:1.4 --port=8080
 deployment.apps "hello-minikube" created
 \end{minted}
@@ -424,7 +424,7 @@ As discussed earlier, there is a variety of port exposing techniques. The
 8080 which was defined when the deployment was created.
 
 \begin{minted}{bash}
-Nicholass-MBP:localkube nicholasrusso$ kubectl expose deployment \
+Nicholass-MBP:localkube nicholasrusso# kubectl expose deployment \
 >  hello-minikube --type=NodePort
 service "hello-minikube" exposed
 \end{minted}
@@ -433,11 +433,11 @@ Check the pod status quickly to see that the pod is still in a state of creating
 container. A few seconds later, the pod is operational.
 
 \begin{minted}{bash}
-Nicholass-MBP:localkube nicholasrusso$ kubectl get pod
+Nicholass-MBP:localkube nicholasrusso# kubectl get pod
 NAME                             READY     STATUS              RESTARTS   AGE
 hello-minikube-c8b6b4fdc-nz5nc   0/1       ContainerCreating   0          17s
 
-Nicholass-MBP:localkube nicholasrusso$ kubectl get pod
+Nicholass-MBP:localkube nicholasrusso# kubectl get pod
 NAME                             READY     STATUS    RESTARTS   AGE
 hello-minikube-c8b6b4fdc-nz5nc   1/1       Running   0          51s
 \end{minted}
@@ -448,7 +448,7 @@ impossible depending on how the VM is set up on your local machine, and
 considering \verb|minikube| is not meant for production, it isn't a big deal.
 
 \begin{minted}{bash}
-Nicholass-MBP:localkube nicholasrusso$ kubectl get service
+Nicholass-MBP:localkube nicholasrusso# kubectl get service
 NAME             TYPE       CLUSTER-IP      XTERNAL-IP   PORT(S)          AGE
 hello-minikube   NodePort   10.98.210.206  <none>        8080:31980/TCP   15s
 kubernetes       ClusterIP  10.96.0.1      <none>        443/TCP          7h
@@ -460,7 +460,7 @@ add capacity to an application in an automated and easy way. Kubernetes has
 built-in support for load balancing to replica sets as well.
 
 \begin{minted}{bash}
-Nicholass-MBP:localkube nicholasrusso$ kubectl get rs
+Nicholass-MBP:localkube nicholasrusso# kubectl get rs
 NAME                       DESIRED   CURRENT   READY     AGE
 hello-minikube-c8b6b4fdc   1         1         1         1m
 \end{minted}
@@ -468,7 +468,7 @@ hello-minikube-c8b6b4fdc   1         1         1         1m
 The command below creates a replica of the original pod, resulting in two total pods.
 
 \begin{minted}{bash}
-Nicholass-MBP:localkube nicholasrusso$ kubectl scale \
+Nicholass-MBP:localkube nicholasrusso# kubectl scale \
 >  deployments/hello-minikube --replicas=2
 deployment.extensions "hello-minikube" scaled
 \end{minted}
@@ -479,7 +479,7 @@ workload (again, assuming load balancing has been set up and the application
 operates in such a way where this is useful).
 
 \begin{minted}{bash}
-Nicholass-MBP:localkube nicholasrusso$ kubectl get pod
+Nicholass-MBP:localkube nicholasrusso# kubectl get pod
 NAME                             READY     STATUS    RESTARTS   AGE
 hello-minikube-c8b6b4fdc-l5jgn   1/1       Running   0          6s
 hello-minikube-c8b6b4fdc-nz5nc   1/1       Running   0          1m
@@ -491,10 +491,10 @@ can see the URL using the command below, then feed the output from this
 command into curl to issue an HTTP GET request.
 
 \begin{minted}{bash}
-Nicholass-MBP:localkube nicholasrusso$ minikube service hello-minikube --url
+Nicholass-MBP:localkube nicholasrusso# minikube service hello-minikube --url
 http://192.168.99.100:31980
 
-Nicholass-MBP:localkube nicholasrusso$ curl \
+Nicholass-MBP:localkube nicholasrusso# curl \
 >  $(minikube service hello-minikube --url)/health
 CLIENT VALUES:
 client_address=172.17.0.1
@@ -517,8 +517,8 @@ BODY:
 
 The command below opens up a web browser to the Kubernetes dashboard.
 
-\begin{minted}{bash}
-Nicholass-MBP:localkube nicholasrusso$ minikube dashboard
+\begin{minted}{text}
+Nicholass-MBP:localkube nicholasrusso# minikube dashboard
 Opening kubernetes dashboard in default browser...
 \end{minted}
 
@@ -555,7 +555,7 @@ Checking the CLI again, the new replica set (ending in \verb|cxxlg|) created
 from the dashboard appears here.
 
 \begin{minted}{bash}
-Nicholass-MBP:localkube nicholasrusso$ kubectl get pods
+Nicholass-MBP:localkube nicholasrusso# kubectl get pods
 NAME                             READY     STATUS    RESTARTS   AGE
 hello-minikube-c8b6b4fdc-cxxlg   1/1       Running   0          21s
 hello-minikube-c8b6b4fdc-l5jgn   1/1       Running   0          8m
@@ -566,10 +566,10 @@ To delete the deployment when testing is complete, use the command below. The
 entire deployment (application) and all associated pods are removed.
 
 \begin{minted}{bash}
-Nicholass-MBP:localkube nicholasrusso$ kubectl delete deployment hello-minikube
+Nicholass-MBP:localkube nicholasrusso# kubectl delete deployment hello-minikube
 deployment.extensions "hello-minikube" deleted
 
-Nicholass-MBP:localkube nicholasrusso$ kubectl get pods
+Nicholass-MBP:localkube nicholasrusso# kubectl get pods
 No resources found.
 \end{minted}
 
@@ -622,7 +622,7 @@ and use ``json'' for the output format, which is the most programmatically
 appropriate answer.
 
 \begin{minted}{bash}
-[ec2-user@devbox ~]$ aws configure
+[ec2-user@devbox ~]# aws configure
 AWS Access Key ID [None]: AKIAJKRONVDHHQ3GJYGA
 AWS Secret Access Key [None]: [hidden]
 Default region name [None]: us-east-1
@@ -634,7 +634,7 @@ sure to match up the \verb|Arn| number and username to what is shown in the
 screenshots above.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ aws sts get-caller-identity
+[ec2-user@devbox ~]# aws sts get-caller-identity
 \end{minted}
 
 \begin{minted}{json}
@@ -656,7 +656,7 @@ The VPC without a name is the default. Record the \verb|VpcId| of the default VP
 which is \verb|vpc-889b03ee|.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ aws ec2 describe-vpcs
+[ec2-user@devbox ~]# aws ec2 describe-vpcs
 \end{minted}
 
 \begin{minted}{json}
@@ -714,7 +714,7 @@ the us-east-1a AZ subnets. One subnet is returned with \verb|SubnetId|
 of \verb|subnet-f1dfa694|.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ aws ec2 describe-subnets --filters \
+[ec2-user@devbox ~]# aws ec2 describe-subnets --filters \
 >  'Name=vpc-id,Values=vpc-889b03ee' 'Name=availability-zone,Values=us-east-1a'
 \end{minted}
 
@@ -751,7 +751,7 @@ launch will result in an error. Visit this
 \href{https://aws.amazon.com/marketplace/pp/B00NF48FI2}{link} for details.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ aws ec2 describe-images --filters \
+[ec2-user@devbox ~]# aws ec2 describe-images --filters \
 >  'Name=name,Values=cisco-CSR-.16.09*BYOL*'
 \end{minted}
 
@@ -804,7 +804,7 @@ key chains and choose the most appropriate one for this instance. One key pair
 is available. The name ``EC2-key-pair'' will be used when deploying the CSR1000v.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ aws ec2 describe-key-pairs
+[ec2-user@devbox ~]# aws ec2 describe-key-pairs
 \end{minted}
 
 \begin{minted}{json}
@@ -825,7 +825,7 @@ permits all traffic. The \verb|GroupId| of \verb|sg-4d3a5c31| can be used
 when deploying the CSR1000v.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ aws ec2 describe-security-groups --filter \
+[ec2-user@devbox ~]# aws ec2 describe-security-groups --filter \
 >  'Name=vpc-id,Values=vpc-889b03ee'
 \end{minted}
 
@@ -876,7 +876,7 @@ a string is returned with the instance ID of the new instance; this is why the
 CSR1000v will take a few minutes to fully power up.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ aws ec2 run-instances --image-id ami-0d1e6af4c329efd82 \
+[ec2-user@devbox ~]# aws ec2 run-instances --image-id ami-0d1e6af4c329efd82 \
 >                              --subnet-id subnet-f1dfa694 \
 >                              --security-group-ids sg-4d3a5c31 \
 >                              --count 1 \
@@ -892,7 +892,7 @@ containing a specific instance ID\@. The value returned above is pasted below.
 The status is still ``initializing''.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ aws ec2 describe-instance-status --instance-ids 'i-08808ba7abf0d2242'
+[ec2-user@devbox ~]# aws ec2 describe-instance-status --instance-ids 'i-08808ba7abf0d2242'
 \end{minted}
 
 \begin{minted}{json}
@@ -932,7 +932,7 @@ You can continue running the above command every few minutes until the status
 changes to \verb|ok|. Some extra information has been removed from the output.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ aws ec2 describe-instance-status \
+[ec2-user@devbox ~]# aws ec2 describe-instance-status \
 >  --instance-ids 'i-08808ba7abf0d2242'
 \end{minted}
 
@@ -957,7 +957,7 @@ complex query, one could manually scan the JSON to find the address, but this
 solution is more targeted and elegant.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ aws ec2 describe-instances \
+[ec2-user@devbox ~]# aws ec2 describe-instances \
 >  --instance-ids i-08808ba7abf0d2242 --output text \
 >  --query 'Reservations[*].Instances[*].PublicIpAddress' 
 34.201.13.127
@@ -969,10 +969,10 @@ IP address. A quick check of the IOS XE version suggests that the deployment
 succeeded.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ ls -l privkey.pem 
+[ec2-user@devbox ~]# ls -l privkey.pem 
 -r-------- 1 ec2-user ec2-user 1670 Jan  1 16:54 privkey.pem
 
-[ec2-user@devbox ~]$ ssh -i privkey.pem ec2-user@34.201.13.127
+[ec2-user@devbox ~]# ssh -i privkey.pem ec2-user@34.201.13.127
 
 ip-172-31-66-99#show version | include IOS XE
 Cisco IOS XE Software, Version 16.09.01
@@ -988,7 +988,7 @@ using the command below. The JSON output confirms that the instance is
 shutting down.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ aws ec2 terminate-instances --instance-ids i-08808ba7abf0d2242
+[ec2-user@devbox ~]# aws ec2 terminate-instances --instance-ids i-08808ba7abf0d2242
 \end{minted}
 
 \begin{minted}{json}
@@ -1014,7 +1014,7 @@ until the instance is gone. Running the command again confirms the instance no
 longer exists as the state is \verb|terminated|.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ aws ec2 terminate-instances --instance-ids i-08808ba7abf0d2242
+[ec2-user@devbox ~]# aws ec2 terminate-instances --instance-ids i-08808ba7abf0d2242
 \end{minted}
 
 \begin{minted}{json}
@@ -1099,12 +1099,12 @@ operating system from here. For this demonstration, the Linux 64-bit package
 is downloaded via wget below.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ wget \
+[ec2-user@devbox ~]# wget \
 >  https://releases.hashicorp.com/terraform/0.11.11/terraform_0.11.11_linux_amd64.zip
 [snip, downloading file]
 2019-01-01 15:26:18 (53.2 MB/s) - ‘terraform_0.11.11_linux_amd64.zip’ saved
 
-[ec2-user@devbox ~]$ ls -l
+[ec2-user@devbox ~]# ls -l
 -rw-rw-r-- 1 ec2-user ec2-user 20971661 Dec 14 21:21 terraform_0.11.11_linux_amd64.zip
 \end{minted}
 
@@ -1120,26 +1120,26 @@ operators have 3 options:
 \end{enumerate}
 
 \begin{minted}{text}
- [ec2-user@devbox ~]$ unzip terraform_0.11.11_linux_amd64.zip
+ [ec2-user@devbox ~]# unzip terraform_0.11.11_linux_amd64.zip
 Archive:  terraform_0.11.11_linux_amd64.zip
   inflating: terraform
 
-[ec2-user@devbox ~]$ file terraform
+[ec2-user@devbox ~]# file terraform
 terraform: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, stripped
 
-[ec2-user@devbox ~]$ echo $PATH
+[ec2-user@devbox ~]# echo $PATH
 /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/ec2-user/.local/bin:/home/ec2-user/bin
 
-[ec2-user@devbox ~]$ sudo mv terraform /usr/local/bin/
+[ec2-user@devbox ~]# sudo mv terraform /usr/local/bin/
 \end{minted}
 
 Test to ensure your shell recognizes \verb|terraform| as a command before continuing.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ which terraform
+[ec2-user@devbox ~]# which terraform
 /usr/local/bin/terraform
 
-[ec2-user@devbox ~]$ terraform --version
+[ec2-user@devbox ~]# terraform --version
 Terraform v0.11.11
 \end{minted}
 
@@ -1149,8 +1149,8 @@ called ``network.tf''. Open the file in your favorite editor to begin creating
 the Terraform plan.
 
 \begin{minted}{text}
-[ec2-user@devbox ~]$ mkdir tf-demo && cd tf-demo
-[ec2-user@devbox tf-demo]$
+[ec2-user@devbox ~]# mkdir tf-demo && cd tf-demo
+[ec2-user@devbox tf-demo]#
 \end{minted}
 
 First, invoke the AWS provider using the code below. While this is technically
@@ -1258,7 +1258,7 @@ verbose and provides hints and help along the way. The output below represents
 a successful setup.
 
 \begin{minted}{text}
-[ec2-user@devbox tf-demo]$ terraform init
+[ec2-user@devbox tf-demo]# terraform init
 
 Initializing provider plugins...
 - Checking for available provider plugins on https://releases.hashicorp.com...
@@ -1286,7 +1286,7 @@ and are available for use by the Terraform operator later. The output is very
 long, and future iterations of this output will be snipped for brevity.
 
 \begin{minted}{text}
-[ec2-user@devbox tf-demo]$ terraform plan
+[ec2-user@devbox tf-demo]# terraform plan
 Refreshing Terraform state in-memory prior to plan...
 The refreshed state will be used to calculate this plan, but will not be
 persisted to local or remote state storage.
@@ -1421,7 +1421,7 @@ Running the command again and specifying an optional output file allows the
 plan to be saved to disk.
 
 \begin{minted}{text}
-[ec2-user@devbox tf-demo]$ terraform plan -out=plan.tfstate
+[ec2-user@devbox tf-demo]# terraform plan -out=plan.tfstate
 [snip]
   + aws_instance.dmz_asav
       [snip]
@@ -1455,7 +1455,7 @@ status updates. Also note that the newly-created subnet
 \verb|subnet-01461157fed507e7b| was correctly referenced by the EC2 instances.
 
 \begin{minted}{text}
-[ec2-user@devbox tf-demo]$ terraform apply plan.tfstate
+[ec2-user@devbox tf-demo]# terraform apply plan.tfstate
 aws_vpc.tfvpc: Creating...
   arn:                              "" => "<computed>"
   assign_generated_ipv6_cidr_block: "" => "false"
@@ -1515,7 +1515,7 @@ lines, effectively only collecting the \verb|Status| value. Note that the two
 instance IDs specified here are annotated above in the output from Terraform.
 
 \begin{minted}{text}
-[ec2-user@devbox tf-demo]$ aws ec2 describe-instance-status \
+[ec2-user@devbox tf-demo]# aws ec2 describe-instance-status \
 >  --instance-ids 'i-03ac772e458bb9282' 'i-04e2992781578b002' \
 >  --query InstanceStatuses[*].InstanceStatus.Status
 \end{minted}
@@ -1544,14 +1544,14 @@ plan was applied. Use \verb|terraform show| to view the file, which contains
 all the \verb|computed| fields filled in, such as the ARN value.
 
 \begin{minted}{text}
-[ec2-user@devbox tf-demo]$ ls -l
+[ec2-user@devbox tf-demo]# ls -l
 total 28
 -rw-rw-r-- 1 ec2-user ec2-user   533 Jan  1 18:54 network.tf
 -rw-rw-r-- 1 ec2-user ec2-user  7437 Jan  1 19:00 plan.tfstate
 -rw-rw-r-- 1 ec2-user ec2-user   417 Jan  1 18:59 services.tf
 -rw-rw-r-- 1 ec2-user ec2-user 10917 Jan  1 19:01 terraform.tfstate
 
-[ec2-user@devbox tf-demo]$ terraform show
+[ec2-user@devbox tf-demo]# terraform show
 aws_instance.dmz_asav:
   id = i-03ac772e458bb9282
   ami = ami-4fbf3c30
@@ -1571,7 +1571,7 @@ changes have been made manually to the environment (outside of Terraform), no
 updates are needed.
 
 \begin{minted}{text}
-[ec2-user@devbox tf-demo]$ terraform plan
+[ec2-user@devbox tf-demo]# terraform plan
 Refreshing Terraform state in-memory prior to plan...
 The refreshed state will be used to calculate this plan, but will not be
 persisted to local or remote state storage.
@@ -1594,7 +1594,7 @@ Suppose a clumsy user accidentally deletes the CSR1000v as shown below. Wait
 for the instance to be \verb|terminated|.
 
 \begin{minted}{text}
-[ec2-user@devbox tf-demo]$ aws ec2 terminate-instances \
+[ec2-user@devbox tf-demo]# aws ec2 terminate-instances \
 >  --instance-ids i-04e2992781578b002
 \end{minted}
 
@@ -1623,7 +1623,7 @@ Note that you cannot simply rerun \verb|plan.tfstate| because it was created
 against an old state (ie, an old diff between intended and actual states).
 
 \begin{minted}{text}
-[ec2-user@devbox tf-demo]$ terraform plan
+[ec2-user@devbox tf-demo]# terraform plan
 Refreshing Terraform state in-memory prior to plan...
 The refreshed state will be used to calculate this plan, but will not be
 persisted to local or remote state storage.
@@ -1650,7 +1650,7 @@ Terraform will perform the following actions:
 Plan: 1 to add, 0 to change, 0 to destroy.
 
 
-[ec2-user@devbox tf-demo]$ terraform apply
+[ec2-user@devbox tf-demo]# terraform apply
 aws_vpc.tfvpc: Refreshing state... (ID: vpc-0edde0f2f198451e1)
 aws_subnet.dmz: Refreshing state... (ID: subnet-01461157fed507e7b)
 aws_instance.dmz_asav: Refreshing state... (ID: i-03ac772e458bb9282)
@@ -1706,7 +1706,7 @@ Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
 The new instance is currently initializing, and Terraform plan says all is well.
 
 \begin{minted}{text}
-[ec2-user@devbox tf-demo]$ aws ec2 describe-instance-status \
+[ec2-user@devbox tf-demo]# aws ec2 describe-instance-status \
 >  --instance-ids 'i-05d5bb841cf4e2ad1' \
 >  --query InstanceStatuses[*].InstanceStatus.Status
 \end{minted}
@@ -1718,7 +1718,7 @@ The new instance is currently initializing, and Terraform plan says all is well.
 \end{minted}
 
 \begin{minted}{text}
-[ec2-user@devbox tf-demo]$ terraform plan
+[ec2-user@devbox tf-demo]# terraform plan
 [snip]
 No changes. Infrastructure is up-to-date.
 \end{minted}
@@ -1728,7 +1728,7 @@ resources added by Terraform. This is a great way to ensure no residual AWS
 resources are left in place (and costing money) long after they are needed.
 
 \begin{minted}{text}
-[ec2-user@devbox tf-demo]$ terraform plan -destroy
+[ec2-user@devbox tf-demo]# terraform plan -destroy
 Refreshing Terraform state in-memory prior to plan...
 The refreshed state will be used to calculate this plan, but will not be
 persisted to local or remote state storage.
@@ -1764,7 +1764,7 @@ created. Note that \verb|-auto-approve| can be appended to both \verb|apply| and
 \verb|destroy| actions to remove the interactive prompt asking for \verb|yes|.
 
 \begin{minted}{text}
-[ec2-user@devbox tf-demo]$ terraform destroy -auto-approve
+[ec2-user@devbox tf-demo]# terraform destroy -auto-approve
 aws_vpc.tfvpc: Refreshing state... (ID: vpc-0edde0f2f198451e1)
 aws_subnet.dmz: Refreshing state... (ID: subnet-01461157fed507e7b)
 aws_instance.dmz_csr1000v: Refreshing state... (ID: i-05d5bb841cf4e2ad1)
@@ -1795,7 +1795,363 @@ indicating that everything has been cleaned up. Further verification via AWS
 CLI or AWS console may be desirable, but for brevity, the author excludes it here.
 
 \begin{minted}{text}
-[ec2-user@devbox tf-demo]$ terraform plan -destroy
+[ec2-user@devbox tf-demo]# terraform plan -destroy
 [snip]
 No changes. Infrastructure is up-to-date.
 \end{minted}
+
+\subsubsection{Flask Application Monitoring with Prometheus}
+Prometheus is \textit{an open-source monitoring system with a dimensional
+data model, flexible query language, efficient time series database and modern
+alerting approach.} To instrument an application, a Prometheus 
+\href{https://prometheus.io/docs/instrumenting/clientlibs/}{client libraries}
+is installed and is accessed within the application's source code. This allows
+Prometheus to collect and export metrics about the application's performance,
+improving observability and overall application awareness. Python Flask is
+a lightweight web services framework that simplifies the creation of web
+applications. Instrumenting a simple Flask application is a great way
+to demonstrate Prometheus, and to do that, we'll install both the
+\verb|flask| and \verb|prometheus-flask-exporter| packages.
+
+\begin{minted}{text}
+[ec2-user@devbox prom_test]# pip install flask prometheus-flask-exporter
+Collecting flask
+Collecting prometheus_flask_exporter
+(snip)
+Successfully installed flask-1.1.2 prometheus-flask-exporter-0.18.1 (snip)
+\end{minted}
+
+Prometheus offers four main metric types to monitor an application:
+
+\begin{enumerate}
+  \item \textbf{counter}: This metric counts the number of times a certain
+    operation occurs, such as a function being called or an exception being
+    raised. Counters can only increase and always start from 0.
+  \item \textbf{gauge}: Like a counter, a gauge measures a specific numeric
+    value, but can rise and fall arbitrarily. Gauges can be used to monitor
+    CPU utilization, memory usage, and the number of currently executing jobs.
+  \item \textbf{histogram}: Histograms are complex metric types that typically
+    measure request durations or response sizes. These values are placed into
+    buckets which can be viewed as a time-series, making them good candidates
+    for detailed statistical analysis (beyond the scope of this document).
+  \item \textbf{summary}: This metric preceded the histogram and largely behaves
+    the same with some low-level technical differences regarding how quantiles
+    are calculated. Prometheus published a comparison chart with more details
+    \href{https://prometheus.io/docs/practices/histograms/}{here.}
+\end{enumerate}
+
+In this demo, we'll test first three metric types (summary metrics aren't
+relevant for this book). The Flask application has four URLs available which
+are well-commented in the code below. The application is a trivial and
+function-less product ordering and fulfillment system that uses random
+sleep timers to simulate complex tasks being accomplished by the system.
+The \verb|@metrics.XYZ| decorator where \verb|XYZ| is the metric type is
+the manner in which metrics are associated with each function. The two
+positional arguments correspond to the metric's name and description.
+
+\begin{minted}{python}
+#!/usr/bin/env python
+
+"""
+Author: Nick Russo
+Purpose: Trivial Flask app to demonstrate Prometheus metric types.
+"""
+
+import random
+import time
+from flask import Flask
+from prometheus_flask_exporter import PrometheusMetrics
+
+# Create Flask app and pass it into Prometheus for monitoring
+# Individual Flask routes (HTTP resources) are decorated with metrics
+app = Flask(__name__)
+metrics = PrometheusMetrics(app)
+
+@app.route("/")
+def index():
+    """Main page; just for connectivity testing"""
+    return "OK"
+
+@app.route("/orders")
+@metrics.counter("counter_orders", "Number of orders placed")
+def orders():
+    """Place a new order and track using a counter (only goes up)"""
+    return "Thanks for placing an order!"
+
+@app.route("/fulfillment")
+@metrics.gauge("gauge_fulfillment", "Concurrent fulfillment processes running")
+def fulfillment():
+    """Measure concurrent order fulfillment using a gauge (goes up and down)"""
+    sleep_time = random.uniform(5.0, 10.0)
+    time.sleep(sleep_time)
+    return f"Last order was fulfilled in {round(sleep_time, 2)} seconds."
+
+@app.route("/service")
+@metrics.histogram("histogram_service", "Customer service wait times")
+def service():
+    """Measure caller wait times using a histogram (bucket-based runtimes)"""
+    sleep_time = random.uniform(0.0, 11.0)
+    time.sleep(sleep_time)
+    return f"Customer service wait time is: {round(sleep_time, 2)} seconds."
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0")
+\end{minted}
+
+To keep things simple, a basic HTTP GET to each resource will be adequate
+to generate the necessary metrics. This makes it easy to test with web
+browsers, desktop tools (e.g. Postman), and CLI tools. We'll start the
+web server on the devbox, then use \verb|curl| to validate connectivity
+from a second machine that will soon be running the Prometheus server.
+
+\begin{minted}{text}
+[ec2-user@devbox prom_test]# python app.py
+ * Debug mode: off
+ * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+
+[centos@prometheus ~]# curl http://devbox.njrusmc.net:5000/
+OK
+\end{minted}
+
+We can also send a GET request to the \verb|/metrics| endpoint
+which reveals the structured data that Prometheus interprets
+(also known as ``scrapes''). There is a ton of data here, so
+the author has omitted much of it in order to highlight the
+most important parts. The first block are default metrics
+that are exported with Flask thanks to the Python package
+in use. These metrics capture request processing times along with
+the HTTP method, path, and status code. For this demo, we'll focus
+more on our custom measurements which were named
+\verb|counter_orders|, \verb|gauge_fulfillment|, and \verb|histogram_service|.
+They are separated by line breaks in the output below for cleanliness, and
+some of these metrics have multiple measurements with slightly different names.
+
+\begin{minted}{text}
+[centos@prometheus ~]# curl http://devbox.njrusmc.net:5000/metrics
+# HELP flask_http_request_duration_seconds Flask HTTP request duration in seconds
+# TYPE flask_http_request_duration_seconds histogram
+flask_http_request_duration_seconds_bucket{le="0.005",method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_bucket{le="0.01",method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_bucket{le="0.025",method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_bucket{le="0.05",method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_bucket{le="0.075",method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_bucket{le="0.1",method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_bucket{le="0.25",method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_bucket{le="0.5",method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_bucket{le="0.75",method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_bucket{le="1.0",method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_bucket{le="2.5",method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_bucket{le="5.0",method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_bucket{le="7.5",method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_bucket{le="10.0",method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_bucket{le="+Inf",method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_count{method="GET",path="/",status="200"} 1.0
+flask_http_request_duration_seconds_sum{method="GET",path="/",status="200"} 0.00011417699897720013
+
+# HELP counter_orders_total Number of orders placed
+# TYPE counter_orders_total counter
+counter_orders_total 0.0
+
+# HELP gauge_fulfillment Concurrent fulfillment processes running
+# TYPE gauge_fulfillment gauge
+gauge_fulfillment 0.0
+
+# HELP histogram_service Customer service wait times
+# TYPE histogram_service histogram
+histogram_service_bucket{le="0.005"} 0.0
+histogram_service_bucket{le="0.01"} 0.0
+histogram_service_bucket{le="0.025"} 0.0
+histogram_service_bucket{le="0.05"} 0.0
+histogram_service_bucket{le="0.075"} 0.0
+histogram_service_bucket{le="0.1"} 0.0
+histogram_service_bucket{le="0.25"} 0.0
+histogram_service_bucket{le="0.5"} 0.0
+histogram_service_bucket{le="0.75"} 0.0
+histogram_service_bucket{le="1.0"} 0.0
+histogram_service_bucket{le="2.5"} 0.0
+histogram_service_bucket{le="5.0"} 0.0
+histogram_service_bucket{le="7.5"} 0.0
+histogram_service_bucket{le="10.0"} 0.0
+histogram_service_bucket{le="+Inf"} 0.0
+histogram_service_count 0.0
+histogram_service_sum 0.0
+\end{minted}
+
+Now that we are confident that the Prometheus server and client (Flask) have
+connectivity, we can start configuring Prometheus. According to the
+\href{https://prometheus.io/docs/introduction/first_steps/}{documentation},
+we should create a YAML file that identifies the Prometheus targets (clients)
+and how often to scrape metrics from them. We'll use a 5 second scape and
+evaluation interval, giving us relatively fast feedback regarding our
+application's performance. Then, we specify the host and port information
+as a static target for this simple demonstration.
+
+\begin{minted}{text}
+[centos@prometheus ~]# cat prometheus.yml
+\end{minted}
+
+\begin{minted}{yaml}
+---
+global:
+  scrape_interval: "5s"
+  evaluation_interval: "5s"
+
+scrape_configs:
+  - job_name: "etech"
+    static_configs:
+      - targets: ["devbox.njrusmc.net:5000"]
+...
+\end{minted}
+
+Next, we can use the command below to pull and run the official container.
+Note that we use a bind-mount to map our local \verb|prometheus.yml|
+file to the Prometheus configuration file on the server with the same name.
+
+\begin{minted}{text}
+[centos@prometheus ~]# docker run \
+  --publish 9090:9090 \
+  --volume /home/centos/prometheus.yml:/etc/prometheus/prometheus.yml \
+  --detach prom/prometheus
+c1b35f65b70b0292e1e58e9d6ce74a155a229940231b910d6c529d0415a0d330
+\end{minted}
+
+Once Prometheus is running, we can simulate a ``high volume'' of customer
+interaction using a simple Bash script. First, the script places some orders,
+which is fast and runs synchronously as there is no sleep timer. Then,
+the script checks fulfillment and service statuses in the background to
+allow concurrent issuance of multiple requests.
+
+\begin{minted}{text}
+[centos@prometheus ~]# cat generate_activity.sh
+\end{minted}
+
+\begin{minted}{bash}
+#!/bin/bash
+for i in {1..5}; do
+  curl http://devbox.njrusmc.net:5000/orders
+done
+for i in {1..3}; do
+  curl http://devbox.njrusmc.net:5000/fulfillment &
+done
+for i in {1..20}; do
+  curl http://devbox.njrusmc.net:5000/service &
+done
+\end{minted}
+
+Next, we'll run the script and wait for it to finish.
+
+\begin{minted}{text}
+[centos@prometheus ~]# ./generate_activity.sh 
+Thanks for placing an order!
+Thanks for placing an order!
+Thanks for placing an order!
+Thanks for placing an order!
+Thanks for placing an order!
+Customer service wait time is: 0.09 seconds.
+Customer service wait time is: 0.19 seconds.
+Customer service wait time is: 0.81 seconds.
+Customer service wait time is: 0.86 seconds.
+Customer service wait time is: 1.71 seconds.
+Customer service wait time is: 2.91 seconds.
+Customer service wait time is: 3.11 seconds.
+Customer service wait time is: 3.32 seconds.
+Customer service wait time is: 3.91 seconds.
+Customer service wait time is: 4.39 seconds.
+Customer service wait time is: 5.17 seconds.
+Customer service wait time is: 6.06 seconds.
+Customer service wait time is: 6.13 seconds.
+Customer service wait time is: 6.36 seconds.
+Customer service wait time is: 6.78 seconds.
+Last order was fulfilled in 6.96 seconds.
+Customer service wait time is: 7.12 seconds.
+Last order was fulfilled in 7.69 seconds.
+Last order was fulfilled in 8.47 seconds.
+Customer service wait time is: 8.76 seconds.
+Customer service wait time is: 9.93 seconds.
+Customer service wait time is: 10.92 seconds.
+Customer service wait time is: 10.97 seconds.
+\end{minted}
+
+As a quick confirmation, we can use \verb|curl| again to the \verb|/metrics|
+endpoint to ensure our metrics have changed. We see 5 orders and 20 service
+calls, but 0 fulfillment requests. That's because the gauge only measures
+point-in-time concurrent requests, which reached up to 3 at one point. That
+peak should be reflected in the Prometheus UI which we'll check soon.
+
+\begin{minted}{text}
+[centos@prometheus ~]# curl http://devbox.njrusmc.net:5000/metrics
+(snipped in various places)
+counter_orders_total 5.0
+gauge_fulfillment 0.0
+histogram_service_bucket{le="0.005"} 0.0
+histogram_service_bucket{le="0.01"} 0.0
+histogram_service_bucket{le="0.025"} 0.0
+histogram_service_bucket{le="0.05"} 0.0
+histogram_service_bucket{le="0.075"} 0.0
+histogram_service_bucket{le="0.1"} 1.0
+histogram_service_bucket{le="0.25"} 2.0
+histogram_service_bucket{le="0.5"} 2.0
+histogram_service_bucket{le="0.75"} 2.0
+histogram_service_bucket{le="1.0"} 4.0
+histogram_service_bucket{le="2.5"} 5.0
+histogram_service_bucket{le="5.0"} 10.0
+histogram_service_bucket{le="7.5"} 16.0
+histogram_service_bucket{le="10.0"} 18.0
+histogram_service_bucket{le="+Inf"} 20.0
+histogram_service_count 20.0
+histogram_service_sum 99.58115865300897
+\end{minted}
+
+Next, open a web browser to the Prometheus server on port 9090 as specified
+in our \verb|docker container run| command. Under ``Status'' and ``Targets'',
+our devbox target is fully operational as expected. If the target is not up,
+Prometheus cannot scrape metrics.
+
+\addimg{prom-target.png}{0.8}{Prometheus Target Status}
+
+Next, head to ``Graph'' and enter a metric to track. We'll start with
+\verb|counter_orders_total| which, as the name implies, counts the
+total number of orders placed. Our activity script generated 5 orders
+and we see them reflected in the bottom right corner of the graphic.
+
+\addimg{prom-count-t.png}{0.8}{Prometheus Counter Metric --- Table}
+
+Rather than view this in table form, click the ``Graph'' tab within
+the panel to see a graphical representation of the counter. In our case,
+we generated 5 requests in short succession, leading to a rapid, one-time
+increase in orders.
+
+\addimg{prom-count-g.png}{0.8}{Prometheus Counter Metric --- Graph}
+
+We can repeat the process for the gauge metric. To prove that Prometheus
+really saw 3 concurrent fulfillment requests, we can set a time range during
+the processing peak before the gauge decreased back to 0.
+
+\addimg{prom-gauge-t.png}{0.8}{Prometheus Gauge Metric --- Table}
+
+This is further proved by exploring the graph, shown below. Unlike a counter,
+the gauge rose to 3 then fell to 0 once the processing was complete.
+
+\addimg{prom-gauge-g.png}{0.8}{Prometheus Gauge Metric --- Graph}
+
+Last, we can collect the histogram data, and the most interesting measurements
+are often the completion time buckets. Each bucket is successively larger using
+a ``less than'' operator, allowing operators to track performance over time and
+using various tiers. The table format is shown below, indicating the number
+of matches per bucket.
+
+\addimg{prom-hist-t.png}{0.8}{Prometheus Histogram Metric --- Table}
+
+The graph view is very appealing as it shows all of the different buckets
+as a stacked graph using different colors. In the context of measuring
+real-life call center performance, such a chart would be quite useful.
+
+\addimg{prom-hist-g.png}{0.8}{Prometheus Histogram Metric --- Graph}
+
+While the Prometheus GUI is very useful for validating the collection
+of metrics and building some basic visualizations, it is inadequate
+for production operations by itself. Most professional organizations
+prefer to export these logs to dashboard applications like
+\href{https://grafana.com/}{Grafana} and
+\href{https://www.elastic.co/kibana}{Kibana}, and many tutorials
+exist on the precise technical steps to enable those integrations.
