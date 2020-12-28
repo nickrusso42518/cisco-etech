@@ -1803,8 +1803,8 @@ No changes. Infrastructure is up-to-date.
 \subsubsection{Flask Application Monitoring with Prometheus}
 Prometheus is \textit{an open-source monitoring system with a dimensional
 data model, flexible query language, efficient time series database and modern
-alerting approach.} To instrument an application, a Prometheus 
-\href{https://prometheus.io/docs/instrumenting/clientlibs/}{client libraries}
+alerting approach.} To instrument a Python application, a Prometheus 
+\href{https://prometheus.io/docs/instrumenting/clientlibs/}{client library}
 is installed and is accessed within the application's source code. This allows
 Prometheus to collect and export metrics about the application's performance,
 improving observability and overall application awareness. Python Flask is
@@ -1978,10 +1978,10 @@ histogram_service_sum 0.0
 \end{minted}
 
 Now that we are confident that the Prometheus server and client (Flask) have
-connectivity, we can start configuring Prometheus. According to the
+connectivity, we can start configuring Prometheus. According to the Prometheus
 \href{https://prometheus.io/docs/introduction/first_steps/}{documentation},
 we should create a YAML file that identifies the Prometheus targets (clients)
-and how often to scrape metrics from them. We'll use a 5 second scape and
+and how often to scrape metrics from them. We'll use a 5 second scrape and
 evaluation interval, giving us relatively fast feedback regarding our
 application's performance. Then, we specify the host and port information
 as a static target for this simple demonstration.
@@ -2138,7 +2138,7 @@ Last, we can collect the histogram data, and the most interesting measurements
 are often the completion time buckets. Each bucket is successively larger using
 a ``less than'' operator, allowing operators to track performance over time and
 using various tiers. The table format is shown below, indicating the number
-of matches per bucket.
+of matches per bucket. Don't worry about the exact values quite yet.
 
 \addimg{prom-hist-t.png}{0.8}{Prometheus Histogram Metric --- Table}
 
@@ -2155,3 +2155,9 @@ prefer to export these logs to dashboard applications like
 \href{https://grafana.com/}{Grafana} and
 \href{https://www.elastic.co/kibana}{Kibana}, and many tutorials
 exist on the precise technical steps to enable those integrations.
+Additionally, a more generic Prometheus client for Python exists named
+\href{https://pypi.org/project/prometheus-client}{prometheus-client}.
+This package is a dependency of the 
+\href{https://pypi.org/project/prometheus-flask-exporter}{prometheus-flask-exporter}
+package used in this demo as the latter is Flask-specific. If you are working
+in a non-Flask environment, be sure to explore the generic package.
