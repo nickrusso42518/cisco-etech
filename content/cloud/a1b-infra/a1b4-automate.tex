@@ -621,7 +621,7 @@ copy/paste the access and secret keys to avoid typos. Choose a region near you
 and use ``json'' for the output format, which is the most programmatically
 appropriate answer.
 
-\begin{minted}{bash}
+\begin{minted}{text}
 [ec2-user@devbox ~]# aws configure
 AWS Access Key ID [None]: AKIAJKRONVDHHQ3GJYGA
 AWS Secret Access Key [None]: [hidden]
@@ -1158,7 +1158,7 @@ not needed, specifying the region in the Terraform plan means that Terraform
 will not interactively prompt to hand-type a region every time. Note that the
 access and secret keys are not needed because AWS CLI has already been configured.
 
-\begin{minted}{c}
+\begin{minted}{terraform}
 # This avoids interaction prompting. The rest of the AWS CLI
 # parameters (access and secret keys) should already be defined.
 provider "aws" {
@@ -1174,7 +1174,7 @@ These are the pieces of data returned by Terraform, such as the VPD ID and
 Amazon Resource Name (ARN). These are dynamically allocated at runtime and
 referencing these values can simply the Terraform plan later.
 
-\begin{minted}{c}
+\begin{minted}{terraform}
 # Create a new VPC for DMZ services
 resource "aws_vpc" "tfvpc" {
   cidr_block = "203.0.113.0/24"
@@ -1194,7 +1194,7 @@ identifies the VPC in which this new subnet should be created. Like the
 \verb|aws_vpc| resource, \verb|aws_subnet| also returns an ID which can be referenced
 later when creating EC2 instances.
 
-\begin{minted}{c}
+\begin{minted}{terraform}
 # Create subnet within the new VPC for the DMZ
 resource "aws_subnet" "dmz" {
   vpc_id            = "${aws_vpc.tfvpc.id}"
@@ -1227,7 +1227,7 @@ terms prior to attempting to start this instance or launch will result in an
 error. Visit this
 \href{https://aws.amazon.com/marketplace/pp/B00WRGASUC}{link} for details.
 
-\begin{minted}{c}
+\begin{minted}{terraform}
 # Cisco ASAv BYOL
 resource "aws_instance" "dmz_asav" {
   ami           = "ami-4fbf3c30"
