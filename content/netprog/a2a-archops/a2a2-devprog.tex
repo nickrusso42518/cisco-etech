@@ -26,19 +26,18 @@ for seamless REST operation across HTTP proxies and gateways.
 Google defined gRPC as gRPC Remote Procedure Call framework, borrowing the
 idea of recursive acronyms popular in the open source world. The RPC concept
 is not a new one; Distributed Component Object Model (DCOM) from Microsoft has
-long existed, among others. These RPC mechanisms are both highly complex and
-considered legacy today. Despite its utility, gRPC is open source and free at
-the time of this writing.
+long existed, among others. NETCONF and SOAP are other examples of RPC-based
+APIs. At the time of this writing, gRPC is open-source and free to use.
 
-gRPC attempts to solve a number of shortcomings of REST-based APIs. For
-example, there is no formal machine definition of a REST API\@. Each API is
-custom-built following REST architectural principles. API consumers must
-always read documents pertaining to the specific API in order to determine its
-usage specifications. Furthermore, streaming operations (sending a stream of
-messages in response to a client's request, or vice versa) are very difficult
-as HTTP 1.1, the specification upon which most REST-based APIs are built, does
-not support this. Instead, gRPC is based on HTTP/2 which supports this
-functionality.
+gRPC solves a number of shortcomings of REST-based APIs (although gRPC does
+not exist for only this purpose). For example, there is no formal machine
+definition of a REST API\@. Each API is custom-built following REST
+architectural principles. API consumers must always read documents pertaining
+to the specific API in order to determine its usage specifications.
+Furthermore, streaming operations (sending a stream of messages in response to
+a client's request, or vice versa) are very difficult as HTTP 1.1, the
+specification upon which most REST-based APIs are built, does not support
+this. Instead, gRPC is based on HTTP/2 which supports this functionality.
 
 The gRPC framework also solves the time-consuming and expensive problem of
 writing client libraries. With REST-based APIs, individual client libraries
@@ -713,9 +712,9 @@ the \verb|GetConfig| RPC returns a stream of \verb|ConfigGetReply|
 objects, making it slightly different than the other RPCs. The others
 all consume \verb|ConfigArgs| and return \verb|ConfigReply| objects.
 Note that while gRPC helps formalize the client/service communications,
-it still relies on YANG-modeled data, much like NETCONF and RESTCONF\@.
-This is best handled using Python structures (dictionaries, lists, etc.)
-and converting them to strings as required by the gRPC service definition.
+The IOS-XR RPCs still leverage YANG-modeled data, much like NETCONF and
+RESTCONF\@. This is best handled using Python structures (dictionaries, lists,
+etc.) and converting them to strings as required by the gRPC service definition.
 
 \begin{minted}{text}
 Nicholass-MBP:grpc_xr nicholasrusso# cat cisco_xr_grpc.py
@@ -997,11 +996,12 @@ Nicholass-MBP:grpc_xr nicholasrusso# cat vrf_b.json
 \end{minted}
 
 The script is hardcoded to load the JSON data from this file into a
-a Python dictionary. The \verb|MergeConfig| RPC includes this data as
+Python dictionary. The \verb|MergeConfig| RPC includes this data as
 an argument, effectively adding it to the configuration. Per the
-services definition, the response only contains an ``errors'' attribute.
-When no errors occur, it is set to the empty string, so the script prints
-``N/A'' when no errors occur. Otherwise, the error string is displayed. To
+services definition, the \verb|ConfigReply| response message only contains
+an ``errors'' attribute (not including the \verb|ResReqId| field).
+When no errors occur, it is set to the empty string, and the script prints
+``N/A'' in that case. Otherwise, the script displays the error string. To
 confirm that the merge succeeded, we'll run another \verb|GetConfig| RPC
 immediately afterwards to confirm VRFs A and B exist.
 
@@ -1015,7 +1015,7 @@ VRF name: B / RTI 2:2 RTE 2:2
 \end{minted}
 
 The \verb|ReplaceConfig| operation will overwrite the existing VRFs with
-whatever is specified in the supplied \verb|ConfigArgs| object. We can
+whatever is specified in the supplied \verb|ConfigArgs| message. We can
 delete all VRFs other than VRF B using this approach when we supply the
 same JSON input file. After the replacement, only VRF B remains.
 
@@ -1034,13 +1034,15 @@ are no VRFs remaining as evidenced by an lack of \verb|GetConfig| responses.
 \begin{minted}{text}
 Nicholass-MBP:grpc_xr nicholasrusso# python grpc_config.py -d
 Errors: N/A
+
 Nicholass-MBP:grpc_xr nicholasrusso# python grpc_config.py -g
 Nicholass-MBP:grpc_xr nicholasrusso#
 \end{minted}
 
 Note that if you try to delete a nonexistent object, gRPC will raise an
 error, which is in JSON format. In this example, VRF B has already
-been deleted and so cannot be deleted again.
+been deleted and so cannot be deleted again. The error is clearly formatted
+as JSON and could be programmatically validated by the script in the future.
 
 \begin{minted}{text}
 Nicholass-MBP:grpc_xr nicholasrusso# python grpc_config.py -d
@@ -1194,7 +1196,7 @@ data: "{"node_id_str":"r1","subscription_id_str":"sub1","encoding_path":
 "flash-system":0}}],"collection_end_time":1608911705443}"
 \end{minted}
 
-Before breaking the connecting with Control-C, you can verify that the
+Before breaking the connection with Control-C, you can verify that the
 session is active by running the following command on the IOS-XR device.
 This reveals the current dial-in connection information for confirmation.
 
@@ -1219,26 +1221,28 @@ that is very high performance but is generally not human readable. Key/value
 GPB is a hybrid of GBP and JSON, allowing keys to be human readable but
 dictionaries are encoded in binary for improved performance. As seen earlier,
 JSON is the easiest to read but is the worst performing given that it is
-pure text.
+text-based and heavyweight in terms of size.
 
 \begin{minted}{text}
-# Using test encoding
+### Using test encoding
 Nicholass-MBP:grpc_xr nicholasrusso# python grpc_telemetry.py
 (no output)
 
-# Using GPB encoding
+### Using GPB encoding
 Nicholass-MBP:grpc_xr nicholasrusso# python grpc_telemetry.py
 ResReqId: 5
 data:
 "\n\002r1\032\004sub12<Cisco-IOS-XR-nto-misc-oper:memory-summary/nodes/node/summary:
 \n2015-11-09@\010H\262\315\360\325\351.P\262\315\360\325\351.h\302\315\360\325\351.b
-\224\001\nI\010\271\315\360\325\351.R\014\n\n0/RP0/CPU0Z2\220\003\200 \230\003\200\200\200\200\024\240\003\200\200\366\272\002\250\003\200\200\200\200
+\224\001\nI\010\271\315\360\325\351.R\014\n\n0/RP0/CPU0Z2\220\003\200
+\230\003\200\200\200\200\024\240\003\200\200\366\272\002\250\003\200\200\200\200
 \024\260\003\200\340\227\344\002\270\003\200\200\200\002\300\003\000\310\003\000
 \320\003\000\330\003\000\nG\010\300\315\360\325\351.R\n\n\0100/0/CPU0Z2\220\003
-\200 \230\003\200\200\200\200 \240\003\200\200\236\221\027\250\003\200\200\200\200 \260\003\200\340\277\272\027\270\003\200\200\200\002\300\003\000\310\003
+\200 \230\003\200\200\200\200 \240\003\200\200\236\221\027\250\003\200\200\200\200
+\260\003\200\340\277\272\027\270\003\200\200\200\002\300\003\000\310\003
 \000\320\003\000\330\003\000"
 
-# Using KV-GPB encoding
+### Using KV-GPB encoding
 Nicholass-MBP:grpc_xr nicholasrusso# python grpc_telemetry.py
 ResReqId: 6
 data:
