@@ -212,8 +212,45 @@ labels
 \end{longtable}
 
 \subsubsection{Centralized SDN using OpenFlow and Faucet}
+When people think of ``real'' SDN (which often implies a fully centralized,
+open-standards technology suite), OpenFlow is commonly used as the
+southbound protocol between the SDN controller and the network devices.
+This section demonstrates how to use the \href{https://faucet.nz/}{Faucet}
+controller, built on the \href{https://osrg.github.io/ryu-book/en/html/}{Ryu}
+framework, and the \href{https://www.openvswitch.org/}{Open vSwitch (OVS)}
+device, a Linux-based network device that is lightweight and easy to deploy.
+
+The topology used in this demonstration is shown below. OVS will interconnect
+two standard Cisco IOS routers which are managed autonomously. Behind
+each router is a simulated LAN segment with ``users'' behind R1 and
+``servers'' behind R2. The lab uses IPv6 only with OSPFv3 routing
+enabled between R1 and R2 across OVS\@. The OVS
+\href{https://gns3.com/marketplace/appliances/open-vswitch}{GNS3 appliance}
+runs inside Docker (hidden from GNS3 users) and connects over the Internet
+to a Faucet instance running in the cloud. One could run Faucet within
+GNS3 on a Linux machine, but testing it in the cloud improved
+accessibility and helped tie in additional evolving technologies.
+
+\addimg{faucet-topo.png}{0.7}{OpenFlow Testbed Topology in GNS3}
+
+Configuring OVS for the first time is a bit tricky because the
+exact commands required depend upon the initial OVS image. The
+GNS3 appliance comes with 4 Linux bridges, each of which is effectively
+its own virtual switch. All 16 ports are initially in the \verb|br0| bridge.
+Each port has a number which is dynamically assigned by OVS during
+initialization; these numbers become important later. The output
+below shows that \verb|eth0| is port 1, \verb|eth1| is port 2,
+and \verb|eth2| is port 3. According to the topology, \verb|eth0| will
+be used for OpenFlow management back to Faucet, while \verb|eth1| and
+\verb|eth2| will connect to R1 and R2, respectively. The OVS version
+is also included below for completeness.
 
 \begin{minted}{text}
+/ # ovs-vsctl -V
+ovs-vsctl (Open vSwitch) 2.4.0
+Compiled Apr  6 2016 14:08:48
+DB Schema 7.12.1
+
 / # ovs-ofctl show br0
 OFPT_FEATURES_REPLY (xid=0x2): dpid:0000a2bbc9e0024f
 n_tables:254, n_buffers:256
@@ -238,57 +275,39 @@ actions: output enqueue set_vlan_vid set_vlan_pcp strip_vlan mod_dl_src
  (snip, more interfaces)
 \end{minted}
 
+Before continuing with the OVS setup, the author recommends completing
+the Faucet setup. This document does not recite every Faucet setup command
+as they are well-documented in their Installing Faucet for the
+\href{https://docs.faucet.nz/en/latest/tutorials/first_time.html}{first time}
+tutorial. The packages, which require a Debian-based distribution, also
+include Gauge (for measuring port statistics), Prometheus (for measuring
+system health), and Grafana (for visualizing the results of both). The
+remainder of this demonstration assumes that the basic setup steps
+have been completed.
 
+Now that we have the interface numbers, we can populate the main
+\verb|/etc/faucet/faucet.yaml| Faucet configuration file. The file
+includes another file named \verb|acls.yaml| which we'll explore shortly.
+Next, it defines a single VLAN named \verb|transport| which uses an 802.1Q
+VLAN ID of 12. This VLAN interconnects R1 and R2 across OVS\@.
 
-\begin{minted}{text}
-# grep eth0 /etc/network/interfaces
-auto eth0
-iface eth0 inet dhcp
-\end{minted}
+Then, the file defines the OpenFlow datapaths, or DPs for short. A datapath
+is a 64-bit field whereby the low-order 48 bits are usually used for the switch
+MAC address and the high-order 16 bits can be anything. This demo uses the
+number 1 to keep things simple, but in short, each DP represents an OpenFlow
+instance on a device. That means each Linux bridge interface would have
+exactly one DP assigned. We'll need to configure a DPID of 1 on our OVS
+\verb|br0| bridge later.
 
-
-
-\begin{minted}{text}
-# Remove eth0 from br0; used for connection to faucet
-ovs-vsctl del-port br0 eth0
-
-# Delete unnecessary bridges; created with GNS3 OVS appliance
-ovs-vsctl del-br br1
-ovs-vsctl del-br br2
-ovs-vsctl del-br br3
-
-# Identify DP ID; must match "dp_id: 0x1" in faucet.yaml
-ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000001
-
-# Management should only be out-of band for cleanliness
-ovs-vsctl set bridge br0 other-config:disable-in-band=true
-
-# If controllers fail, OVS stops forwarding (no autonomous failover)
-ovs-vsctl set bridge br0 fail_mode=secure
-
-# TCP 6653 to faucet; actual SDN control and policy application
-# TCP 6654 to gauge; read-only for metric collection, does not apply policy
-ovs-vsctl set-controller br0 tcp:34.207.175.8:6653 tcp:34.207.175.8:6654
-\end{minted}
-
-\begin{minted}{text}
-/ # ovs-vsctl show
-5fbd00bd-6899-49ab-bb89-38f247ac6b6b
-    Bridge "br0"
-        Controller "tcp:34.207.175.8:6654"
-            is_connected: true
-        Controller "tcp:34.207.175.8:6653"
-            is_connected: true
-        fail_mode: secure
-        Port "br0"
-            Interface "br0"
-                type: internal
-        Port "eth1"
-            Interface "eth1"
-        Port "eth2"
-            Interface "eth2"
-        (snip, more interfaces)
-\end{minted}
+After specifying the correct hardware type for our \verb|sw1| device, we
+enumerate the interfaces. YAML comments are included to map the output
+from the \verb|ovs-ofctl show br0| command issued earlier, which revealed
+the interface numbers. These numbers are the dictionary keys 
+and must match the OVS numbers we recorded. In addition to a
+self-explanatory name and description for each device, we specify the
+\verb|native_vlan| which is equivalent to the Cisco IOS command of
+\verb|switchport access vlan|. OVS will expect untagged Ethernet frames
+on these ports and will internally map them to VLAN 12 per our configuration.
 
 \begin{minted}{text}
 root@faucet:/etc/faucet# cat faucet.yaml
@@ -321,6 +340,22 @@ dps:
 ...
 \end{minted}
 
+By itself, the configuration file above is adequate to establish connectivity
+between R1 and R2. However, the promise of OpenFlow is that it can provide
+more granular policy matching rather than just basic VLAN management. The
+\verb|/etc/faucet/acls.yaml| file, which was included in the
+\verb|/etc/faucet/faucet.yaml| file, allows us to specify access-control
+lists (ACLs) to restrict traffic flow much like a traditional router would.
+
+A single ACL is defined which is named \verb|R1_INBOUND| and has three rules.
+The ACL is a list of nested dictionaries and is relatively easy to interpret.
+First, all IPv4 traffic will be dropped by matching the IPv4 Ethertype.
+Second, IPv6 Telnet is blocked from users to servers, presumably because
+Telnet is insecure and we don't want it on the network at all. This complex
+rule matches the IPv6 Ethertype, TCP protocol, Telnet port, and IPv6
+source/destination ranges. The final rule permits all remaining traffic,
+matching nothing in particular.
+
 \begin{minted}{text}
 root@faucet:/etc/faucet# cat acls.yaml
 \end{minted}
@@ -331,31 +366,162 @@ acls:
   R1_INBOUND:
     # Deny all IPv4 traffic (because we are 'next-gen')
     - rule:
-      dl_type: 0x0800
-      actions:
-        allow: false
+        dl_type: 0x0800
+        actions:
+          allow: false
 
     # Prevent users from using IPv6 Telnet to reach servers
     - rule:
-      dl_type: 0x86dd
-      nw_proto: 6
-      tcp_dst: 23
-      ipv6_src: "2001:db8:1::/64"  # R1 Users
-      ipv6_dst: "2001:db8:2::/64"  # R2 Servers
-      actions:
-        allow: false
+        dl_type: 0x86dd
+        nw_proto: 6
+        tcp_dst: 23
+        ipv6_src: "2001:db8:1::/64"  # R1 Users
+        ipv6_dst: "2001:db8:2::/64"  # R2 Servers
+        actions:
+          allow: false
 
     # Permit all other traffic
     - rule:
-      actions:
-        allow: true
+        actions:
+          allow: true
 ...
 \end{minted}
+
+After making these changes, you must restart both Faucet and Gauge,
+in that order, for changes to take effect. If OpenFlow devices have
+already established connectivity to Faucet, the SDN controller is smart
+enough to update the devices with only the minimum number of rules to
+implement the desired policy. This is useful because it preserves
+computing resources on the OpenFlow device while also minimizing any
+micro-outages that occur during the rule reprogramming.
 
 \begin{minted}{text}
 root@faucet:/etc/faucet# systemctl restart faucet
 root@faucet:/etc/faucet# systemctl restart gauge
 \end{minted}
+
+As a final step, be sure to record Faucet's IPv4 address so that OVS can
+connect to it. Since our Faucet is running in AWS as an EC2 instance,
+it has an elastic IP associated with it, and we can use \verb|curl| to
+discover Faucet's public IP\@.
+
+\begin{minted}{text}
+root@faucet:/etc/faucet# curl https://api64.ipify.org
+34.207.175.9
+\end{minted}
+
+To establish an OpenFlow connection to Faucet, OVS needs an IPv4 address.
+GNS3 allows you to pre-configure the \verb|eth0| configuration by hand-editing
+the \verb|/etc/network/interfaces| file as you'd normally do. Simply uncomment
+the lines below to enable DHCP, allowing the internal GNS3 DHCP server to
+issue an IPv4 address to OVS\@. GNS3 can also provide NAT service to OVS so
+that it can reach the Internet.
+
+\begin{minted}{text}
+/ # grep eth0 /etc/network/interfaces
+auto eth0
+iface eth0 inet dhcp
+\end{minted}
+
+To confirm that OVS has connectivity to Faucet, perform a ping test before
+trying to establish an OpenFlow connection. This will help isolate a basic
+IP addressing or routing problem from an OpenFlow-specific problem.
+
+\begin{minted}{text}
+/ # ping -c 3 34.207.175.9
+PING 34.207.175.9 (34.207.175.9): 56 data bytes
+64 bytes from 34.207.175.9: seq=0 ttl=128 time=12.072 ms
+64 bytes from 34.207.175.9: seq=1 ttl=128 time=63.384 ms
+64 bytes from 34.207.175.9: seq=2 ttl=128 time=90.134 ms
+
+--- 34.207.175.9 ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max = 12.072/55.196/90.134 ms
+\end{minted}
+
+Next, configure OVS so that it is able to connect to Faucet. The
+commands below are individually commented to explain what they do.
+Most importantly, note that the \verb|br0| bridge is configured
+with DPID 1 to match the Faucet configuration. This is how OVS
+identifies itself to Faucet.
+
+\begin{minted}{text}
+# Remove eth0 from br0; used for connection to faucet
+ovs-vsctl del-port br0 eth0
+
+# Delete unnecessary bridges; created with GNS3 OVS appliance
+ovs-vsctl del-br br1
+ovs-vsctl del-br br2
+ovs-vsctl del-br br3
+
+# Identify DP ID; must match "dp_id: 0x1" in faucet.yaml
+ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000001
+
+# Management should only be out-of band for cleanliness
+ovs-vsctl set bridge br0 other-config:disable-in-band=true
+
+# If controllers fail, OVS stops forwarding (no autonomous failover)
+ovs-vsctl set bridge br0 fail_mode=secure
+
+# TCP 6653 to faucet; actual SDN control and policy application
+# TCP 6654 to gauge; read-only for metric collection, does not apply policy
+ovs-vsctl set-controller br0 tcp:34.207.175.9:6653 tcp:34.207.175.9:6654
+\end{minted}
+
+None of the commands above provide any output (unless they fail). To
+verify OpenFlow connectivity, use the \verb|ovs-vsctl show| command.
+The command does not reveal everything, but does confirm that
+the OpenFlow connections to Faucet (6653) and Gauge (6654) are functional.
+
+\begin{minted}{text}
+/ # ovs-vsctl show
+5fbd00bd-6899-49ab-bb89-38f247ac6b6b
+    Bridge "br0"
+        Controller "tcp:34.207.175.9:6654"
+            is_connected: true
+        Controller "tcp:34.207.175.9:6653"
+            is_connected: true
+        fail_mode: secure
+        Port "br0"
+            Interface "br0"
+                type: internal
+        Port "eth1"
+            Interface "eth1"
+        Port "eth2"
+            Interface "eth2"
+        (snip, more interfaces)
+\end{minted}
+
+Everything should be working at this point. We can assume that the OpenFlow
+controller has sent down the proper ruleset to OVS once the OSPFv3 neighbors
+formed between R1 and R2 as shown below. Both routers have OSPFv3-learned IPv6
+routes to one another's Loopback (LAN simulation) networks, as expected.
+
+\begin{minted}{text}
+R1#show ospfv3 ipv6 neighbor | begin ^Neighbor
+Neighbor ID     Pri   State           Dead Time   Interface ID    Interface
+10.1.2.2          0   FULL/  -        00:00:33    5               Ethernet0/1
+
+R1#show ipv6 route ospf | begin ^O
+O   2001:DB8:2::2/128 [110/10]
+     via FE80::2, Ethernet0/1
+
+
+R2#show ospfv3 ipv6 neighbor | begin ^Neighbor
+Neighbor ID     Pri   State           Dead Time   Interface ID    Interface
+10.1.2.1          0   FULL/  -        00:00:33    4               Ethernet0/2
+
+R2#show ipv6 route ospf | begin ^O
+O   2001:DB8:1::1/128 [110/10]
+     via FE80::1, Ethernet0/2
+\end{minted}
+
+Next, let's ensure that the ACL works correctly. Trying to ping R2's
+IPv4 address across OVS fails, even though the ARP resolution succeeds.
+This is a clear indication that IPv4 ARP traffic (Ethernet \verb|0x0806|) is
+permitted while actual IPv4 traffic (Ethernet \verb|0x0800|) is not. In a real
+IPv6-only environment, you'd probably block IPv4 ARP as well. The author
+left it enabled just to highlight how granular the ACL ruleset can be.
 
 \begin{minted}{text}
 R1#ping 10.1.2.2
@@ -370,6 +536,12 @@ Internet  10.1.2.1                -   aabb.cc00.0110  ARPA   Ethernet0/1
 Internet  10.1.2.2                1   aabb.cc00.0220  ARPA   Ethernet0/1
 \end{minted}
 
+Next, let's attempt to Telnet from a simulated user to a simulated server
+using IPv6. We expect this to time out as it is dropped by the ACL\@. On
+the other hand, OSPFv3 is already working between R1 and R2 link-local
+addresses, so clearly IPv6 is not blocked entirely. Ping traffic between
+R1 and R2 loopbacks works as expected while Telnet is blocked.
+
 \begin{minted}{text}
 R1#telnet 2001:db8:2::2 /source-interface Loopback0
 Trying 2001:DB8:2::2 ...
@@ -383,8 +555,20 @@ Packet sent with a source address of 2001:DB8:1::1
 Success rate is 100 percent (5/5), round-trip min/avg/max = 1/5/7 ms
 \end{minted}
 
-!! resubmit action used to link tables together, omitted for simplicity
-!! all these rules match port 2 (which is R1)
+When troubleshooting OpenFlow, OVS provides many useful (but hard to read)
+commands. You can examine the flow table using \verb|ovs-ofctl dump-flows br0|
+as shown below. For readability, the author has deleted many low-relevance fields,
+such as the hexademical cookie, table ID, and more. These are important, low-level
+details but are beyond the scope of this book. Individual flow entries have been
+been spread across multiple lines for additional brevity. The table is ordered
+by priority with higher values taking precedence, which means more specific
+ACL entries are correctly processed first. The first two entries have logged
+the dropped IPv4 and IPv6 Telnet attempts. Then, there is an entry that matches
+all IPv6 multicast traffic with a destination MAC address beginning with 33:33.
+Traffic with this destination will have its VLAN stripped and flooded out
+of ports 2 and 3, which correspond to \verb|eth1| (to R1) and \verb|eth2|
+(to R2), respectively. The final flow with the lowest priority permits all
+other traffic.
 
 \begin{minted}{text}
 / # ovs-ofctl dump-flows br0
@@ -408,6 +592,21 @@ n_packets=4, n_bytes=308, idle_age=522,priority=8192,dl_vlan=12
 actions=strip_vlan,output:2,output:3
 \end{minted}
 
-\addimg{faucet-grafana.png}{0.8}{Grafana Port Statistics Dashboard}
-\addimg{faucet-topo.png}{0.7}{Testbed Topology in GNS3}
+As mentioned earlier, the Faucet installation comes with Grafana as well.
+This is used to display metrics collected by Prometheus, which monitors
+the local controller, and Gauge, which collects port statistics from
+remote OpenFlow devices. The screenshow below is an example of a
+dashboard used to track connected OpenFlow devices. Our demonstrated
+used a single OVS instance named ``sw1'' with a DPID of 1.
+
 \addimg{faucet-inv.png}{0.8}{Grafana Inventory Dashboard}
+
+Faucet also supplies a pre-made dashboard for reviewing Gauge-collected
+port statistics. The image below shows the traffic across OVS in a relatively
+steady state. Because Faucet and OVS do not have GUIs by which they can
+be managed, Grafana serves as a useful substitute for performance monitoring.
+
+\addimg{faucet-grafana.png}{0.8}{Grafana Port Statistics Dashboard}
+
+The ``first time'' Faucet tutorial discussed earlier provides links to these
+dashboards for those interested in exploring them.
