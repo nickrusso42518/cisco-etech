@@ -92,13 +92,15 @@ The models are discussed briefly below.
   tolerance or to create a hierarchy of controllers for larger networks. While
   this is a valid technique, it somewhat invalidates the ``centralized'' model
   because with multiple controllers, the distributed control-plane is reborn.
-  The controllers still must synchronize their routing information using some
+  The controllers still must synchronize their configuration, and in some
+  cases, state information such as routing and flow data. This occurs via a
   network-based protocol and the possibility of inconsistencies between the
   controllers is real. When using this multi-controller architecture, the
   network designer must understand that there is, in fact, a distributed
   control-plane in the network; it has just been moved around. The failure of
   all controllers means the entire failure domain supported by those
-  controllers will be inoperable. The failure of the communication paths
+  controllers will be at the very best static (unable to adjust to changes),
+  and at the very worst inoperable. The failure of the communication paths
   between controllers could likewise cause inconsistent/intermittent problems
   with forwarding, just like a fully distributed control-plane. OpenFlow is a
   good example of a fully-centralized model. Nodes colored gray in the diagram
