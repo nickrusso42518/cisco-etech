@@ -2717,3 +2717,560 @@ analyze Amazon Web Services (AWS) architectures within a Virtual Private
 Cloud (VPC) instance. From a business perspective, integrating Batfish into
 CI/CD pipelines in a pre-check or post-check role can reduce risk and rework,
 both of which reduce operating expenses in the long-term.
+
+\subsubsection{Data Validation with JSON Schema}
+Often times, input data must conform to a specific structure in order to
+function correctly in a given application. YANG, a data modeling language
+discussed earlier in this book, is one way to define the structure of data.
+YANG is technically general-purpose and can be used for non-networking
+applications, but most real-life usage relates to network automation. One
+of YANG's biggest drawbacks is the technical complexity and subsequent
+barriers for entry; one does not simply ``use YANG'' without extensive
+education and testing, both on the langauge itself and the associated tooling.
+
+Lightweight frameworks, such as \href{http://json-schema.org/}{JSON Schema},
+are attractive alternatives for some developers. Much like an XML Schema
+Definition (XSD) file, a JSON schema file defines and enforces the structure
+of a given JSON object. The schema file is metadata that is programmatically
+consumed to ensure structural compliance \textbf{before} the data is processed.
+In the context of client-server applications, this is frequently called
+``client-side validation'' because the data is checked \textbf{before}
+being transmitted to the server. This book will use the Python package
+\href{https://github.com/Julian/jsonschema}{jsonschema for Python} to
+access these capabilities.
+
+To demonstrate JSON schema in action, consider the Cisco SD-WAN solution, which
+supports a robust REST API\@. In addition to standard CRUD operations, the API
+supports a flexible query language to extract real-time performance data. The
+query structure is described in detail
+\href{https://sdwan-docs.cisco.com/Product_Documentation/Command_Reference/Command_Reference/vManage_REST_APIs/vManage_REST_APIs_Overview/vManage_Simple_Query}{here}.
+The JSON data below is a valid example of an SD-WAN query. The topmost key
+of \verb|query| is required, as are the \verb|condition| and \verb|rule|
+keys. The strings \verb|AND| and \verb|OR| are the only valid options
+for the condition, signifying ``match-all'' versus ``match-any'' logic,
+respectively. The \verb|rules| key contains a list of dictionaries (or
+``objects'' in JSON schema parlance), which must contain the four keys
+shown. The remaining top-level keys of \verb|size|, \verb|fields|,
+and \verb|sort| are optional, containing additional constraints on
+the data returned. Also, note that most values are ultimately strings,
+whereas some are integers. This particular query is used to collect
+a subset of vManage performance statistics (CPU, memory, and disk) over
+the past one year (52 weeks). Only the newest 3 entries are returned,
+which is the result of combining a size limit with a descending sort.
+
+\begin{minted}{text}
+[centos@devbox jsonschema]# cat good.json
+\end{minted}
+
+\begin{minted}{json}
+{
+  "query": {
+    "condition": "AND",
+    "rules": [
+      {
+        "field": "entry_time",
+        "type": "date",
+        "operator": "last_n_weeks",
+        "value": ["52"]
+      },
+      {
+        "field": "host_name",
+        "type": "string",
+        "operator": "equal",
+        "value": ["vmanage"]
+      }
+    ]
+  },
+  "size": 3,
+  "fields": [
+    "entry_time",
+    "cpu_user_new",
+    "mem_util",
+    "disk_used"
+  ],
+  "sort": [
+    {
+      "field": "entry_time",
+      "type": "date",
+      "order": "desc"
+    }
+  ]
+}
+\end{minted}
+
+Without JSON schema, we cannot know with certainty whether this HTTP payload
+is correct or not. Our only option is to try and send it to a real SD-WAN
+vManage instance, which serves as the single point of management for
+SD-WAN networks. This demonstration uses the Cisco DevNet SD-WAN
+\href{https://devnetsandbox.cisco.com/}{reservable sandbox}
+currently running version 19.2, though this may
+change in the future. The script below is well-commented and should
+be self-explanatory for those familiar with Python. In summary,
+the script takes one CLI argument representing a JSON file, loads
+the data, then sends an SD-WAN query via HTTP POST request using
+the JSON data as the HTTP body. The HTTP response will either be
+the requested data (success), or an error message indicating the
+problem (failure). Speaking from personal experience, the SD-WAN
+query language is complex. Most of the time, any errors are due to
+a ``Bad Request'' because the query payload is malformed. SD-WAN
+will perform ``server-side'' validation to reveal the problem.
+
+\begin{minted}{text}
+[centos@devbox jsonschema]# cat send_sdwan_query.py
+\end{minted}
+
+\begin{minted}{python}
+#!/usr/bin/env python
+
+"""
+Author: Nick Russo (njrusmc@gmail.com)
+Purpose: Demonstrate jsonschema to validate Cisco SD-WAN API queries.
+"""
+
+import json
+import sys
+import requests
+
+def main(query_body):
+    """
+    Execution begins here. Requires the HTTP query body as an argument.
+    """
+
+    # Define base URL, credentials and disable SSL warnings (self-signed cert)
+    base_url = "https://10.10.20.90:443"
+    creds = {"j_username": "admin", "j_password": "C1sco12345"}
+    requests.packages.urllib3.disable_warnings()
+
+    # Create session and attempt to authenticate
+    sess = requests.session()
+    auth = sess.post(f"{base_url}/j_security_check", data=creds, verify=False)
+
+    # Ensure auth succeeded and no HTTP body was returned
+    if not auth.ok or auth.text:
+        print("Authentication failed")
+        sys.exit(1)
+
+    # Collect CSRF token (required in version 19.2 and newer)
+    token = sess.get(f"{base_url}/dataservice/client/token")
+    token.raise_for_status()
+
+    # Success; issue query and print resulting HTTP body
+    stats = sess.post(
+        f"{base_url}/dataservice/statistics/system",
+        json=query_body,
+        headers={"X-XSRF-TOKEN": token.text},
+        verify=False,
+    )
+    stats_data = stats.json()
+    print(json.dumps(stats_data.get("data", stats_data), indent=2))
+
+if __name__ == "__main__":
+    # Load the CLI-specified instance data from file
+    with open(sys.argv[1], "r") as handle:
+        instance = json.load(handle)
+
+    main(instance)
+\end{minted}
+
+Running the script with \verb|good.json| as a CLI argument yields
+valid output. There are 3 items in the list, each containing the
+requested fields, plus a unique identifier string. For reference,
+the Unix epoch of 1612020225512 is equivalent to 30 January 2021
+at approximately 1523 UTC\@.
+
+\begin{minted}{text}
+[centos@devbox jsonschema]# python send_sdwan_query.py good.json
+\end{minted}
+
+\begin{minted}{json}
+[
+  {
+    "entry_time": 1612020225512,
+    "disk_used": 666386432,
+    "cpu_user_new": 2.02,
+    "mem_util": 0.61,
+    "id": "AXdT83Tj2joFIJpy0ejW"
+  },
+  {
+    "entry_time": 1612020165495,
+    "disk_used": 666394624,
+    "cpu_user_new": 4.04,
+    "mem_util": 0.61,
+    "id": "AXdT83Tj2joFIJpy0ejV"
+  },
+  {
+    "entry_time": 1612020105485,
+    "disk_used": 666386432,
+    "cpu_user_new": 2.01,
+    "mem_util": 0.61,
+    "id": "AXdT83Tj2joFIJpy0ejU"
+  }
+]
+\end{minted}
+
+Now, suppose we craft an incorrect query. The example below does not include
+options such as \verb|size|, \verb|fields|, and \verb|sort|, which is fine.
+The problem is that the first rule object is missing a \verb|value| field
+which is required.
+
+\begin{minted}{text}
+[centos@devbox jsonschema]# cat bad1.json
+\end{minted}
+
+\begin{minted}{json}
+{
+  "query": {
+    "condition": "AND",
+    "rules": [
+      {
+        "field": "entry_time",
+        "type": "date",
+        "operator": "last_n_weeks"
+      },
+      {
+        "field": "host_name",
+        "type": "string",
+        "operator": "equal",
+        "value": ["vmanage"]
+      }
+    ]
+  }
+}
+\end{minted}
+
+Without client-side validation, supplying this malformed query to our
+script results in a failure. SD-WAN graciously tells us the problem, but
+ideally, our script should handle this input validation for us. Some
+applications won't tell you anything useful, which complicates troubleshooting,
+and further reinforces the need for client-side validation.
+
+\begin{minted}{text}
+[centos@devbox jsonschema]# python send_sdwan_query.py bad1.json
+\end{minted}
+
+\begin{minted}{json}
+{
+  "error": {
+    "type": "error",
+    "message": "Invalid query",
+    "details": "At least one value should preset.",
+    "code": "ELASTIC0007"
+  }
+}
+\end{minted}
+
+Writing custom Python code to enforce data compliance is a common practice and
+something the author has personally done frequently, but that is often a
+heavy-handed approach. For an example of this approach, check out the
+\href{https://github.com/nickrusso42518/narc}{narc} project.
+Instead, we'll solve this client-side validation problem using the
+\verb|jsonschema| package discussed earlier. First, install via \verb|pip|:
+
+\begin{minted}{text}
+[centos@devbox netbox_ansible]# pip install jsonschema
+Collecting jsonschema
+  (snip)
+Successfully installed jsonschema-3.2.0
+\end{minted}
+
+The schema file below can be used to check our query payloads before issuing
+API requests. At the top of the file, it's common to see a \verb|definitions|
+block which defines reusable types. In SD-WAN, the \verb|type| key is used
+both for rule matching and sorting specifications, so to avoid copy/paste,
+we can define a reusuable type definition named \verb|value_type|. Moving
+into the schema itself, the top-most item is an \verb|object|, which really
+means ``dictionary''. Then, there is a \verb|query| property, also an object,
+which has a \verb|condition| property. The strings \verb|AND| and \verb|OR|
+are enumerated as the only valid options for this string-typed field. Then,
+there is an array (or list) of rules. Each item is an object (dictionary)
+with a variety of properties. Notice the \verb|type| property references
+the custom type definition described earlier.
+
+Rather than explain every property, we'll focus on a few other notable aspects.
+First, the \verb|required| key specifies a list of strings, identifying which
+properties are required. By default, all properties are assumed to be optional,
+and specifying mandatory fields empowers JSON schema to validate more than just
+the values themselves. The \verb|size| property is an integer in a range of
+1 to 65,535 with a default value of 10,000 (unsigned 16 bit integer). While
+10,000 is indeed the default value per the SD-WAN documentation, the author
+arbitrarily set minimum and maximum limits for demonstration purposes only.
+Additionally, any element can be documented/commented using the
+\verb|description| key. This schema is sparsely commented for brevity, but
+in real life, all fields should have adequate descriptions.
+
+\begin{minted}{text}
+[centos@devbox jsonschema]# cat schema.json
+\end{minted}
+
+\begin{minted}{json}
+{
+  "definitions": {
+    "value_type": {
+      "type": "string",
+      "description": "Specify the type of queried value",
+      "enum": ["date", "double", "int", "long", "string"]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "query": {
+      "type": "object",
+      "properties": {
+        "condition": {"type": "string", "enum": ["AND", "OR"]},
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {"$ref": "#/definitions/value_type"},
+              "field": {"type": "string"},
+              "operator": {"type": "string"},
+              "value": {"type": "array", "items": {"type": "string"}}
+            },
+            "required": ["type", "field", "operator", "value"]
+          }
+        }
+      },
+      "required": ["condition", "rules"]
+    },
+    "size": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535,
+      "default": 10000
+    },
+    "fields": {
+      "type": "array",
+      "items": {"type": "string", "description": "Column names to collect"}
+    },
+    "sort": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {"$ref": "#/definitions/value_type"},
+          "field": {"type": "string"},
+          "order": {"type": "string", "enum": ["asc", "desc"]}
+        }
+      }
+    }
+  },
+  "required": ["query"]
+}
+\end{minted}
+
+The \verb|jsonschema| package can be used in two separate ways:
+
+\begin{enumerate}
+  \item Via the shell by using the \verb|jsonschema| command
+  \item In a Python script by importing \verb|jsonschema|
+\end{enumerate}
+
+The shell option is useful for quickly validating a data payload, known
+more generally as an ``instance'', against the schema file. When an instance
+is compliant, no output is returned and the return code is 0. This indicates
+success and the return code makes this useful in CI/CD pipelines. However,
+checking the malformed data reveals a missing required property and results
+in a non-zero return code.
+
+\begin{minted}{text}
+[centos@devbox jsonschema]# jsonschema --instance good.json schema.json
+[centos@devbox jsonschema]# echo $?
+0
+
+[centos@devbox jsonschema]# jsonschema --instance bad1.json schema.json
+{'field': 'entry_time', 'type': 'date', 'operator': 'last_n_weeks'}: 'value' is a required property
+[centos@devbox jsonschema]# echo $?
+1
+\end{minted}
+
+The Python option is useful for integrating data validation into more
+complex applications or client scripts. Let's enhance our existing Python
+script using \verb|jsonschema| as shown below. Note that the \verb|main()|
+function remains unchanged and has been omitted for brevity. This time,
+we load in the JSON schema file in addition to the instance data, then
+use the \verb|validate()| function, passing in both instance and schema data.
+
+\begin{minted}{text}
+[centos@devbox jsonschema]# cat send_sdwan_query.py
+\end{minted}
+
+\begin{minted}{python}
+#!/usr/bin/env python
+
+"""
+Author: Nick Russo (njrusmc@gmail.com)
+Purpose: Demonstrate jsonschema to validate Cisco SD-WAN API queries.
+"""
+
+import json
+import sys
+import requests
+import jsonschema  # new!
+
+def main(query_body):
+    # snip; no changes from previous version
+
+if __name__ == "__main__":
+    # Load the fixed schema data from file
+    with open("schema.json", "r") as handle:
+        schema = json.load(handle)
+
+    # Load the CLI-specified instance data from file
+    with open(sys.argv[1], "r") as handle:
+        instance = json.load(handle)
+
+    # Perform validation and issue query to API upon success
+    jsonschema.validate(instance=instance, schema=schema)
+    main(instance)
+\end{minted}
+
+For brevity, this book won't show another successful sample run
+using the \verb|good.json| input; that still works. Instead, let's
+run the updated script with \verb|bad1.json|, which we expect to fail.
+This time, \verb|validate()| intercepts the bogus data before sending an
+API request to SD-WAN, which leads to a faster failure (reduced
+network testing time) and less network/compute load (no need to
+bother the server).
+
+\begin{minted}{text}
+[centos@devbox jsonschema]# python send_sdwan_query.py bad1.json
+Traceback (most recent call last): (snip)
+jsonschema.exceptions.ValidationError: 'value' is a required property
+
+Failed validating 'required' in schema['properties']['query']['properties']['rules']['items']:
+    {'properties': {'field': {'type': 'string'},
+                    'operator': {'type': 'string'},
+                    'type': {'$ref': '#/definitions/value_type'},
+                    'value': {'items': {'type': 'string'},
+                              'type': 'array'}},
+     'required': ['type', 'field', 'operator', 'value'],
+     'type': 'object'}
+
+On instance['query']['rules'][0]:
+    {'field': 'entry_time', 'operator': 'last_n_weeks', 'type': 'date'}
+\end{minted}
+
+It's worth examining a few other malformed payloads for completeness.
+Consider the query below. It has two errors:
+
+\begin{enumerate}
+  \item The \verb|condition| of \verb|XOR| is not a valid choice
+  \item The \verb|size| of \verb|-1| is outside of the specified range
+\end{enumerate}
+
+\begin{minted}{text}
+[centos@devbox jsonschema]# cat bad2.json
+\end{minted}
+
+\begin{minted}{json}
+{
+  "query": {
+    "condition": "XOR",
+    "rules": [
+      {
+        "field": "entry_time",
+        "type": "date",
+        "operator": "last_n_weeks",
+        "value": ["52"]
+      },
+      {
+        "field": "host_name",
+        "type": "string",
+        "operator": "equal",
+        "value": ["vmanage"]
+      }
+    ]
+  },
+  "size": -1
+}
+\end{minted}
+
+Running the \verb|bad2.json| file through both the CLI tool and Python
+script, we confirm that the query is invalid. Note that the CLI tool
+generally displays all schema violations while the Python package only
+displays one. This is likely because the first violation discovered
+is enough to raise the \verb|ValidationError|, halting the process.
+
+\begin{minted}{text}
+[centos@devbox jsonschema]# jsonschema --instance bad2.json schema.json
+XOR: 'XOR' is not one of ['AND', 'OR']
+-1: -1 is less than the minimum of 1
+
+
+[centos@devbox jsonschema]# python send_sdwan_query.py bad2.json
+Traceback (most recent call last): (snip)
+jsonschema.exceptions.ValidationError: -1 is less than the minimum of 1
+
+Failed validating 'minimum' in schema['properties']['size']:
+    {'default': 10000, 'maximum': 65535, 'minimum': 1, 'type': 'integer'}
+
+On instance['size']:
+    -1
+\end{minted}
+
+Last, consider a file with three errors:
+
+\begin{enumerate}
+  \item The \verb|operator| property is missing from the first rule
+  \item The \verb|value| of \verb|42518| should be a string, but is an integer
+  \item The \verb|size| of \verb|"big"| should be an integer, but is an string
+\end{enumerate}
+
+\begin{minted}{text}
+[centos@devbox jsonschema]# cat bad3.json
+\end{minted}
+
+\begin{minted}{json}
+{
+  "query": {
+    "condition": "AND",
+    "rules": [
+      {
+        "field": "entry_time",
+        "type": "date",
+        "value": ["52"]
+      },
+      {
+        "field": "host_name",
+        "type": "string",
+        "operator": "equal",
+        "value": [42518]
+      }
+    ]
+  },
+  "size": "big"
+}
+\end{minted}
+
+Running the \verb|bad3.json| query through our validation tools yields the
+expected results as shown below.
+
+\begin{minted}{text}
+[centos@devbox jsonschema]# jsonschema --instance bad3.json schema.json
+{'field': 'entry_time', 'type': 'date', 'value': ['52']}: 'operator' is a required property
+42518: 42518 is not of type 'string'
+big: 'big' is not of type 'integer'
+
+
+[centos@devbox jsonschema]# python send_sdwan_query.py bad3.json
+Traceback (most recent call last): (snip)
+jsonschema.exceptions.ValidationError: 'big' is not of type 'integer'
+
+Failed validating 'type' in schema['properties']['size']:
+    {'default': 10000, 'maximum': 65535, 'minimum': 1, 'type': 'integer'}
+
+On instance['size']:
+    'big'
+\end{minted}
+
+JSON schema has many additional capabilities beyond what has been discussed
+in this document. Rather than detail every feature, try using JSON schema
+in your own projects instead of developing complex, conditional-based data
+validation in your source code. Also, note that while the we call it ``JSON''
+schema, all of these files could be in a different format, such as YAML,
+and they would still work with the Python method (but not the CLI method).
+For automation frameworks that rely primarily on YAML files for variables
+and inventories, such as Ansible and Nornir, a pre-validation script could
+load data from YAML, then pass the structured data into \verb|validate()|
+for processing. In most cases, sticking with pure JSON is often simpler.
