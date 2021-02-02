@@ -2984,7 +2984,8 @@ which has a \verb|condition| property. The strings \verb|AND| and \verb|OR|
 are enumerated as the only valid options for this string-typed field. Then,
 there is an array (or list) of rules. Each item is an object (dictionary)
 with a variety of properties. Notice the \verb|type| property references
-the custom type definition described earlier.
+the custom type definition described earlier. Again, be sure to reference
+the official documentation referenced earlier when building your schema files.
 
 Rather than explain every property, we'll focus on a few other notable aspects.
 First, the \verb|required| key specifies a list of strings, identifying which
@@ -2996,7 +2997,9 @@ the values themselves. The \verb|size| property is an integer in a range of
 arbitrarily set minimum and maximum limits for demonstration purposes only.
 Additionally, any element can be documented/commented using the
 \verb|description| key. This schema is sparsely commented for brevity, but
-in real life, all fields should have adequate descriptions.
+in real life, all fields should have adequate descriptions. Other annotation
+keys, such as \verb|title| and \verb|examples|, can be used within the schema
+alongside \verb|description| and \verb|default|.
 
 \begin{minted}{text}
 [centos@devbox jsonschema]# cat schema.json
