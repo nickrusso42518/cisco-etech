@@ -754,7 +754,7 @@ restconf
 \end{minted}
 
 Run the playbook, and notice that the task reports \verb|ok|. Like NETCONF,
-RESTCONF is idempotent and easy to prgrom using Ansible. Unlike NETCONF,
+RESTCONF is idempotent and easy to program using Ansible. Unlike NETCONF,
 there is no notification in the HTTP response message that indicates whether
 a change was made or not. This could be problematic if there are handlers
 requiring notification, but often times is not a big issue. Administrators can
@@ -2231,7 +2231,6 @@ package. This provides a client interface into the Batfish server, which is
 downloaded and run using Docker on the local development machine.
 
 \begin{minted}{text}
-[ec2-user@devbox bf]# cat snmp.yml 
 [ec2-user@devbox bf]# python3.6 -m venv ~/environments/batfish
 [ec2-user@devbox bf]# source ~/environments/batfish/bin/activate
 
