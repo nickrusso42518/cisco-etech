@@ -3276,3 +3276,1303 @@ For automation frameworks that rely primarily on YAML files for variables
 and inventories, such as Ansible and Nornir, a pre-validation script could
 load data from YAML, then pass the structured data into \verb|validate()|
 for processing. In most cases, sticking with pure JSON is often simpler.
+
+\subsubsection{Pre/Post Checks with Cisco pyATS and Genie}
+Cisco pyATS is a test framework that is often used to manage infrastructure,
+perform pre-change and post-change network checks, and conduct product
+validation testing while new products in development. It is similar to
+Ansible and Nornir except much more powerful and subsequently, more
+heavyweight. Cisco pyATS is often coupled with Cisco Genie, which is a
+collection of pre-written utilities such as parsers and verification
+processes to simplify network automation. Within Cisco, these tools are
+used extensively for product development testing and have been in use
+for many years. Said another way, pyATS and Genie are well-used and mature.
+
+Before discussing pyATS and Genie, know that these are two separate projects
+that are both tightly integrated and capable of operating independently. As
+a test framework, pyATS can be used to model any kind of software testing, much
+like the well-known pytest or unittest frameworks. Genie has already been
+integrated into existing network automation projects such as Netmiko and
+Ansible without any pyATS involvement. The author has personally leveraged
+Genie outside of pyATS in both of these contexts. The documentation for
+Cisco \href{https://developer.cisco.com/docs/pyats/}{pyATS} and Cisco
+\href{https://developer.cisco.com/docs/genie-docs/}{Genie}
+can be found using these hyperlinks. Note that some Genie features, such
+as triggers and verifications, only work in conjunction with pyATS\@. The
+more basic Genie functionality, such as learning and parsing, can
+operate in standalone or in conjunction with pyATS\@.
+
+This section explores a comprehensive example that demonstrates various pyATS
+and Genie features to validate the correct behavior of a leaf/spine network.
+This isn't purely theoretical; the author worked on a similarly designed
+network and developed Ansible code to perform many of the same BGP and OSPF
+verifications demonstrated with pyATS/Genie in this document. The diagram
+below illustrates the network design. There are 6 total routers running OSPF
+in area 0. R1/R2 are BGP route-reflectors, R3/R4 are BGP-free spine routers,
+and R5/R6 are leaf routers. The LAN segments with servers on them are
+advertised exclusively using BGP as OSPF is only used for BGP next-hop lookups.
+The network runs MPLS to enable the spines to be BGP-free, but verifying MPLS
+is out of scope for this document.
+
+\addimg{pyats-network.jpg}{0.7}{pyATS Testbed Network}
+
+The primary test engine of the pyATS frame is ``aetest''. This provides
+a test architecture consisting of the typical items, such as setup, cleanup
+(teardown), and intermediate test cases. Using aetest automatically displays
+using console logging and handles the test sequencing. The high-level test
+plan for this sample network is as follows:
+
+\begin{enumerate}
+  \item Setup: connect to all devices
+  \item Test OSPF connectivity
+  \item Test BGP connectivity
+  \item Cleanup: disconnect from all devices
+\end{enumerate}
+
+The first step is to create a pyATS testbed, which is comparable to an Ansible
+or Nornir inventory. This is defined in YAML syntax and is self-explanatory
+for the most part. The testbed lacks an explicit grouping mechanism as is
+present in the aforementioned tools, but supports the concept of ``default''
+value specifications in various spots. In this example, all devices use
+a username of \verb|pyats| and a password of \verb|pyats| and therefore this
+need not be repeated under each device. Note that each device is almost
+identical except with a different hostname (which must match the CLI hostname),
+different IP address, and different type. The word ``type'' in this context
+is used as a role, which can be route-reflector (rr), spine, or leaf.
+
+\begin{minted}{text}
+(pyats) [root@devbox ls_pyats]# cat testbed.yml
+\end{minted}
+
+\begin{minted}{yaml}
+---
+testbed:
+  name: "leafspine"
+  credentials:
+    default:
+      username: "pyats"
+      password: "pyats"
+
+devices:
+  R1:
+    os: "ios"
+    platform: "iol"
+    type: "rr"
+    connections:
+      vty:
+        protocol: "telnet"
+        ip: "192.168.0.1"
+  R2:
+    os: "ios"
+    platform: "iol"
+    type: "rr"
+    connections:
+      vty:
+        protocol: "telnet"
+        ip: "192.168.0.2"
+  R3:
+    os: "ios"
+    platform: "iol"
+    type: "spine"
+    connections:
+      vty:
+        protocol: "telnet"
+        ip: "192.168.0.3"
+  R4:
+    os: "ios"
+    platform: "iol"
+    type: "spine"
+    connections:
+      vty:
+        protocol: "telnet"
+        ip: "192.168.0.4"
+  R5:
+    os: "ios"
+    platform: "iol"
+    type: "leaf"
+    connections:
+      vty:
+        protocol: "telnet"
+        ip: "192.168.0.5"
+  R6:
+    os: "ios"
+    platform: "iol"
+    type: "leaf"
+    connections:
+      vty:
+        protocol: "telnet"
+        ip: "192.168.0.6"
+...
+\end{minted}
+
+In some pyATS testbed examples, you might observe a \verb|topology| key.
+Manually specifying the topology allows pyATS to further validate the layer-1
+connectivity of the network. This is irrelevant for the present example
+and is therefore omitted. In a production environment, it is recommended to
+define this topology so that pyATS knows ``what right looks like''.
+
+In addition to providing various Python-based test and parsing libraries
+for consumption in custom projects, a subset of pyATS functionality can be
+invoked by the CLI\@. With the testbed complete, it's wise to validate it
+using the command below. The \verb|--connect| option tells pyATS to connect
+to each device using the credentials and protocols specified for each device.
+Omitting this option allows pyATS to run a faster, local-only syntax check.
+
+\begin{minted}{text}
+(pyats) [root@devbox ls_pyats]# pyats validate testbed testbed.yml --connect
+Loading testbed file: testbed.yml
+--------------------------------------------------------------------------------
+
+Testbed Name:
+    leafspine
+
+Testbed Devices:
+.
+|-- R1 [ios/iol]
+|-- R2 [ios/iol]
+|-- R3 [ios/iol]
+|-- R4 [ios/iol]
+|-- R5 [ios/iol]
+`-- R6 [ios/iol]
+
+YAML Lint Messages
+------------------
+
+Connection Check
+----------------
+
+    note that connection checks are not 100% accurate - it does not take
+    into account that connection implementations may choose to interpret
+    the entire connection block differently.
+
+    For example - Unicon autouses A/B console/standby, but does not allow
+    explicit connection to B.
+
+ - R1/vty                   [PASSED]
+ - R2/vty                   [PASSED]
+ - R3/vty                   [PASSED]
+ - R4/vty                   [PASSED]
+ - R5/vty                   [PASSED]
+ - R6/vty                   [PASSED]
+
+Warning Messages
+----------------
+ - Device 'R1' has no interface definitions
+ - Device 'R2' has no interface definitions
+ - Device 'R3' has no interface definitions
+ - Device 'R4' has no interface definitions
+ - Device 'R5' has no interface definitions
+ - Device 'R6' has no interface definitions
+\end{minted}
+
+This indicates that pyATS is able to connect to each network device. The
+warnings indicate that the testbed does not contain any topology information,
+which is irrelevant for this demonstration. Other pyATS functionality is
+available from the CLI, such as \verb|parse|, \verb|learn|, and \verb|run|.
+these CLI options are not discussed in this document because they are
+inherently used within the Python project instead.
+
+When designing test cases, it's best to start by defining the common setup
+and common cleanup tasks. These are the overarching steps that are run before
+all test cases (common setup) and after all test cases (common cleanup). The
+setup tasks may include input validation, loading the topology, and connecting
+to each device. The teardown tasks are often limited to disconnecting from the
+devices and erasing temporary data.
+
+The aetest implementation is object-oriented and requires inheriting from a
+pair of self-evident base classes. Then, programmers can define functions
+decorated with \verb|@aetest.subsection| to identify individual steps in the
+common setup and common teardown processes. The example classes below
+connect to and disconnect from the testbed. Note that the methods in the
+class take in the testbed object as a parameter and store it for future use
+within the class. Each class within the aetest project must do this. To better
+organize the project, the \verb|test_project/| directory contains all setup,
+cleanup, and test case code.
+
+\begin{minted}{text}
+(pyats) [root@devbox ls_pyats]# ls -l test_project/
+total 16
+-rw-r--r-- 1 root root 3637 Jul  3 23:15 bgp_test.py
+-rw-r--r-- 1 root root  684 Jul  3 23:13 common.py
+-rw-r--r-- 1 root root 4941 Jul  3 23:15 ospf_test.py
+\end{minted}
+
+The \verb|common.py| file contains both the common setup and cleanup code.
+Note that CLI output logging is disabled; this mirrors the router's CLI
+output to the screen which generates unnecessary clutter for this project.
+
+\begin{minted}{text}
+(pyats) [root@devbox ls_pyats]# cat test_project/common.py
+\end{minted}
+
+\begin{minted}{python}
+#!/usr/bin/env python
+
+"""
+Author: Nick Russo (njrusmc@gmail.com)
+Purpose: Common setup/cleanup code for project.
+"""
+
+from pyats import aetest
+
+
+class LeafSpineCommonSetup(aetest.CommonSetup):
+    @aetest.subsection
+    def connect(self, testbed):
+        """Connect to devices in testbed"""
+
+        self.testbed = testbed
+        self.testbed.connect(log_stdout=False)
+
+
+class LeafSpineCommonCleanup(aetest.CommonCleanup):
+    @aetest.subsection
+    def disconnect(self, testbed):
+        """Disonnect from devices in testbed"""
+
+        self.testbed = testbed
+        self.testbed.disconnect(log_stdout=False)
+\end{minted}
+
+Next, define the test cases. Let's begin with OSPF, and note that each test
+case has its own optional setup and teardown functions. Defining those first
+helps avoid any connectivity problems when writing individual tests. In this
+example, the setup process takes in the testbed object (all classes must) and
+uses the \verb|learn()| function to collect all OSPF information for each
+device. This is a Genie feature that issues CLI commands, collects the text
+output, and parses that output into structured data. For those familiar with
+NAPALM, the concept is comparable to ``getters'' which are used to collect
+information about a topic. The data is formatted in a common structure
+across products, providing a uniform interface for programmers.
+Once the script ``learns'' about OSPF in the network, the \verb|self.data|
+dictionary is keyed by hostname whereby the value is the ``learned'' OSPF data.
+As an immediate check, the code ensures each router is running OSPF process ID
+1 and no others. If this isn't true, extracting data for comparative purposes
+later in the class will become difficult. Using Python \verb|assert| is the
+proper mechanism for testing conditions as aetest catches AssertionErrors.
+
+
+\begin{minted}{text}
+(pyats) [root@devbox ls_pyats]# cat test_project/ospf_test.py
+\end{minted}
+
+\begin{minted}{python}
+#!/usr/bin/env python
+
+"""
+Author: Nick Russo (njrusmc@gmail.com)
+Purpose: Define OSPF-related tests.
+"""
+
+import logging
+from pyats import aetest
+
+class OSPFTestcase(aetest.Testcase):
+    @aetest.setup
+    def setup(self, testbed):
+        """Perform setup for OSPF testing"""
+
+        # Store the testbed object and an empty data dict for OSPF data
+        self.testbed = testbed
+        self.data = {}
+
+        # Store the logger and set logging level to augment aetest logging
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+
+        # Loop over devices and learn OSPF data from each
+        for name, device in testbed.devices.items():
+            self.logger.info(name)
+            learned = device.learn("ospf").to_dict()
+            ospf = learned["info"]["vrf"]["default"]["address_family"]["ipv4"]
+
+            # Ensure there is exactly one OSPF PID and that the value is 1
+            # This is placed in setup; test cases cannot continue otherwise
+            assert len(ospf["instance"]) == 1
+            inst1 = ospf["instance"].get("1")
+            assert isinstance(inst1, dict)
+            self.data[name] = inst1
+
+        # Sanity check; ensure new dict contains proper number of devices
+        assert len(self.data) == len(testbed.devices)
+\end{minted}
+
+The teardown isn't particularly interesting and could be omitted, but for
+completeness, a manual deletion of the data dictionary is illustrated. If
+an environment uses a shared (that is, not dedicated and/or not ephemeral)
+testbed, the cleanup phase can restore the testbed to its original condition.
+This may include restoring default configurations, downgrading network
+operating systems, or powering off devices to conserve electricity.
+
+\begin{minted}{python}
+    @aetest.cleanup
+    def cleanup(self):
+        """Cleanup after OSPF testing"""
+        del self.data
+\end{minted}
+
+It's worth examining a subset of the \verb|self.data| dictionary. This book
+does not print the entire structure as it is very extensive. The format is
+deeply hierarchical, which is programmatically easy to traverse.
+
+\begin{minted}{json}
+{
+  "R4": {
+    "router_id": "10.0.0.4",
+    "areas": {
+      "0.0.0.0": {
+        "interfaces": {
+          "Ethernet0/0": {
+            "name": "Ethernet0/0",
+            "interface_type": "point-to-point",
+            "passive": false,
+            "demand_circuit": false,
+            "transmit_delay": 1,
+            "bfd": {
+              "enable": false
+            },
+            "hello_interval": 10,
+            "dead_interval": 40,
+            "retransmit_interval": 5,
+            "lls": true,
+            "enable": true,
+            "cost": 10,
+            "state": "point-to-point",
+            "hello_timer": "00:00:08",
+            "neighbors": {
+              "10.0.0.1": {
+                "neighbor_router_id": "10.0.0.1",
+                "address": "10.1.4.1",
+                "dr_ip_addr": "0.0.0.0",
+                "bdr_ip_addr": "0.0.0.0",
+                "state": "full",
+                "dead_timer": "00:00:31",
+                "statistics": {
+                  "nbr_event_count": 12,
+                  "nbr_retrans_qlen": 0
+                }
+              }
+            }
+          },
+          "Ethernet0/1": {
+            "name": "Ethernet0/1",
+            "interface_type": "point-to-point",
+\end{minted}
+
+The tests defined in the class should be highly customized to your specific
+business problem and not a mindless copy/paste from public examples. Ensure
+that every test has a specific business purpose. The examples in this book
+reflect the real-life tests implemented in a production network upon which
+the author worked. First, ensure there are no duplicate OSPF router IDs. The
+logic includes looping over all the OSPF data for each host and extracting
+the router ID\@. These are added to a list, and when that list is converted to
+a set, they should be equal length. Because sets cannot contain duplicate
+values, this is a simple and efficient way to ensure uniqueness. Also,
+notice the custom log message which prints the device name. This
+is displayed in the pyATS execution output which indicates the device
+being processed. This simple technique is an easy way to customize projects.
+
+\begin{minted}{python}
+   @aetest.test
+    def check_unique_rid(self):
+        """Ensure each router has a unique RID in the range of 10.0.0.x"""
+
+        rid_list = []
+        for name, ospf in self.data.items():
+            self.logger.info(name)
+            rid = ospf.get("router_id")
+            assert rid.startswith("10.0.0.")
+            rid_list.append(rid)
+
+        # Length of list and length of set must match (no duplicates)
+        assert len(rid_list) == len(set(rid_list))
+\end{minted}
+
+Following the hierarchy, let's check the OSPF areas. This is a flat area 0
+network, which means every device should have exactly one area defined that
+has the value of ``0.0.0.0''.
+
+\begin{minted}{python}
+    @aetest.test
+    def check_areas(self):
+        """Ensure there is exactly one OSPF area with value of 0.0.0.0"""
+
+        for name, ospf in self.data.items():
+            self.logger.info(name)
+            assert len(ospf["areas"]) == 1
+            area0 = ospf["areas"].get("0.0.0.0")
+            assert isinstance(area0, dict)
+\end{minted}
+
+It's usually a good idea to ensure OSPF interfaces are configured correctly.
+In this network, every interface is point-to-point, has a cost of 10, and
+should have exactly one neighbor. Be sure to exclude any passive or
+non-neighbor-capable interfaces like loopbacks and LAN segments.
+
+\begin{minted}{python}
+    @aetest.test
+    def check_interfaces(self):
+        """Ensure each non-Loopback interface is P2P with cost of 10"""
+
+        for name, ospf in self.data.items():
+            self.logger.info(name)
+            area0 = ospf["areas"]["0.0.0.0"]
+            for intf, attrs in area0["interfaces"].items():
+                if not intf.startswith("Loopback"):
+                    self.logger.info(intf)
+                    assert attrs["cost"] == 10
+                    assert attrs["interface_type"] == "point-to-point"
+\end{minted}
+
+Next, let's ensure that all OSPF neighbors are up and in the ``full'' state.
+The logic is similar to the previous example except with different pieces of
+data being extracted and compared.
+
+\begin{minted}{python}
+    @aetest.test
+    def check_neighbors_state(self):
+        """Ensure each non-Loopback interface has exactly 1 FULL neighbor"""
+
+        for name, ospf in self.data.items():
+            self.logger.info(name)
+            area0 = ospf["areas"]["0.0.0.0"]
+            for intf, attrs in area0["interfaces"].items():
+                if not intf.startswith("Loopback"):
+                    self.logger.info(intf)
+                    assert len(attrs["neighbors"]) == 1
+                    nbrs = list(attrs["neighbors"].values())
+                    assert nbrs[0]["state"] == "full"
+\end{minted}
+
+So far, the OSPF tests have been pretty basic. Given the leaf/spine topology,
+we can draw some logical conclusions about what the OSPF network should look
+like, then build tests to verify the conclusions. Given X leaves and Y spines:
+
+\begin{enumerate}
+  \item Each spine must have exactly X neighbors
+  \item Each leaf (non-spine) must have exactly Y neighbors
+\end{enumerate}
+
+This is where the device ``type'' becomes relevant. Because route-reflectors
+are just a type of leaf, we'll use the term ``non-spines'' to encompass both
+type ``rr'' and type ``leaf''. Because the logic for both spine and non-spine
+testing is identical and only requires a variation in inputs, let's define a
+reusable helper function to perform the logic. The \verb|_count_neighbors()|
+function is not decorated with \verb|aetest.test| because it is not a test.
+The two tests defined assert the aforementioned conditions are satisfied.
+Using a dictionary comprehension, each test extracts a subset of the testbed
+devices, similar to Nornir inventory filtering, based on the device type.
+The non-spines test matches any type not equal to ``spine'' while the spines
+test matches only the ``spine'' type. These two testbed device subsets are
+strictly complementary (mutually exclusive) while also being collectively
+exhaustive (all devices are tested; none are omitted).
+
+\begin{minted}{python}
+    @aetest.test
+    def check_neighbors_count_nonspines(self):
+        """Ensure each leaf/RR has a neighbor count equal to spine count"""
+
+        # Use a dict comprehension to select non-spines ("leaf" or "rr")
+        nonspines = {
+            name: ospf
+            for name, ospf in self.data.items()
+            if self.testbed.devices[name].type != "spine"
+        }
+        self._count_neighbors(nonspines)
+
+    @aetest.test
+    def check_neighbors_count_spines(self):
+        """Ensure each spine has a neighbor count equal to leaf/RR count"""
+
+        # Use a dict comprehension to select spines
+        spines = {
+            name: ospf
+            for name, ospf in self.data.items()
+            if self.testbed.devices[name].type == "spine"
+        }
+        self._count_neighbors(spines)
+
+    def _count_neighbors(self, subdict):
+        """Helper function to generalize neighbor counting process"""
+
+        # Iterate over devices in the subdict
+        for name, ospf in subdict.items():
+            area0 = ospf["areas"]["0.0.0.0"]
+
+            # Count neighbors on all interfaces
+            num_nbrs = 0
+            for intf, attrs in area0["interfaces"].items():
+                if not intf.startswith("Loopback"):
+                    num_nbrs += len(attrs["neighbors"])
+
+            # Number of uncaptured devices is the difference from the whole set
+            self.logger.info("%s: %s", name, num_nbrs)
+            num_desired = len(self.testbed.devices) - len(subdict)
+            assert num_desired == num_nbrs
+\end{minted}
+
+For variety, the BGP tests will illustrate different techniques. While the
+Genie \verb|learn()| technique is easy and automatic, it has some drawbacks:
+
+\begin{enumerate}
+  \item It is heavyweight; relatively slow to run and memory-intensive.
+  \item It may not capture everything required for your specific test.
+  \item The data captured (and its structure) may vary over time.
+\end{enumerate}
+
+Alternatively, Genie parsers can be manually invoked using the \verb|parse()|
+function. Specify the command to run on each device, ensuring that the command
+is supported by Genie by checking the documentation. Genie has excellent
+command coverage but it does not cover everything. There's no rule against
+manually modifying the parsed data returned by Genie to better suit your test
+environment. Note that a dictionary comprehension is used to filter the
+testbed device inventory down to only non-spines. The spines do not run BGP
+in this design and so should be excluded for any BGP tests or data collection.
+To simply the data, the code filters out the unnecessary \verb|vrf|
+and \verb|default| keys to help flatten the dictionary. This level of
+hierarchy exists because Genie supports multi-VRF operations, but in this
+specific network, it's irrelevant. Additionally, the
+local BGP ASN and device type are added to each device-specific subdictionary
+(which like OSPF are keyed by hostname). Last, since IPv4 unicast is the only
+AFI/SAFI in this network, the unnecessary \verb|address_family| and
+\verb|ipv4 unicast| keys are flattened from each neighbor. Again, use caution
+when manually manipulating standardized data structures, especially in
+dynamic business environments that support rapidly changing networks.
+
+\begin{minted}{python}
+#!/usr/bin/env python
+
+"""
+Author: Nick Russo (njrusmc@gmail.com)
+Purpose: Define BGP-related tests.
+"""
+
+import logging
+from pyats import aetest
+
+
+class BGPTestcase(aetest.Testcase):
+    @aetest.setup
+    def setup(self, testbed):
+        """Perform setup for BGP testing"""
+
+        # Store the testbed object and an empty data dict for BGP data
+        self.testbed = testbed
+        self.data = {}
+
+        # Store the logger and set logging level to augment aetest logging
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+
+        # Use a dict comprehension to select non-spines ("leaf" or "rr")
+        nonspines = {
+            name: device
+            for name, device in self.testbed.devices.items()
+            if device.type != "spine"
+        }
+
+        # Loop over devices and collect BGP summary data
+        for name, device in nonspines.items():
+            self.logger.info(name)
+            parsed = device.parse("show bgp ipv4 unicast summary")
+
+            # Modify the structure; "neighbor", "local_asn", and "type" top keys
+            self.data[name] = parsed["vrf"]["default"]
+            self.data[name]["local_asn"] = parsed["bgp_id"]
+            self.data[name]["type"] = device.type
+
+            # Remove the unnecessary intermediate AFI/SAFI to simplify tests
+            for nbr, attr in self.data[name]["neighbor"].items():
+                self.data[name]["neighbor"][nbr] = attr[
+                    "address_family"]["ipv4 unicast"]
+
+            # Sanity check; ensure new subdict contains exactly 3 keys
+            assert len(self.data[name]) == 3
+
+        # Sanity check; ensure new dict contains proper number of devices
+        assert len(self.data) == len(nonspines)
+\end{minted}
+
+As a quick comparison, here is the data returned from the \verb|parse()|
+function without any manipulation. Some fields have been omitted for brevity.
+
+\begin{minted}{json}
+{
+  "bgp_id": 65000,
+  "vrf": {
+    "default": {
+      "neighbor": {
+        "10.0.0.5": {
+          "address_family": {
+            "ipv4 unicast": {
+              "version": 4,
+              "as": 65000,
+              "msg_rcvd": 75,
+              "msg_sent": 75,
+              "tbl_ver": 22,
+              "input_queue": 0,
+              "output_queue": 0,
+              "up_down": "01:02:24",
+              "state_pfxrcd": "5"
+              }
+            }
+          }
+        },
+        "10.0.0.6": {
+          "address_family": {
+            "ipv4 unicast": {
+              "version": 4,
+              "as": 65000,
+              "msg_rcvd": 75,
+              "msg_sent": 75,
+              "tbl_ver": 22,
+              "input_queue": 0,
+              "output_queue": 0,
+              "up_down": "01:03:52",
+              "state_pfxrcd": "6",
+\end{minted}
+
+Post-manipulation, the data is much flatter and easier to manage, even after
+adding the top-level keys for the device names. This will reduce
+the overall amount of code (and memory) required by the project, but the
+customization of data makes the solution less standardized and possibly
+more difficult to troubleshoot. Weigh these trade-offs carefully.
+
+\begin{minted}{json}
+{
+  "R6": {
+    "neighbor": {
+      "10.0.0.1": {
+        "version": 4,
+        "as": 65000,
+        "msg_rcvd": 79,
+        "msg_sent": 79,
+        "tbl_ver": 22,
+        "input_queue": 0,
+        "output_queue": 0,
+        "up_down": "01:07:49",
+        "state_pfxrcd": "5"
+      },
+      "10.0.0.2": {
+        "version": 4,
+        "as": 65000,
+        "msg_rcvd": 82,
+        "msg_sent": 80,
+        "tbl_ver": 22,
+        "input_queue": 0,
+        "output_queue": 0,
+        "up_down": "01:08:49",
+        "state_pfxrcd": "5",
+\end{minted}
+
+Rather than simply repeat the OSPF-related tests for BGP, such as ensuring
+BGP router IDs are unique and ensuring neighbors are up, let's do something
+different. The first test will ensure all BGP routers are in the same ASN\@.
+This guarantees that all sessions are iBGP (as designed) and uses inverted logic
+compared to the OSPF unique router ID test. The local BGP ASN is collected from
+each device and added to a set. Sets cannot contain duplicates, so after each
+device is processed, the set should have exactly one element in it, which is
+the BGP ASN\@. The script doesn't care what the value is, only that there is
+exactly one value. Designing your tests to be dynamic in this way makes them
+more reusable at the cost of being less specific.
+
+\begin{minted}{python}
+    @aetest.test
+    def check_same_asn(self):
+        """Ensure each router is in the same BGP ASN"""
+
+        asn_set = set()
+        for name, bgp in self.data.items():
+            self.logger.info(name)
+            asn_set.add(bgp["local_asn"])
+
+        # Only one element in the set indicates iBGP everywhere
+        assert len(asn_set) == 1
+\end{minted}
+
+Next, we'll apply some advanced BGP design knowledge to ensure each BGP
+speaker has the correct number of routes. The route-reflectors are in the same
+cluster, not because they have the same cluster ID (they don't), but because
+they service the same set of clients. As such, we can conclude the following:
+
+\begin{enumerate}
+  \item Leaves must receive the same number of routes from each route-reflector
+  \item Route-reflectors must receive the same number of routes from each leaf
+\end{enumerate}
+
+In this network, R5 originates 5 routes into BGP and R6 originates 6 routes into
+BGP\@. That means R5 should learn 6 routes from both R1 and R2, which were
+reflected from R6. R6 should learn 5 routes for the same reason. R1 and R2
+will learn 5 routes from R5 and 6 routes from R6. The simpler condition to test
+is the first one. Since the leaves only peer to the route-reflectors, the test
+only needs to examine the local \verb|state_pfxrcd| value for each peer on a
+given leaf. The log message includes both the neighbor IP and prefix count,
+making it easy to visualize any discrepancies in the script output.
+
+\begin{minted}{python}
+    @aetest.test
+    def check_prefix_count_leaf(self):
+        """Ensure each leaf learns the same number of routes from each RR"""
+
+        for name, bgp in self.data.items():
+            pfx_set = set()
+            if bgp["type"] == "leaf":
+                self.logger.info(name)
+                for nbr, attr in bgp["neighbor"].items():
+                    pfx = attr["state_pfxrcd"]
+                    pfx_set.add(pfx)
+                    self.logger.info("%s: %s", nbr, pfx)
+
+                # Only one set element per device is proper RR cluster design
+                assert len(pfx_set) == 1
+\end{minted}
+
+The route-reflector logic is more complex. All route-reflectors must learn the
+same number of prefixes from each leaf, but this must be compared across the
+route-reflectors. For this, a dictionary keyed off the neighbor IP (leaves)
+with a value of a set works well. Each route-reflector has the
+\verb|state_pfxrcd| value written to the set on a per-neighbor basis, and
+the script ensures that each set, has exactly one value.
+
+\begin{minted}{python}
+    @aetest.test
+    def check_prefix_count_rr(self):
+        """Ensure the RRs learn a consistent number of routes from each leaf"""
+
+        pfx_dict = {}
+        for name, bgp in self.data.items():
+            if bgp["type"] == "rr":
+                self.logger.info(name)
+                for nbr, attr in bgp["neighbor"].items():
+                    pfx = attr["state_pfxrcd"]
+
+                    # "nbr" key is absent on first pass; add nbr/set pair
+                    if not nbr in pfx_dict:
+                        pfx_dict[nbr] = set()
+                    pfx_dict[nbr].add(pfx)
+                    self.logger.info("%s: %s", nbr, pfx)
+
+        # Each dict value should be a set with 1 value each
+        for pfx_set in pfx_dict.values():
+            assert len(pfx_set) == 1
+\end{minted}
+
+The last step is to tie everything together. While it is possible to cram all
+of this code into a single Python module, it's cleaner and more manageable to
+use multiple files as displayed earlier. The final script has three main
+characteristics. First, it imports all of the modules from the
+\verb|test_project/| package, making them accessible to aetest. Second,
+these modules and the classes within them are not automatically consumed by
+aetest. They must be manually subclassed into dummy wrappers per the pyATS
+documentation. This allows operators to choose which test cases to run and in
+which order. Be sure to include setup/cleanup activities as well. Third, aetest
+must be invoked. This script uses the well-known \verb|argparse| module to
+add CLI options to the script, allowing a testbed to be passed in by the user.
+This string filepath then feeds into a topology loader, effectively parsing the
+YAML file into a topology object which contains the device objects consumed
+by the setup, test, and cleanup activities described earlier. Invoking the
+\verb|aetest.main()| function starts the test process, which returns a result.
+Passing this result object into the \verb|exit_cli_code()| function allows
+the script to return code 0 upon success and a non-zero code otherwise.
+
+\begin{minted}{text}
+(pyats) [root@devbox ls_pyats]# cat validate.py
+\end{minted}
+
+\begin{minted}{python}
+#!/usr/bin/env python
+
+"""
+Author: Nick Russo (njrusmc@gmail.com)
+Purpose: Demonstrate pyATS in a leaf/spine network using aetest
+to validate OSPF and BGP topological information.
+"""
+
+from argparse import ArgumentParser
+from pyats import aetest, topology
+from test_project import common, ospf_test, bgp_test
+
+# Setup, test cases, and cleanup must be explicitly subclassed
+# so that aetest can process them; importing alone does nothing
+class LocalLeafSpineCommonSetup(common.LeafSpineCommonSetup):
+    pass
+
+class LocalOSPFTestcase(ospf_test.OSPFTestcase):
+    pass
+
+class LocalBGPTestcase(bgp_test.BGPTestcase):
+    pass
+
+class LocalLeafSpineCommonCleanup(common.LeafSpineCommonCleanup):
+    pass
+
+
+if __name__ == "__main__":
+
+    # Process arguments from CLI
+    parser = ArgumentParser()
+    parser.add_argument("-t", "--testbed", type=str, help="testbed YAML path")
+    args = parser.parse_args()
+
+    # Load topology from testbed file and execute test plan
+    result = aetest.main(testbed=topology.loader.load(args.testbed))
+    aetest.exit_cli_code(result)
+\end{minted}
+
+With all the code written, let's run the \verb|validate.py| script, passing in
+the \verb|testbed.yml| file using the proper CLI option. The pyATS output is
+too wide for this book's margins. Some of the insignificant text, such as the
+logging timestamps on the left and the length of the encircling boxes on the
+right have been truncated for neatness. The output is self-explanatory and
+note that operator-defined log messages use the \verb|TEST_PROJECT| facility.
+This traceability simplifies troubleshooting should an error occur. The script
+returns code 0 to indicate success; more on return code processing later.
+
+\begin{minted}{text}
+(pyats) [root@devbox ls_pyats]# python validate.py -t testbed.yml
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                            Starting common setup               |
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                         Starting subsection connect            |
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: The result of subsection connect is => PASSED
+%AETEST-INFO: The result of common setup is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                     Starting testcase LocalOSPFTestcase        |
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                            Starting section setup              |
+%AETEST-INFO: +----------------------------------------------------------------+
+%TEST_PROJECT-INFO: R1
+%TEST_PROJECT-INFO: R2
+%TEST_PROJECT-INFO: R3
+%TEST_PROJECT-INFO: R4
+%TEST_PROJECT-INFO: R5
+%TEST_PROJECT-INFO: R6
+%AETEST-INFO: The result of section setup is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                      Starting section check_unique_rid         |
+%AETEST-INFO: +----------------------------------------------------------------+
+%TEST_PROJECT-INFO: R1
+%TEST_PROJECT-INFO: R2
+%TEST_PROJECT-INFO: R3
+%TEST_PROJECT-INFO: R4
+%TEST_PROJECT-INFO: R5
+%TEST_PROJECT-INFO: R6
+%AETEST-INFO: The result of section check_unique_rid is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                         Starting section check_areas           |
+%AETEST-INFO: +----------------------------------------------------------------+
+%TEST_PROJECT-INFO: R1
+%TEST_PROJECT-INFO: R2
+%TEST_PROJECT-INFO: R3
+%TEST_PROJECT-INFO: R4
+%TEST_PROJECT-INFO: R5
+%TEST_PROJECT-INFO: R6
+%AETEST-INFO: The result of section check_areas is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                      Starting section check_interfaces         |
+%AETEST-INFO: +----------------------------------------------------------------+
+%TEST_PROJECT-INFO: R1
+%TEST_PROJECT-INFO: Ethernet0/0
+%TEST_PROJECT-INFO: Ethernet0/1
+%TEST_PROJECT-INFO: R2
+%TEST_PROJECT-INFO: Ethernet0/0
+%TEST_PROJECT-INFO: Ethernet0/1
+%TEST_PROJECT-INFO: R3
+%TEST_PROJECT-INFO: Ethernet0/0
+%TEST_PROJECT-INFO: Ethernet0/1
+%TEST_PROJECT-INFO: Ethernet0/2
+%TEST_PROJECT-INFO: Ethernet0/3
+%TEST_PROJECT-INFO: R4
+%TEST_PROJECT-INFO: Ethernet0/0
+%TEST_PROJECT-INFO: Ethernet0/1
+%TEST_PROJECT-INFO: Ethernet0/2
+%TEST_PROJECT-INFO: Ethernet0/3
+%TEST_PROJECT-INFO: R5
+%TEST_PROJECT-INFO: Ethernet0/2
+%TEST_PROJECT-INFO: Ethernet0/3
+%TEST_PROJECT-INFO: R6
+%TEST_PROJECT-INFO: Ethernet0/2
+%TEST_PROJECT-INFO: Ethernet0/3
+%AETEST-INFO: The result of section check_interfaces is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                    Starting section check_neighbors_state      |
+%AETEST-INFO: +----------------------------------------------------------------+
+%TEST_PROJECT-INFO: R1
+%TEST_PROJECT-INFO: Ethernet0/0
+%TEST_PROJECT-INFO: Ethernet0/1
+%TEST_PROJECT-INFO: R2
+%TEST_PROJECT-INFO: Ethernet0/0
+%TEST_PROJECT-INFO: Ethernet0/1
+%TEST_PROJECT-INFO: R3
+%TEST_PROJECT-INFO: Ethernet0/0
+%TEST_PROJECT-INFO: Ethernet0/1
+%TEST_PROJECT-INFO: Ethernet0/2
+%TEST_PROJECT-INFO: Ethernet0/3
+%TEST_PROJECT-INFO: R4
+%TEST_PROJECT-INFO: Ethernet0/0
+%TEST_PROJECT-INFO: Ethernet0/1
+%TEST_PROJECT-INFO: Ethernet0/2
+%TEST_PROJECT-INFO: Ethernet0/3
+%TEST_PROJECT-INFO: R5
+%TEST_PROJECT-INFO: Ethernet0/2
+%TEST_PROJECT-INFO: Ethernet0/3
+%TEST_PROJECT-INFO: R6
+%TEST_PROJECT-INFO: Ethernet0/2
+%TEST_PROJECT-INFO: Ethernet0/3
+%AETEST-INFO: The result of section check_neighbors_state is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |               Starting section check_neighbors_count_nonspines |
+%AETEST-INFO: +----------------------------------------------------------------+
+%TEST_PROJECT-INFO: R1: 2
+%TEST_PROJECT-INFO: R2: 2
+%TEST_PROJECT-INFO: R5: 2
+%TEST_PROJECT-INFO: R6: 2
+%AETEST-INFO: The result of section check_neighbors_count_nonspines is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                Starting section check_neighbors_count_spines   |
+%AETEST-INFO: +----------------------------------------------------------------+
+%TEST_PROJECT-INFO: R3: 4
+%TEST_PROJECT-INFO: R4: 4
+%AETEST-INFO: The result of section check_neighbors_count_spines is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                           Starting section cleanup             |
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: The result of section cleanup is => PASSED
+%AETEST-INFO: The result of testcase LocalOSPFTestcase is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                      Starting testcase LocalBGPTestcase        |
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                            Starting section setup              |
+%AETEST-INFO: +----------------------------------------------------------------+
+%TEST_PROJECT-INFO: R1
+%TEST_PROJECT-INFO: R2
+%TEST_PROJECT-INFO: R5
+%TEST_PROJECT-INFO: R6
+%AETEST-INFO: The result of section setup is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                       Starting section check_same_asn          |
+%AETEST-INFO: +----------------------------------------------------------------+
+%TEST_PROJECT-INFO: R1
+%TEST_PROJECT-INFO: R2
+%TEST_PROJECT-INFO: R5
+%TEST_PROJECT-INFO: R6
+%AETEST-INFO: The result of section check_same_asn is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                   Starting section check_prefix_count_leaf     |
+%AETEST-INFO: +----------------------------------------------------------------+
+%TEST_PROJECT-INFO: R5
+%TEST_PROJECT-INFO: 10.0.0.1: 6
+%TEST_PROJECT-INFO: 10.0.0.2: 6
+%TEST_PROJECT-INFO: R6
+%TEST_PROJECT-INFO: 10.0.0.1: 5
+%TEST_PROJECT-INFO: 10.0.0.2: 5
+%AETEST-INFO: The result of section check_prefix_count_leaf is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                    Starting section check_prefix_count_rr      |
+%AETEST-INFO: +----------------------------------------------------------------+
+%TEST_PROJECT-INFO: R1
+%TEST_PROJECT-INFO: 10.0.0.5: 5
+%TEST_PROJECT-INFO: 10.0.0.6: 6
+%TEST_PROJECT-INFO: R2
+%TEST_PROJECT-INFO: 10.0.0.5: 5
+%TEST_PROJECT-INFO: 10.0.0.6: 6
+%AETEST-INFO: The result of section check_prefix_count_rr is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                           Starting section cleanup             |
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: The result of section cleanup is => PASSED
+%AETEST-INFO: The result of testcase LocalBGPTestcase is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                           Starting common cleanup              |
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                        Starting subsection disconnect          |
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: The result of subsection disconnect is => PASSED
+%AETEST-INFO: The result of common cleanup is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                               Detailed Results                 |
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO:  SECTIONS/TESTCASES                                        RESULT
+%AETEST-INFO: ------------------------------------------------------------------
+%AETEST-INFO: .
+%AETEST-INFO: |-- common_setup                                            PASSED
+%AETEST-INFO: |   `-- connect                                             PASSED
+%AETEST-INFO: |-- LocalOSPFTestcase                                       PASSED
+%AETEST-INFO: |   |-- setup                                               PASSED
+%AETEST-INFO: |   |-- check_unique_rid                                    PASSED
+%AETEST-INFO: |   |-- check_areas                                         PASSED
+%AETEST-INFO: |   |-- check_interfaces                                    PASSED
+%AETEST-INFO: |   |-- check_neighbors_state                               PASSED
+%AETEST-INFO: |   |-- check_neighbors_count_nonspines                     PASSED
+%AETEST-INFO: |   |-- check_neighbors_count_spines                        PASSED
+%AETEST-INFO: |   `-- cleanup                                             PASSED
+%AETEST-INFO: |-- LocalBGPTestcase                                        PASSED
+%AETEST-INFO: |   |-- setup                                               PASSED
+%AETEST-INFO: |   |-- check_same_asn                                      PASSED
+%AETEST-INFO: |   |-- check_prefix_count_leaf                             PASSED
+%AETEST-INFO: |   |-- check_prefix_count_rr                               PASSED
+%AETEST-INFO: |   `-- cleanup                                             PASSED
+%AETEST-INFO: `-- common_cleanup                                          PASSED
+%AETEST-INFO:     `-- disconnect                                          PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                                   Summary                      |
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO:  Number of ABORTED                                              0
+%AETEST-INFO:  Number of BLOCKED                                              0
+%AETEST-INFO:  Number of ERRORED                                              0
+%AETEST-INFO:  Number of FAILED                                               0
+%AETEST-INFO:  Number of PASSED                                               4
+%AETEST-INFO:  Number of PASSX                                                0
+%AETEST-INFO:  Number of SKIPPED                                              0
+%AETEST-INFO:  Total Number                                                   4
+%AETEST-INFO:  Success Rate                                              100.0%
+%AETEST-INFO: ------------------------------------------------------------------
+(pyats) [root@devbox ls_pyats]# echo $?
+0
+\end{minted}
+
+Recall that tests within a test case are independent. Defining a larger number
+of small tests is an ideal approach to identify specific network problems. To
+illustrate this, we'll intentionally break OSPF\@. On R3, let's change the R5 peer
+interface to the broadcast network type. The OSPF neighbor between these routers
+will remain up and in a full state, so the neighbor-related test should pass.
+However, the interface-related test should fail.
+
+\begin{minted}{text}
+R3#show ip ospf neighbor | include ^Neighbor|10.0.0.5
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+10.0.0.5          0   FULL/  -        00:00:38    10.3.5.5        Ethernet0/2
+
+R3#show ip ospf interface Ethernet0/2 | include Type
+  Process ID 1, Router ID 10.0.0.3, Network Type POINT_TO_POINT, Cost: 10
+
+R3#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+R3(config)#interface Ethernet0/2
+R3(config-if)#ip ospf network broadcast
+R3(config-if)#end
+
+R3#show ip ospf interface Ethernet0/2 | include Type
+  Process ID 1, Router ID 10.0.0.3, Network Type BROADCAST, Cost: 10
+
+R3#show ip ospf neighbor | include ^Neighbor|10.0.0.5
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+10.0.0.5          1   FULL/DR         00:00:39    10.3.5.5        Ethernet0/2
+\end{minted}
+
+Simply rerun the \verb|validate.py| script to perform the post-change checks on
+the network. The output below is heavily shortened for brevity, focusing only on
+the key parts. Notice the return code is non-zero; this would allow any CI/CD
+systems to properly report a failure to indicate a malfunctioning network.
+
+\begin{minted}{text}
+(pyats) [root@devbox ls_pyats]# python validate.py -t testbed.yml
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                            Starting common setup               |
+%AETEST-INFO: +----------------------------------------------------------------+
+(snip, setup continues without error)
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                      Starting section check_interfaces         |
+%AETEST-INFO: +----------------------------------------------------------------+
+%TEST_PROJECT-INFO: R1
+%TEST_PROJECT-INFO: Ethernet0/0
+%TEST_PROJECT-INFO: Ethernet0/1
+%TEST_PROJECT-INFO: R2
+%TEST_PROJECT-INFO: Ethernet0/0
+%TEST_PROJECT-INFO: Ethernet0/1
+%TEST_PROJECT-INFO: R3
+%TEST_PROJECT-INFO: Ethernet0/0
+%TEST_PROJECT-INFO: Ethernet0/1
+%TEST_PROJECT-INFO: Ethernet0/2
+%AETEST-WARNING: Caught an assertion failure in section check_interfaces:
+%AETEST-WARNING: Traceback (most recent call last):
+%AETEST-WARNING:   File (snip)/ospf_test.py, line 76, in check_interfaces
+%AETEST-WARNING:     assert attrs["interface_type"] == "point-to-point"
+%AETEST-WARNING: AssertionError
+%AETEST-INFO: The result of section check_interfaces is => FAILED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                    Starting section check_neighbors_state      |
+%AETEST-INFO: +----------------------------------------------------------------+
+(snip, tests and cleanup continue without error)
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                               Detailed Results                 |
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO:  SECTIONS/TESTCASES                                        RESULT
+%AETEST-INFO: ------------------------------------------------------------------
+%AETEST-INFO: .
+%AETEST-INFO: |-- common_setup                                            PASSED
+%AETEST-INFO: |   `-- connect                                             PASSED
+%AETEST-INFO: |-- LocalOSPFTestcase                                       FAILED
+%AETEST-INFO: |   |-- setup                                               PASSED
+%AETEST-INFO: |   |-- check_unique_rid                                    PASSED
+%AETEST-INFO: |   |-- check_areas                                         PASSED
+%AETEST-INFO: |   |-- check_interfaces                                    FAILED
+%AETEST-INFO: |   |-- check_neighbors_state                               PASSED
+%AETEST-INFO: |   |-- check_neighbors_count_nonspines                     PASSED
+%AETEST-INFO: |   |-- check_neighbors_count_spines                        PASSED
+%AETEST-INFO: |   `-- cleanup                                             PASSED
+%AETEST-INFO: |-- LocalBGPTestcase                                        PASSED
+%AETEST-INFO: |   |-- setup                                               PASSED
+%AETEST-INFO: |   |-- check_same_asn                                      PASSED
+%AETEST-INFO: |   |-- check_prefix_count_leaf                             PASSED
+%AETEST-INFO: |   |-- check_prefix_count_rr                               PASSED
+%AETEST-INFO: |   `-- cleanup                                             PASSED
+%AETEST-INFO: `-- common_cleanup                                          PASSED
+%AETEST-INFO:     `-- disconnect                                          PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                                   Summary                      |
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO:  Number of ABORTED                                              0
+%AETEST-INFO:  Number of BLOCKED                                              0
+%AETEST-INFO:  Number of ERRORED                                              0
+%AETEST-INFO:  Number of FAILED                                               1
+%AETEST-INFO:  Number of PASSED                                               3
+%AETEST-INFO:  Number of PASSX                                                0
+%AETEST-INFO:  Number of SKIPPED                                              0
+%AETEST-INFO:  Total Number                                                   4
+%AETEST-INFO:  Success Rate                                               75.0%
+%AETEST-INFO: ------------------------------------------------------------------
+(pyats) [root@devbox ls_pyats]# echo $?
+1
+\end{minted}
+
+Leaving OSPF broken, let's intentionally break BGP next. R1's BGP configuration
+is shown below, and both leaves are removed as route-reflect clients. R1 is now
+unable to advertise iBGP-learned routes between these two leaves. Note that
+R1's BGP summary table does not indicate any obvious problems because R1 is
+still receiving the correct number of routes from each leaf.
+
+\begin{minted}{text}
+R1#show running-config | section router bgp
+router bgp 65000
+ template peer-session IBGP
+  remote-as 65000
+  update-source Loopback0
+ exit-peer-session
+ !
+ bgp router-id 10.0.0.1
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ neighbor 10.0.0.5 inherit peer-session IBGP
+ neighbor 10.0.0.6 inherit peer-session IBGP
+ !
+ address-family ipv4
+  neighbor 10.0.0.5 activate
+  neighbor 10.0.0.5 route-reflector-client
+  neighbor 10.0.0.6 activate
+  neighbor 10.0.0.6 route-reflector-client
+ exit-address-family
+
+R1#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#router bgp 65000
+R1(config-router)#address-family ipv4
+R1(config-router-af)#no neighbor 10.0.0.5 route-reflector-client
+R1(config-router-af)#no neighbor 10.0.0.6 route-reflector-client
+R1(config-router-af)#end
+
+R1#show bgp ipv4 unicast summary | begin ^Neighbor
+Neighbor    V       AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
+10.0.0.5    4    65000      68      71       24    0    0 00:58:34        5
+10.0.0.6    4    65000       7       5       24    0    0 00:00:12        6
+\end{minted}
+
+Although the misconfiguration exists on R1, the failure should be detected on R5
+and R6 (technically only R5 in our design because it comes first)
+when the script asserts that a route-reflector client (leaf) receives the exact
+same number of routes from each router-reflector. It takes real networking
+experience and expertise to interpret test results, so be sure that you
+understand your network architecture before hypothesizing about faults.
+
+\begin{minted}{text}
+R5#show bgp ipv4 unicast summary | begin ^Neighbor
+Neighbor    V       AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
+10.0.0.1    4    65000       7       7      114    0    0 00:01:36        0
+10.0.0.2    4    65000      88      85      114    0    0 01:13:51        6
+
+R6#show bgp ipv4 unicast summary | begin ^Neighbor
+Neighbor    V       AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
+10.0.0.1    4    65000       2       6       17    0    0 00:00:05        0
+10.0.0.2    4    65000       8       7       17    0    0 00:01:44        5
+\end{minted}
+
+Rerunning the script, we see two failures. The preexisting and independent OSPF
+interface misconfiguration still exists and continues to be reported correctly.
+The new BGP misconfiguration is also detected on R5 as previously explained. It
+is possible to design a more complex and dynamic looping mechanism whereby one
+router failing does not prevent the script from checking the remaining routers,
+which could be useful in this case. This is an advanced topic not covered here.
+
+\begin{minted}{text}
+(pyats) [root@devbox ls_pyats]# python validate.py -t testbed.yml
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                            Starting common setup               |
+%AETEST-INFO: +----------------------------------------------------------------+
+(snip, setup continues without error)
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                   Starting section check_prefix_count_leaf     |
+%AETEST-INFO: +----------------------------------------------------------------+
+%TEST_PROJECT-INFO: R5
+%TEST_PROJECT-INFO: 10.0.0.1: 0
+%TEST_PROJECT-INFO: 10.0.0.2: 6
+%AETEST-WARNING: Caught an assertion failure in section check_prefix_count_leaf:
+%AETEST-WARNING: Traceback (most recent call last):
+%AETEST-WARNING:   File (snip)/bgp_test.py, line 80, in check_prefix_count_leaf
+%AETEST-WARNING:     assert len(pfx_set) == 1
+%AETEST-WARNING: AssertionError
+%AETEST-INFO: The result of section check_prefix_count_leaf is => FAILED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                    Starting section check_prefix_count_rr      |
+%AETEST-INFO: +----------------------------------------------------------------+
+(snip, tests continue without error)
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                               Detailed Results                 |
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO:  SECTIONS/TESTCASES                                        RESULT
+%AETEST-INFO: ------------------------------------------------------------------
+%AETEST-INFO: .
+%AETEST-INFO: |-- common_setup                                            PASSED
+%AETEST-INFO: |   `-- connect                                             PASSED
+%AETEST-INFO: |-- LocalOSPFTestcase                                       FAILED
+%AETEST-INFO: |   |-- setup                                               PASSED
+%AETEST-INFO: |   |-- check_unique_rid                                    PASSED
+%AETEST-INFO: |   |-- check_areas                                         PASSED
+%AETEST-INFO: |   |-- check_interfaces                                    FAILED
+%AETEST-INFO: |   |-- check_neighbors_state                               PASSED
+%AETEST-INFO: |   |-- check_neighbors_count_nonspines                     PASSED
+%AETEST-INFO: |   |-- check_neighbors_count_spines                        PASSED
+%AETEST-INFO: |   `-- cleanup                                             PASSED
+%AETEST-INFO: |-- LocalBGPTestcase                                        FAILED
+%AETEST-INFO: |   |-- setup                                               PASSED
+%AETEST-INFO: |   |-- check_same_asn                                      PASSED
+%AETEST-INFO: |   |-- check_prefix_count_leaf                             FAILED
+%AETEST-INFO: |   |-- check_prefix_count_rr                               PASSED
+%AETEST-INFO: |   `-- cleanup                                             PASSED
+%AETEST-INFO: `-- common_cleanup                                          PASSED
+%AETEST-INFO:     `-- disconnect                                          PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                                   Summary                      |
+%AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO:  Number of ABORTED                                              0
+%AETEST-INFO:  Number of BLOCKED                                              0
+%AETEST-INFO:  Number of ERRORED                                              0
+%AETEST-INFO:  Number of FAILED                                               2
+%AETEST-INFO:  Number of PASSED                                               2
+%AETEST-INFO:  Number of PASSX                                                0
+%AETEST-INFO:  Number of SKIPPED                                              0
+%AETEST-INFO:  Total Number                                                   4
+%AETEST-INFO:  Success Rate                                               50.0%
+%AETEST-INFO: ------------------------------------------------------------------
+(pyats) [root@devbox ls_pyats]# echo $?
+1
+\end{minted}
+
+In summary, pyATS (aetest specifically) and Genie powerfully combine to offer a
+flexible and comprehensive test framework for network configuration, validation,
+and troubleshooting. The framework is heavier and more complex than Ansible and
+Nornir but brings more intrinsic capability.
