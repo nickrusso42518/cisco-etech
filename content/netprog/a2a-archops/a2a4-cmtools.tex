@@ -3329,7 +3329,52 @@ plan for this sample network is as follows:
   \item Cleanup: disconnect from all devices
 \end{enumerate}
 
-The first step is to create a pyATS testbed, which is comparable to an Ansible
+Because pyATS is such a large project, engineers have the option of installing
+only the core functionality, the full functionality, or a subset between these
+two extremes. The example below installs all pyATS features, along with Genie,
+and you can see it's quite a long package list.
+
+\begin{minted}{text}
+(pyats) [root@devbox ls_pyats]# cat requirements.txt
+pyats[full]
+genie
+
+(pyats) [root@devbox ls_pyats]# pip install -r requirements.txt
+Collecting pyats[full]
+  Using cached pyats-21.9-cp37-cp37m-manylinux1_x86_64.whl (2.7 MB)
+Collecting genie
+  Using cached genie-21.9-cp37-cp37m-manylinux1_x86_64.whl (21.0 MB)
+Collecting pyats.aetest<21.10.0,>=21.9.0
+  Using cached pyats.aetest-21.9-cp37-cp37m-manylinux1_x86_64.whl (5.8 MB)
+Collecting pyats.async<21.10.0,>=21.9.0
+  Using cached pyats.async-21.9-cp37-cp37m-manylinux1_x86_64.whl (559 kB)
+(snip)
+Successfully installed PrettyTable-2.2.1 aiofiles-0.7.0 aiohttp-3.7.4.post0
+aiohttp-swagger-1.0.15 arrow-1.2.0 async-lru-1.0.2 async-timeout-3.0.1
+attrs-21.2.0 backports.ssl-0.0.9 binaryornot-0.4.4 certifi-2021.10.8
+cffi-1.15.0 chardet-4.0.0 charset-normalizer-2.0.7 click-8.0.3
+cookiecutter-1.7.3 cryptography-35.0.0 dill-0.3.4 distro-1.6.0 genie-21.9
+genie.libs.clean-21.9.3 genie.libs.conf-21.9 genie.libs.filetransferutils-21.9
+genie.libs.health-21.9.1 genie.libs.ops-21.9 genie.libs.parser-21.9
+genie.libs.robot-21.9 genie.libs.sdk-21.9 genie.telemetry-21.9
+genie.trafficgen-21.9 idna-3.3 importlib-metadata-4.8.1 ixnetwork-9.0.1915.16
+ixnetwork-restpy-1.1.2 jinja2-2.11.3 jinja2-time-0.2.0 jsonpickle-2.0.0
+junit-xml-1.9 markupsafe-1.1.1 multidict-5.2.0 netaddr-0.8.0 pathspec-0.9.0
+poyo-0.5.0 psutil-5.8.0 pyats-21.9 pyats.aereport-21.9 pyats.aetest-21.9
+pyats.async-21.9 pyats.connections-21.9 pyats.contrib-21.9
+pyats.datastructures-21.9 pyats.easypy-21.9 pyats.kleenex-21.9 pyats.log-21.9
+pyats.reporter-21.9 pyats.results-21.9 pyats.robot-21.9 pyats.tcl-21.9
+pyats.topology-21.9 pyats.utils-21.9 pycparser-2.20 pyftpdlib-1.5.6
+pyopenssl-21.0.0 python-dateutil-2.8.2 python-engineio-3.14.2
+python-slugify-5.0.2 python-socketio-4.6.1 pyyaml-6.0 requests-2.26.0
+requests-toolbelt-0.9.1 robotframework-4.1.2 ruamel.yaml-0.17.16
+ruamel.yaml.clib-0.2.6 six-1.16.0 text-unidecode-1.3 tftpy-0.8.0 tqdm-4.62.3
+typing-extensions-3.10.0.2 unicon-21.9 unicon.plugins-21.9 urllib3-1.26.7
+wcwidth-0.2.5 websocket-client-1.2.1 wheel-0.37.0 xlrd-1.2.0 xlsxwriter-3.0.1
+xlwt-1.3.0 xmltodict-0.12.0 yamllint-1.26.3 yarl-1.7.0 zipp-3.6.0
+\end{minted}
+
+After installation, create a pyATS testbed, which is comparable to an Ansible
 or Nornir inventory. This is defined in YAML syntax and is self-explanatory
 for the most part. The testbed lacks an explicit grouping mechanism as is
 present in the aforementioned tools, but supports the concept of ``default''
@@ -3411,6 +3456,11 @@ connectivity of the network. This is irrelevant for the present example
 and is therefore omitted. In a production environment, it is recommended to
 define this topology so that pyATS knows ``what right looks like''.
 
+To dynamically populate the topology given a defined set of devices from a
+partial testbed, you can use one of the many open-source
+\href{https://github.com/CiscoTestAutomation/pyats.contrib/tree/master/src/pyats/contrib/creators}{creators}
+available through the \verb|contrib| subset of pyATS functionality.
+
 In addition to providing various Python-based test and parsing libraries
 for consumption in custom projects, a subset of pyATS functionality can be
 invoked by the CLI\@. With the testbed complete, it's wise to validate it
@@ -3469,7 +3519,7 @@ This indicates that pyATS is able to connect to each network device. The
 warnings indicate that the testbed does not contain any topology information,
 which is irrelevant for this demonstration. Other pyATS functionality is
 available from the CLI, such as \verb|parse|, \verb|learn|, and \verb|run|.
-these CLI options are not discussed in this document because they are
+These CLI options are not discussed in this document because they are
 inherently used within the Python project instead.
 
 When designing test cases, it's best to start by defining the common setup
@@ -3484,8 +3534,8 @@ pair of self-evident base classes. Then, programmers can define functions
 decorated with \verb|@aetest.subsection| to identify individual steps in the
 common setup and common teardown processes. The example classes below
 connect to and disconnect from the testbed. Note that the methods in the
-class take in the testbed object as a parameter and store it for future use
-within the class. Each class within the aetest project must do this. To better
+class take in the testbed object as a parameter. In order for everything to
+work, each class within the aetest project must do this. To better
 organize the project, the \verb|test_project/| directory contains all setup,
 cleanup, and test case code.
 
@@ -3521,17 +3571,14 @@ class LeafSpineCommonSetup(aetest.CommonSetup):
     def connect(self, testbed):
         """Connect to devices in testbed"""
 
-        self.testbed = testbed
-        self.testbed.connect(log_stdout=False)
-
+        testbed.connect(log_stdout=False)
 
 class LeafSpineCommonCleanup(aetest.CommonCleanup):
     @aetest.subsection
     def disconnect(self, testbed):
         """Disonnect from devices in testbed"""
 
-        self.testbed = testbed
-        self.testbed.disconnect(log_stdout=False)
+        testbed.disconnect(log_stdout=False)
 \end{minted}
 
 Next, define the test cases. Let's begin with OSPF, and note that each test
@@ -4057,6 +4104,79 @@ the script ensures that each set, has exactly one value.
             assert len(pfx_set) == 1
 \end{minted}
 
+The final test will ensure the BGP input and output queues are empty
+for each neighbor. When BGP is converging, these queues might fill up
+for short periods of time, but in a stable network, zero is the desired
+value. The \verb|self.data| attribute is a standard Python \verb|dict| that
+has been used in all of the testing thus far. The \verb|self.orig| attribute
+is a \verb|QDict| that inherits from \verb|dict|, providing a superset of
+functionality. Engineers can use the interactive \verb|pyats shell| command
+and pass in a testbed to quickly confirm this. The command starts up a
+Python interactive REPL and automatically loads the testbed specified,
+speeding up development and troubleshooting.
+
+\begin{minted}{text}
+(pyats) [root@devbox ls_pyats]# pyats shell --testbed testbed.yml
+Welcome to pyATS Interactive Shell
+==================================
+Python 3.7.3 (default, Sep  6 2019, 00:06:48)
+[GCC 4.8.5 20150623 (Red Hat 4.8.5-36)]
+
+>>> from pyats.topology.loader import load
+>>> testbed = load('testbed.yml')
+-------------------------------------------------------------------------------
+>>> r1 = testbed.devices["R1"]
+>>> r1.connect(log_stdout=False)
+>>> data = r1.parse("show bgp ipv4 unicast summary")
+>>> type(data)
+<class 'genie.conf.base.utils.QDict'>
+>>> isinstance(data, dict)
+True
+>>> (Control+D)
+now exiting InteractiveConsole...
+\end{minted}
+
+One powerful feature is the \verb|Dq()| function, made accessible by the
+\verb|q| attribute within the \verb|QDict| object. This enables faster
+dictionary traversal and provides mechanisms to match keys, values, or both.
+It also provides regular expression and comparative operator support for
+advanced filtering. The BGP message queue test demonstrates some features
+of \verb|Dq()| below. The input queue test uses the \verb|get_values()|
+method, which returns a list of values within the hierarchy for the given
+key. This test is type-agnostic; it is equally relevant for route-reflectors
+and their clients (leaves). That list of values, which should be a list of
+only zeroes, is converted to a set. After removing duplicates, the set
+should have a length of one, and the only value in the set should be zero.
+
+The exact same logic could be used for the output queue test, but it's
+more interesting to exercise a different technique. The \verb|value_operator()|
+method takes in a key name, operator, and operand. This specific example
+collects any output queue values greater than zero, and we expect this to
+return an empty list. Any non-empty result indicates a failure.
+
+\begin{minted}{python}
+    @aetest.test
+    def check_empty_queues(self):
+        """Ensure each router has no queued messages using Dq() feature"""
+
+        # Loop over original "parsed" data (unmodified Genie output)
+        for name, orig in self.orig.items():
+            self.logger.info(name)
+
+            # Query the for all input_queue values and convert to set
+            inq_set = set(orig.q.get_values("input_queue"))
+
+            # Set must have one element which is equal to 0 (no updates in InQ)
+            assert len(inq_set) == 1
+            assert inq_set.pop() == 0
+
+            # Query for all output_queue values greater than 0
+            outq_dq = orig.q.value_operator("output_queue", ">", 0)
+
+            # Nothing should be returned; a positive int means updates in OutQ
+            assert len(outq_dq) == 0
+\end{minted}
+
 The last step is to tie everything together. While it is possible to cram all
 of this code into a single Python module, it's cleaner and more manageable to
 use multiple files as displayed earlier. The final script has three main
@@ -4282,6 +4402,14 @@ returns code 0 to indicate success; more on return code processing later.
 %TEST_PROJECT-INFO: 10.0.0.6: 6
 %AETEST-INFO: The result of section check_prefix_count_rr is => PASSED
 %AETEST-INFO: +----------------------------------------------------------------+
+%AETEST-INFO: |                     Starting section check_empty_queues        |
+%AETEST-INFO: +----------------------------------------------------------------+
+%TEST_PROJECT-INFO: R1
+%TEST_PROJECT-INFO: R2
+%TEST_PROJECT-INFO: R5
+%TEST_PROJECT-INFO: R6
+%AETEST-INFO: The result of section check_empty_queues is => PASSED
+%AETEST-INFO: +----------------------------------------------------------------+
 %AETEST-INFO: |                           Starting section cleanup             |
 %AETEST-INFO: +----------------------------------------------------------------+
 %AETEST-INFO: The result of section cleanup is => PASSED
@@ -4316,6 +4444,7 @@ returns code 0 to indicate success; more on return code processing later.
 %AETEST-INFO: |   |-- check_same_asn                                      PASSED
 %AETEST-INFO: |   |-- check_prefix_count_leaf                             PASSED
 %AETEST-INFO: |   |-- check_prefix_count_rr                               PASSED
+%AETEST-INFO: |   |-- check_empty_queues                                  PASSED
 %AETEST-INFO: |   `-- cleanup                                             PASSED
 %AETEST-INFO: `-- common_cleanup                                          PASSED
 %AETEST-INFO:     `-- disconnect                                          PASSED
@@ -4421,6 +4550,7 @@ systems to properly report a failure to indicate a malfunctioning network.
 %AETEST-INFO: |   |-- check_same_asn                                      PASSED
 %AETEST-INFO: |   |-- check_prefix_count_leaf                             PASSED
 %AETEST-INFO: |   |-- check_prefix_count_rr                               PASSED
+%AETEST-INFO: |   |-- check_empty_queues                                  PASSED
 %AETEST-INFO: |   `-- cleanup                                             PASSED
 %AETEST-INFO: `-- common_cleanup                                          PASSED
 %AETEST-INFO:     `-- disconnect                                          PASSED
@@ -4552,6 +4682,7 @@ which could be useful in this case. This is an advanced topic not covered here.
 %AETEST-INFO: |   |-- check_same_asn                                      PASSED
 %AETEST-INFO: |   |-- check_prefix_count_leaf                             FAILED
 %AETEST-INFO: |   |-- check_prefix_count_rr                               PASSED
+%AETEST-INFO: |   |-- check_empty_queues                                  PASSED
 %AETEST-INFO: |   `-- cleanup                                             PASSED
 %AETEST-INFO: `-- common_cleanup                                          PASSED
 %AETEST-INFO:     `-- disconnect                                          PASSED
