@@ -64,7 +64,7 @@ understood by Cisco.
   server. Puppet manifests are used as data structures to track node state and
   display this state to the network operators. Puppet is not commonly used for
   managing Cisco devices as most Cisco products, at the time of this writing,
-  do not support the Puppet agent. The follow products support Puppet today:
+  do not support the Puppet agent. The following products support Puppet today:
 
   \begin{enumerate}
     \item Cisco Nexus 7000 and 7700 switches running NX-OS \verb|7.3(0)D1(1)| or later
@@ -91,8 +91,8 @@ understood by Cisco.
   recipes are specific to Chef (hence the name) which contribute to a
   hierarchical data structure management system. A Chef cookbook is loosely
   equivalent to a Puppet manifest. Like Puppet, Chef is not commonly used to
-  manage Cisco devices due to requiring the installation of an agent. Below is
-  a list of supported platforms that support being managed by Chef:
+  manage Cisco devices due to requiring the installation of an agent.
+  The following products support Chef today:
 
   \begin{enumerate}
     \item Cisco Nexus 7000 and 7700 switches running NX-OS \verb|7.3(0)D1(1)| or later
@@ -377,7 +377,7 @@ write operations, respectively, and falling back to \verb|netconf_rpc| for
 more customized actions if the wrapper modules don't work.
 
 Presumably, readers already have some familiarity with Ansible at this point, so
-I won't explain every detail. The variables file contains a list of VRFs that
+some details are omitted. The variables file contains a list of VRFs that
 should exist on a target router, such as an MPLS provider edge (PE). Each item
 in the list is a dictionary, which contains two keys of interest,
 \verb|route_import| and \verb|route_export|. These are lists of strings where
@@ -1114,7 +1114,7 @@ results across all hosts. Each host is referenced by hostname as a dictionary
 key, which returns a \verb|MultiResult| object. This is a list-like structure
 which can be indexed by integer, iterated over, sliced, etc. The elements of
 these lists are \verb|Result| objects which contain extra interesting data
-that is be accessible from a given task. This extra interesting data is
+that is accessible from a given task. This extra interesting data is
 wrapped in a dictionary which is accessible through the \verb|result|
 attribute of the object, NOT indexable as a dictionary key. The pseudo-YAML
 below is slightly more accurate in showing the object structure used for
@@ -2222,7 +2222,7 @@ the emulations begin. In some environments, Batfish alone may be adequate to
 determine the validity of a network, depending on the organizational goals.
 
 The public documentation for Batfish is clear and concise. This demonstration
-focuses primary on Batfish with Python using \verb|pybatfish|, linked
+focuses primarily on Batfish with Python using \verb|pybatfish|, linked
 \href{https://pybatfish.readthedocs.io/en/latest/}{here}. The first several
 steps are straightforward and leverage technologies discussed elsewhere in
 this book, such as Python virtual environments and Docker containers. After
